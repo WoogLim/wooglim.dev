@@ -11,7 +11,7 @@ import {
   AuthorLink,
 } from "./PostLayout.style";
 import GiscusBox from "../components/giscus/giscus";
-import { PostType } from "../lib/postApi"
+import { PostType } from "../lib/postApi";
 
 type PostsProps = {
   post: PostType;
@@ -28,7 +28,10 @@ export const PostLayout = ({ post }: PostsProps) => {
           </AuthorImage>
           <AuthorInfo>
             <AuthorName>{post.author.name}</AuthorName>
-            <PostDate>{post.date}</PostDate>
+            <PostDate>
+              2022. 05 .26
+              {/* {post.date} */}
+            </PostDate>
           </AuthorInfo>
           <AuthorLinks>
             <AuthorLink href="https://github.com/team-Twilight/TwilightBlog">
@@ -43,7 +46,7 @@ export const PostLayout = ({ post }: PostsProps) => {
           <h2>{post.title}</h2>
           {post.content}
         </ContentsWrap>
-        <GiscusBox slug={post.slug}/>
+        <GiscusBox slug={post.slug} />
       </SectionWrap>
     </SectionContainer>
   );
