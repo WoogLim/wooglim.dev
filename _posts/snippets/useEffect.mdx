@@ -1,0 +1,10 @@
+---
+name: "useEffect()"
+description: "Using the Effect Hook"
+category: "react"
+update: "2022. 05. 26"
+---
+
+React의 class 컴포넌트에서 render 메서드 그 자체는 side effect를 발생시키지 않습니다. 이때는 아직 이른 시기로서 이러한 effect를 수행하는 것은 React가 DOM을 업데이트하고 난 이후입니다.
+
+React class에서 side effect를 componentDidMount와 componentDidUpdate에 두는 것이 바로 이 때문입니다. 예시로 돌아와서 React가 DOM을 바꾸고 난 뒤 문서 타이틀을 업데이트하는 React counter 클래스 컴포넌트를 봅시다.
