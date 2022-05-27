@@ -6,5 +6,8 @@ module.exports = {
   theme: {
     extend: {},
   },
-  plugins: [],
+  plugins: [require("@tailwindcss/typography")],
+  purge: ["./components/posts/*.tsx", "./pages/**/[slug].tsx"],
+  variants: {},
+  darkMode: false,
 };

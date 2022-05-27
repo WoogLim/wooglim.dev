@@ -42,8 +42,8 @@ export const Thumnail = styled.img`
   box-sizing: border-box;
 
   width: 180px;
-  height: 110px;
-  object-fit: contain;
+  height: 120px;
+  object-fit: cover;
   overflow: hidden;
   border-radius: 1rem;
   order: 1;
@@ -72,8 +72,8 @@ export const SummarySub = styled.p`
 
   ${textStyle}
   font-weight: 500;
-  font-size: 16px;
-  line-height: 22px;
+  font-size: 1rem;
+  line-height: 1.4rem;
 
   text-overflow: ellipsis;
   overflow: hidden;

@@ -8,17 +8,26 @@ import {
   PostItemDate,
 } from "./PostItem.style";
 
-export const PostItem = () => {
+import { PostI } from "../../../../types/post";
+import Link from "next/link";
+
+type Props = {
+  post: PostI;
+};
+
+export const PostItem = ({ post }: Props) => {
   return (
-    <PostItemWrap>
-      <Contents>
-        <Summary>
-          <SummaryTitle>도커 : 컨테이너 기초부터 서버 배포까지.</SummaryTitle>
-          <SummarySub>도커는 가상머신의 역할을 넘어서 어느 플랫폼에서나 특정한 상태를 그대로 재현가능한 애플리케이션이다. </SummarySub>
-          <PostItemDate>April 19 · 2022</PostItemDate>
-        </Summary>
-      </Contents>
-      <Thumnail src="https://dummyimage.com/180x110" />
-    </PostItemWrap>
+    <Link href={`/posts/${post.slug}`}>
+      <PostItemWrap>
+        <Contents>
+          <Summary>
+            <SummaryTitle>{post.title}</SummaryTitle>
+            <SummarySub>{post.description}</SummarySub>
+            <PostItemDate>{post.date}</PostItemDate>
+          </Summary>
+        </Contents>
+        <Thumnail src={post.thumbnail} />
+      </PostItemWrap>
+    </Link>
   );
 };

@@ -11,10 +11,12 @@
   "dependencies": {
     "@emotion/react": "^11.9.0",
     "@emotion/styled": "^11.8.1",
-    "@next/mdx": "^12.1.6",
     "@giscus/react": "^1.0.1",
+    "@next/mdx": "^12.1.6",
+    "@tailwindcss/typography": "^0.5.2",
     "gray-matter": "^4.0.3",
     "next": "12.1.6",
+    "next-mdx-remote": "^4.0.3",
     "react": "18.1.0",
     "react-dom": "18.1.0",
     "remark": "^14.0.2",

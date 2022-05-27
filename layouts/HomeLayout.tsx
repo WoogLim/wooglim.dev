@@ -1,4 +1,5 @@
-import { PostItem } from "./PostItem/PostItem";
+import { PostItem } from "../components/home/Section/PostItem/PostItem";
+import { PostI } from "../types/post";
 import {
   SectionContainer,
   SectionWrap,
@@ -6,19 +7,22 @@ import {
   StatusWrap,
   SectionTitle,
   PostArticle,
-} from "./Section.style";
+} from "./HomeLayout.style";
 
-export const Section = () => {
+type Props = {
+  posts: [PostI];
+};
+
+export const HomeSection = ({ posts }: Props) => {
   return (
     <SectionContainer>
       <SectionWrap>
         <PostWrap>
           <SectionTitle>RECENTLY POSTED</SectionTitle>
           <PostArticle>
-              <PostItem/>
-              <PostItem/>
-              <PostItem/>
-              <PostItem/>
+            {posts.map((post) => (
+              <PostItem post={post} key={post.slug} />
+            ))}
           </PostArticle>
         </PostWrap>
         <StatusWrap>

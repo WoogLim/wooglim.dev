@@ -1,13 +1,14 @@
 ---
+date: "2022-05-24"
+thumbnail: "https://user-images.githubusercontent.com/51357635/169959004-6fbc2e76-80af-4d11-bfda-36b04b982b76.png"
 title: "spring 경험자의 nest.js 패턴 분석"
-excerpt: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Praesent elementum facilisis leo vel fringilla est ullamcorper eget. At imperdiet dui accumsan sit amet nulla facilities morbi tempus."
-coverImage: "https://user-images.githubusercontent.com/51357635/169959004-6fbc2e76-80af-4d11-bfda-36b04b982b76.png"
-date: "2020-03-17T05:35:07.322Z"
-author:
-    name: "Kaydo"
-    picture: "https://avatars.githubusercontent.com/u/49367014?v=4"
-ogImage:
-    url: "/assets/blog/hello-world/cover.jpg"
+description: "Nest(NestJS)는 효율적이고 확장 가능한 Node.js 서버 측 애플리케이션을 구축하기 위한 프레임워크입니다. 프로그레시브 JavaScript를 사용하고 TypeScript 로 구축되고 완벽하게 지원하며 (그러나 여전히 개발자가 순수 JavaScript로 코딩할 수 있음) OOP(객체 지향 프로그래밍), FP(기능 프로그래밍) 및 FRP(기능 반응 프로그래밍)의 요소를 결합합니다."
+prerequisites:
+  [
+    "Node.js installed on your computer",
+    "Basic knowledge working with Next.js and TypeScript",
+  ]
+stacks: ["Next.js", "TypeScript", "Git"]
 ---
 
 Java에는 Spring이 있고 Python에는 Django가 있다면 Node에는 NestJS가 있습니다! 프로페셔널한 Node의 백엔드 NestJS와 Node 객체지향 프로그래밍 및 디자인 패턴을 배우세요! 이 강좌는 멤버십 구독 강좌이며 한 번 구매하면 계속 추가되는 NestJS의 테크닉, DB, 테스팅 등 강의를 수강할 수 있습니다.
@@ -19,3 +20,34 @@ Venenatis cras sed felis eget velit. Consectetur libero id faucibus nisl tincidu
 ## Lorem Ipsum
 
 Tristique senectus et netus et malesuada fames ac turpis. Ridiculous mus mauris vitae ultricies leo integer malesuada nunc vel. In mollis nunc sed id semper. Egestas tellus rutrum tellus pellentesque. Phasellus vestibulum lorem sed risus ultricies tristique nulla. Quis blandit turpis cursus in hac habitasse platea dictumst quisque. Eros donec ac odio tempor orci dapibus ultrices. Aliquam sem et tortor consequat id porta nibh. Adipiscing elit duis tristique sollicitudin nibh sit amet commodo nulla. Diam vulputate ut pharetra sit amet. Ut tellus elementum sagittis vitae et leo. Arcu non odio euismod lacinia at quis risus sed vulputate.
+
+```js
+// 09-26
+var elem = null;
+
+//elem이 null 또는 undefined이면 undefined를 반환하고, 그렇지 않으면 우항의 프로퍼티 참조를 이어간다.
+var value = elem?.value;
+console.log(value); // undefiend
+
+var elem = null;
+
+// elem이 Falsy 값이면 elem으로 평가되고, elem이 Truthy 값이면 elem.value로 평가된다./
+var value = elem && elem.value;
+console.log(value); // null
+
+var str = "";
+
+// 문자열의 길이(length)를 참조한다.
+var length = str && str.length;
+
+// 문자열의 길이(length)를 참조하지 못한다.
+console.log(length); // ''
+
+// 09-29
+var str = "";
+
+// 문자열의 길이(length)를 참조한다. 이때 좌항 피연산자가 false로 평가되는 Falsy 값이라도
+// null 또는 undefined가 아니면 우항의 프로퍼티 참조를 이어간다.
+var length = str?.length;
+console.log(length); //0
+```

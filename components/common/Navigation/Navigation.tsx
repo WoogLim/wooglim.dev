@@ -8,7 +8,7 @@ import {
   HomeButton,
 } from "./Navigation.style";
 
-export const Navigation = () => {
+export const Navigation: React.FC = () => {
   return (
     <NavBar>
       <HomeButton>
