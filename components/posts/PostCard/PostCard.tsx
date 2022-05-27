@@ -1,6 +1,5 @@
 import Link from "next/link";
-import { PostType } from "../../../lib/postApi";
-
+import { PostI } from "../../../types/post";
 import {
   PostCard,
   PostThumnail,
@@ -11,7 +10,7 @@ import {
 } from "./PostCard.style";
 
 type PostsProps = {
-  post: PostType;
+  post: PostI;
 };
 
 export const PostCardItem = ({ post }: PostsProps) => {
@@ -20,11 +19,11 @@ export const PostCardItem = ({ post }: PostsProps) => {
       <PostCard>
         <PostThumnail>
             {/* 배포시 Image 태그로 변경 필요 height: 180 */}
-            <img src={post.coverImage} alt="" />
+            <img src={post.thumbnail}/>
         </PostThumnail>
         <PostTitle>{post.title}</PostTitle>
         <PostSubtude>
-          {post.content}
+          {post.description}
         </PostSubtude>
         
         <PostAuthor>

@@ -13,7 +13,6 @@ type Props = {
 };
 
 const Home: NextPage<Props> = ({ posts }: Props) => {
-  console.log(posts);
   return (
     <div className="container">
       <Header />

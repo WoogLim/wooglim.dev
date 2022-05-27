@@ -12,8 +12,10 @@ import {
   PostList
 } from "./PostListLayout.style";
 
+import { PostI } from "../types/post";
+
 type PostIndexProps = {
-  posts: PostType[];
+  posts: [PostI];
 };
 
 export const PostListLayout = ({ posts }: PostIndexProps) => {

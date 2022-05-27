@@ -17,7 +17,7 @@ type Props = {
 
 export const PostItem = ({ post }: Props) => {
   return (
-    <Link href={`/posts/${post.slug}`}>
+    <Link href={`/post/${post.slug}`}>
       <PostItemWrap>
         <Contents>
           <Summary>

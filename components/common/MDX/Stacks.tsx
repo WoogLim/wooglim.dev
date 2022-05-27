@@ -1,6 +1,6 @@
 import { useMdxComponentsContext } from "../../../context/mdxContext";
 
-export const Stacks: React.FC = () => {
+const Stacks: React.FC = () => {
     const stacks = useMdxComponentsContext().stacks;
     return (
         <>
@@ -13,3 +13,5 @@ export const Stacks: React.FC = () => {
         </>
     )
 }
+
+export default Stacks;

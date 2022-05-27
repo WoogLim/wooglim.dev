@@ -18,7 +18,7 @@ export const AuthorCard = () => {
     <AuthorCardWrap>
       <Card>
         <AuthorProfile>
-          <AuthorImage src="https://dummyimage.com/90x90" />
+          <AuthorImage src="https://avatars.githubusercontent.com/u/51357635?s=400&u=36fd01b69ccd7729620c086927f9c0847ffdb0e1&v=4" />
           <AuthorInfo>
             <AuthroName>WoogLim</AuthroName>
             <AuthroJob>Backend Developer</AuthroJob>

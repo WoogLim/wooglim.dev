@@ -1,19 +1,13 @@
 import React from "react";
-import Link from "next/link";
-import markdownToHtml from "../../lib/markdownToHtml";
-import {
-  getAllPosts,
-  getPostSlugs,
-  postsDirectory,
-  PostType,
-} from "../../lib/postApi";
+import { getAllPosts } from "../../lib/PostMdxLib";
+import { PostI } from "../../types/post";
 // Layout
 import { Bottom } from "../../components/common/Bottom/Bottom";
 import { Header } from "../../components/common/Header/Header";
 import { PostListLayout } from "../../layouts/PostListLayout";
 
 type PostIndexProps = {
-  posts: PostType[];
+  posts: [PostI];
 };
     
 const Index: React.FC<PostIndexProps> = ({ posts }) => {
@@ -27,33 +21,16 @@ const Index: React.FC<PostIndexProps> = ({ posts }) => {
   );
 };
 
-// export const getServerSideProps = async () => {
-//     console.log(postsDirectory);
-//     console.log(getPostSlugs());
-//     return {
-//         props: {
-//             umm: "aaa",
-//         },
-//     };
-// };
-
 export const getStaticProps = async () => {
   const posts = getAllPosts([
-    "author",
     "title",
-    "date",
     "slug",
-    "author",
-    "content",
-    "ogImage",
-    "coverImage",
+    "date",
+    "description",
+    "thumbnail"
   ]);
-  // const content = await markdownToHtml(posts)
-  return {
-    props: {
-      posts: posts,
-    },
-  };
+
+  return { props: { posts } };
 };
 
 export default Index;

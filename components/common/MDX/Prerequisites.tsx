@@ -1,6 +1,6 @@
 import { useMdxComponentsContext } from "../../../context/mdxContext";
 
-export const Prerequisites: React.FC = () => {
+const Prerequisites: React.FC = () => {
     const prerequisites = useMdxComponentsContext().prerequisites;
     return (
         <>
@@ -13,3 +13,5 @@ export const Prerequisites: React.FC = () => {
         </>
     )
 }
+
+export default Prerequisites;

@@ -8,6 +8,4 @@ module.exports = {
   },
   plugins: [require("@tailwindcss/typography")],
   purge: ["./components/posts/*.tsx", "./pages/**/[slug].tsx"],
-  variants: {},
-  darkMode: false,
 };

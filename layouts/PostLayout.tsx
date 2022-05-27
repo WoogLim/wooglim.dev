@@ -1,52 +1,21 @@
+import React from "react";
 import {
   SectionContainer,
   SectionWrap,
-  AuthorCard,
   ContentsWrap,
-  AuthorImage,
-  AuthorInfo,
-  AuthorName,
-  PostDate,
-  AuthorLinks,
-  AuthorLink,
 } from "./PostLayout.style";
-import GiscusBox from "../components/giscus/giscus";
-import { PostType } from "../lib/postApi";
 
-type PostsProps = {
-  post: PostType;
+type Props = {
+  children: React.ReactNode;
 };
 
-export const PostLayout = ({ post }: PostsProps) => {
+export const PostLayout = ({children} : Props ) => {
   return (
     <SectionContainer>
       <SectionWrap>
-        <AuthorCard>
-          <AuthorImage>
-            {/* 나중에 배포시 Image 태그로 변경할 것 */}
-            <img src={post.author.picture} />
-          </AuthorImage>
-          <AuthorInfo>
-            <AuthorName>{post.author.name}</AuthorName>
-            <PostDate>
-              2022. 05 .26
-              {/* {post.date} */}
-            </PostDate>
-          </AuthorInfo>
-          <AuthorLinks>
-            <AuthorLink href="https://github.com/team-Twilight/TwilightBlog">
-              <img src="https://dummyimage.com/40x40" alt="github" />
-            </AuthorLink>
-            <AuthorLink href="https://github.com/team-Twilight/TwilightBlog">
-              <img src="https://dummyimage.com/40x40" alt="github" />
-            </AuthorLink>
-          </AuthorLinks>
-        </AuthorCard>
         <ContentsWrap>
-          <h2>{post.title}</h2>
-          {post.content}
+          {children}
         </ContentsWrap>
-        <GiscusBox slug={post.slug} />
       </SectionWrap>
     </SectionContainer>
   );
