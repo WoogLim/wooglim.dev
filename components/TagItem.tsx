@@ -1,0 +1,1 @@
+import {} from "./TagItem.style";

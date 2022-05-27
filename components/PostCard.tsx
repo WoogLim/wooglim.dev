@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { PostI } from "../../../types/post";
+import { PostI } from "../types/post";
 import {
   PostCard,
   PostThumnail,

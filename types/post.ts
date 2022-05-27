@@ -4,6 +4,7 @@ export interface PostI {
   thumbnail: string;
   title: string;
   description: string;
+  tags: string[];
   prerequisites: string[];
   stacks: string[];
 }

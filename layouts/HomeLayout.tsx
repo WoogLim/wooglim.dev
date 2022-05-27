@@ -1,4 +1,4 @@
-import { PostItem } from "../components/home/Section/PostItem/PostItem";
+import { PostItem } from "../components/PostItem";
 import { PostI } from "../types/post";
 import {
   SectionContainer,

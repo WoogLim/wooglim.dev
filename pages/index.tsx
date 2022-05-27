@@ -5,7 +5,7 @@ import { PostI } from "../types/post";
 import { getAllPosts } from "../lib/PostMdxLib";
 
 import { Bottom } from "../components/common/Bottom/Bottom";
-import { Header } from "../components/home/Header/Header";
+import { Header } from "../components/Header";
 import { HomeSection } from "../layouts/HomeLayout";
 
 type Props = {
@@ -28,7 +28,8 @@ export const getStaticProps = async () => {
     "slug",
     "date",
     "description",
-    "thumbnail"
+    "thumbnail",
+    "tags",
   ]);
 
   return { props: { posts } };

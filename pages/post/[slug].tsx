@@ -1,20 +1,17 @@
 import { serialize } from "next-mdx-remote/serialize";
 import { GetStaticProps, GetStaticPaths } from "next";
-import { useEffect } from "react";
 import { MDXRemote, MDXRemoteSerializeResult } from "next-mdx-remote";
 
-import { useMdxComponentsContext } from "../../context/mdxContext";
 import { PostI } from "../../types/post";
 import { getPost, getAllPosts } from "../../lib/PostMdxLib";
-import Prerequisites from "../../components/common/MDX/Prerequisites";
 import { ParsedUrlQuery } from "querystring";
-import Stacks from "../../components/common/MDX/Stacks";
 
+import { TagItemList } from "../../components/TagItemList";
 import { Bottom } from "../../components/common/Bottom/Bottom";
 import { Header } from "../../components/common/Header/Header";
 import { PostLayout } from "../../layouts/PostLayout";
 
-import GiscusBox from "../../components/giscus/giscus";
+import GiscusBox from "../../components/giscus";
 
 // props type
 type Props = {
@@ -22,36 +19,19 @@ type Props = {
   frontMatter: Omit<PostI, "slug">;
 };
 
-// 컴포넌트 렌더
-const components = {
-  Prerequisites,
-  Stacks,
-};
-
 const PostPage: React.FC<Props> = ({ source, frontMatter }: Props) => {
-  // useState setter 가져오기
-  const { setPrerequisites, setStacks } = useMdxComponentsContext();
-
-  useEffect(() => {
-    // set prerequisites
-    setPrerequisites(frontMatter.prerequisites);
-    // set stacks
-    setStacks(frontMatter.stacks);
-  }, [
-    setPrerequisites,
-    setStacks,
-    frontMatter.prerequisites,
-    frontMatter.stacks,
-  ]);
 
   return (
     <>
       <Header />
       <PostLayout>
         <article className="prose max-w-none">
+          <TagItemList tags={frontMatter.tags}/>
+
+          <span>{frontMatter.date}</span>
           <h1>{frontMatter.title}</h1>
 
-          <MDXRemote components={components} {...source} />
+          <MDXRemote {...source} />
 
           <p>{frontMatter.description}</p>
         </article>
