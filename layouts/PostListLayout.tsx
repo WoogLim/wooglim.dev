@@ -1,5 +1,4 @@
 import { PostCardItem } from "../components/posts/PostCard/PostCard";
-import { PostType } from "../lib/postApi";
 
 import {
   PostsConatainer,
