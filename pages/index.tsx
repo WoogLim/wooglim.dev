@@ -13,6 +13,7 @@ type Props = {
 };
 
 const Home: NextPage<Props> = ({ posts }: Props) => {
+  console.log(posts);
   return (
     <div className="container">
       <Header />
@@ -24,6 +25,7 @@ const Home: NextPage<Props> = ({ posts }: Props) => {
 
 export const getStaticProps = async () => {
   const posts = getAllPosts([
+    "postnumber",
     "title",
     "slug",
     "date",

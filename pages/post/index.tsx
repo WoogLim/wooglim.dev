@@ -23,6 +23,7 @@ const Index: React.FC<PostIndexProps> = ({ posts }) => {
 
 export const getStaticProps = async () => {
   const posts = getAllPosts([
+    "postnumber",
     "title",
     "slug",
     "date",

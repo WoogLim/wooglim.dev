@@ -1,4 +1,5 @@
 export interface PostI {
+  postnumber: number;
   slug: string;
   date: string;
   thumbnail: string;
