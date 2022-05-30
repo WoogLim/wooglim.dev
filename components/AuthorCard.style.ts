@@ -13,6 +13,10 @@ export const AuthorCardWrap = styled.div`
   flex-direction: column;
   justify-content: flex-end;
   align-items: flex-end;
+
+  @media screen and (max-width: 678px) {
+    display:none;
+  }
 `;
 
 export const Card = styled.div`
@@ -30,6 +34,13 @@ export const Card = styled.div`
   border-radius: 30px;
   padding: 20px 20px 0 20px;
   gap: 20px;
+
+  @media screen and (max-width: 820px) {
+    width: 270px;
+    height: 186px;
+    gap: 12px;
+    padding: 4px 16px 0px 16px;
+  }
 `;
 
 export const AuthorProfile = styled.div`
@@ -49,6 +60,11 @@ export const AuthorImage = styled.img`
   object-fit: contain;
   overflow: hidden;
   border-radius: 100%;
+
+  @media screen and (max-width: 820px) {
+    width: 62px;
+    height: 62px;
+  }
 `;
 
 export const AuthorInfo = styled.div`
@@ -65,6 +81,11 @@ export const AuthroName = styled.p`
   font-size: 24px;
   line-height: 28px;
   font-weight: 700;
+
+  @media screen and (max-width: 820px) {
+    font-size: 1rem;
+    line-height: 1.2rem;
+  }
 `;
 
 export const AuthroJob = styled.p`
@@ -73,6 +94,11 @@ export const AuthroJob = styled.p`
   font-size: 20px;
   line-height: 24px;
   font-weight: 500;
+
+  @media screen and (max-width: 820px) {
+    font-size: 1rem;
+    line-height: 1.2rem;
+  }
 `;
 
 export const AuthorLink = styled.div`
@@ -89,15 +115,16 @@ export const AuthorInfoWrap = styled.div`
 `;
 
 export const AuthorLinkWrap = styled.div`
-  flex: 1;
   display: flex;
   flex-direction: row;
   justify-content: center;
+  align-items: center;
   gap: 0.5rem;
-  a {
-    &:hover {
-      cursor: pointer;
-    }
+  cursor: pointer;
+  height:60px;
+
+  @media screen and (max-width: 820px) {
+    height:50px;
   }
 `;
 
@@ -109,6 +136,11 @@ export const AuthorLinkImage = styled.img`
   object-fit: contain;
   overflow: hidden;
   border-radius: 100%;
+
+  @media screen and (max-width: 820px) {
+    width: 32px;
+    height: 32px;
+  }
 `;
 
 export const AuthorResumeBtn = styled.button`
@@ -137,5 +169,9 @@ export const AuthorResumeBtn = styled.button`
   &:hover {
     background: #333333;
     color: #ffffff;
+  }
+
+  @media screen and (max-width: 820px) {
+    height: 32px;
   }
 `;

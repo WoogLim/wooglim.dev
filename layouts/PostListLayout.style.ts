@@ -56,6 +56,7 @@ export const PostsSearch = styled.input`
   flex: 1;
   display: flex;
   align-itmes: center;
+  height:48px;
 
   padding: 6px 20px 6px 0.6rem;
   border-radius: 8px;
@@ -75,7 +76,7 @@ export const PostsSearchBtn = styled.button`
 
   cursor: pointer;
   position: absolute;
-  top: 0.65rem;
+  top: 0.85rem;
   right: 0.4rem;
   display: inline-block;
   background: url("/images/search.svg") no-repeat 0px 0px;
@@ -97,6 +98,10 @@ export const PostNumber = styled.div`
   font-size: 2rem;
 
   color: #000000;
+
+  @media screen and (max-width: 594px) {
+    display: none;
+  }
 `;
 
 // 게시글 Wrap
@@ -105,4 +110,21 @@ export const PostList = styled.div`
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   grid-gap: 2rem 2rem;
+
+  @media screen and (max-width: 1036px) {
+    grid-gap: 1rem 1rem;
+  }
+
+  @media screen and (max-width: 864px) {
+    grid-template-columns: repeat(2, 1fr);
+    grid-gap: 1rem 2rem;
+  }
+  
+  @media screen and (max-width: 664px) {
+    grid-gap: 0
+  }
+  
+  @media screen and (max-width: 594px) {
+    grid-template-columns: repeat(1, 1fr);
+  }
 `;

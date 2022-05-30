@@ -8,7 +8,7 @@ import {
   PostItemDate,
 } from "./PostItem.style";
 
-import { PostI } from "../../../../types/post";
+import { PostI } from "../types/post";
 import Link from "next/link";
 
 type Props = {

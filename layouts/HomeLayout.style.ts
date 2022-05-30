@@ -7,8 +7,10 @@ const TextStyle = css`
 `;
 
 export const SectionContainer = styled.div`
-  max-width: calc(100% - calc((100% - 1036px)));
-  margin: 40px auto 0;
+  max-width: calc(100% - calc((100% - 1070px)));
+  margin: 0 auto;
+  padding: 0 17px;
+  margin-top: 20px;
 `;
 
 export const SectionWrap = styled.div`
@@ -20,7 +22,6 @@ export const SectionWrap = styled.div`
 export const PostWrap = styled.div`
   display: flex;
   flex: 1;
-  min-width: 570px;
   flex-direction: column;
   align-self: stretch;
 `;
@@ -30,6 +31,10 @@ export const StatusWrap = styled.div`
   display: flex;
   flex-direction: column;
   align-self: stretch;
+
+  @media screen and (max-width: 958px) {
+    display: none;
+  }
 `;
 
 export const SectionTitle = styled.p`

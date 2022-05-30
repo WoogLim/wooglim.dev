@@ -8,25 +8,20 @@ const FontStyle = css`
 // 게시글
 export const PostCard = styled.div`
   display: flex;
+  flex: 1;
   flex-direction: column;
-  padding: 1rem;
   gap: 12px;
   box-sizing: border-box;
-  border: 3px solid #ffffff;
   border-radius: 16px;
-  height: 376px;
+  height: 320px;
+  min-width: 230px;
 
   :hover {
     cursor: pointer;
-    border: 3px solid #000000;
 
     h3 {
       color: #4a94e6;
     }
-  }
-
-  @media screen and (min-width: 864px) {
-    max-width: 334.64px;
   }
 `;
 
@@ -35,7 +30,6 @@ export const PostThumnail = styled.div`
   display: flex;
   box-sizing: border-box;
   height: 180px;
-  overflow: hidden;
   border-radius: 8px;
   order: 0;
 

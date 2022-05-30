@@ -2,7 +2,7 @@ import styled from "@emotion/styled";
 
 export const HeaderContainer = styled.div`
   height: 340px;
-  max-width: calc(100% - calc((100% - 1036px)));
+  max-width: calc(100% - calc((100% - 1070px)));
   margin: 0 auto;
 `;
 
@@ -10,6 +10,7 @@ export const HeaderWrap = styled.div`
   display: flex;
   flex-direction: column;
   height: 100%;
+  padding: 0 17px;
 `;
 
 export const HeaderBackgroud = styled.div`

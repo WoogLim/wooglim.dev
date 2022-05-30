@@ -4,7 +4,7 @@ import {
   MenuWrap,
   NoteListWrap,
 } from "./NoteListLayout.style";
-import { NoteItem } from "../components/note/NoteItem/NoteItem";
+import { NoteItem } from "../components/NoteItem";
 
 export const NoteListLayout = () => {
   return (

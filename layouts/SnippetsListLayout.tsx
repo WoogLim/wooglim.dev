@@ -11,7 +11,7 @@ import {
   ListHeader,
   ItemList,
 } from "./SnippetsListLayout.style";
-import { SnippetsItem } from "../components/snippets/SnippetsItem/SnippetsItem";
+import { SnippetsItem } from "../components/SnippetsItem";
 
 export const SnippetsListLayout = () => {
   return (
@@ -39,6 +39,8 @@ export const SnippetsListLayout = () => {
                 <span>last updated</span>
             </ListHeader>
             <ItemList>
+                <SnippetsItem/>
+                <SnippetsItem/>
                 <SnippetsItem/>
             </ItemList>
         </ItemListWrap>

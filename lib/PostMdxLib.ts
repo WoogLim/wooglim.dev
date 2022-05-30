@@ -75,6 +75,18 @@ export function getAllPosts(fields: string[]): Items[] {
   // 위 filePaths의 포스트를 날짜별로 sort하여 가져오기
   const posts = filePaths
     .map((filePath) => getPostItems(filePath, fields))
-    .sort((post1, post2) => (post1.date > post2.date ? 1 : -1));
+    .sort((post1, post2) => (post1.date < post2.date ? 1 : -1));
+  return posts;
+}
+
+// 관련 태그의 포스트 목록 가져오기
+export function getSimilarPosts(fields: string[], tagName: string, postNumber: string): Items[] {
+  // 모든 포스트의 경로 가져오기
+  const filePaths = getPostFilePaths();
+  // 위 filePaths의 포스트를 날짜별로 sort하여 가져오기
+  const posts = filePaths
+    .map((filePath) => getPostItems(filePath, fields))
+    .sort((post1, post2) => (post1.date < post2.date ? 1 : -1))
+    .filter((post) => post.tag === tagName && post.postnumber !== postNumber).slice(0, 3)
   return posts;
 }

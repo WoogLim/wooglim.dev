@@ -13,7 +13,6 @@ type Props = {
 };
 
 const Home: NextPage<Props> = ({ posts }: Props) => {
-  console.log(posts);
   return (
     <div className="container">
       <Header />
@@ -34,6 +33,7 @@ export const getStaticProps = async () => {
     "tags",
   ]);
 
+  console.log(posts);
   return { props: { posts } };
 };
 export default Home;

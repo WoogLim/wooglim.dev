@@ -1,0 +1,34 @@
+---
+postnumber: "6"
+date: "2022-05-30"
+thumbnail: "https://user-images.githubusercontent.com/51357635/169959116-1eba5edf-89c0-4b2a-8268-4482c27648e9.png"
+title: "Typescript 제너릭"
+description: "제네릭은 C#, Java 등의 언어에서 재사용성이 높은 컴포넌트를 만들 때 자주 활용되는 특징입니다. 특히, 한가지 타입보다 여러 가지 타입에서 동작하는 컴포넌트를 생성하는데 사용됩니다."
+tag: "typescript"
+prerequisites:
+  [
+    "Node.js installed on your computer",
+    "Basic knowledge working with Next.js and TypeScript",
+  ]
+stacks: ["Next.js", "TypeScript", "Git"]
+---
+
+---
+## 제네릭(Generics)의 사전적 정의
+제네릭은 C#, Java 등의 언어에서 재사용성이 높은 컴포넌트를 만들 때 자주 활용되는 특징입니다. 특히, 한가지 타입보다 여러 가지 타입에서 동작하는 컴포넌트를 생성하는데 사용됩니다.
+
+## 제네릭의 한 줄 정의와 예시
+**제네릭이란 타입을 마치 함수의 파라미터처럼 사용하는 것**을 의미합니다. 아래 코드를 보겠습니다.
+
+```js
+function getText(text) {
+  return text;
+}
+```
+위 함수는 `text`라는 파라미터에 값을 넘겨 받아 `text`를 반환해줍니다. `hi`, `10`, `true` 등 어떤 값이 들어가더라도 그대로 반환합니다.
+
+```js
+getText('hi'); // 'hi'
+getText(10); // 10
+getText(true); // true
+```

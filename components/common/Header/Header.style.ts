@@ -2,13 +2,14 @@ import styled from "@emotion/styled";
 
 export const HeaderContainer = styled.div`
   height: 82px;
-  max-width: calc(100% - calc((100% - 1036px)));
+  max-width: calc(100% - calc((100% - 1070px)));
   margin: 0 auto;
 `;
 
 export const HeaderWrap = styled.div`
   display: flex;
   flex-direction: column;
+  padding: 0 17px;
   
   position: fixed;
   width: 100%;

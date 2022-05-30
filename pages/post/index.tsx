@@ -28,7 +28,8 @@ export const getStaticProps = async () => {
     "slug",
     "date",
     "description",
-    "thumbnail"
+    "thumbnail",
+    "tag"
   ]);
 
   return { props: { posts } };

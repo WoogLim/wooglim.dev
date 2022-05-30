@@ -9,7 +9,7 @@ const FontStyle = css`
 export const ItemWrap = styled.ul`
   box-sizing: border-box;
   width: 100%;
-  padding: 0px 0.3rem;
+  padding: 0.5rem 0.3rem;
   color: #ffffff; 
   display: grid;
   grid-template-columns: 20% 50% 20% 10%;
@@ -26,12 +26,16 @@ export const ItemWrap = styled.ul`
 
     color: #000000;
   }
+
+  :hover{
+    background: #f1f1f1;
+  }
 `;
 
 export const ItemNameWrap = styled.li`
 `;
 
-export const ItemName = styled.p`
+export const ItemName = styled.div`
   padding: 4px 6px 4px 4px;
 
   background: #f1f1f1;

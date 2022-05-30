@@ -25,6 +25,10 @@ export const PostItemWrap = styled.div`
       color: #6c5ce7;
     }
   }
+
+  @media screen and (max-width: 614px) {
+    flex-direction: column;
+  }
 `;
 
 export const Contents = styled.div`
@@ -36,6 +40,10 @@ export const Contents = styled.div`
   align-items: flex-start;
   gap: 0.2rem;
   order: 0;
+
+  @media screen and (max-width: 614px) {
+    order: 1;
+  }
 `;
 
 export const Thumnail = styled.img`
@@ -47,6 +55,14 @@ export const Thumnail = styled.img`
   overflow: hidden;
   border-radius: 1rem;
   order: 1;
+
+  @media screen and (max-width: 614px) {
+    display: flex;
+    width:100%;
+    height:100%;
+    object-fit: contain;
+    order: 0;
+  }
 `;
 
 export const Summary = styled.div`
@@ -84,7 +100,7 @@ export const SummarySub = styled.p`
 export const PostItemDate = styled.p`
   ${textStyle}
   font-weight: 500;
-  font-size: .9rem;
+  font-size: 0.9rem;
   line-height: 1rem;
 
   display: flex;

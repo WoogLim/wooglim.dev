@@ -1,0 +1,53 @@
+---
+postnumber: "7"
+date: "2022-05-30"
+thumbnail: "https://user-images.githubusercontent.com/51357635/169959116-1eba5edf-89c0-4b2a-8268-4482c27648e9.png"
+title: "Typescript 유틸리티 타입"
+description: "TypeScript는 공통 타입 변환을 용이하게 하기 위해 몇 가지 유틸리티 타입을 제공합니다. 이런 유틸리티들은 전역으로 사용 가능합니다."
+tag: "typescript"
+prerequisites:
+  [
+    "Node.js installed on your computer",
+    "Basic knowledge working with Next.js and TypeScript",
+  ]
+stacks: ["Next.js", "TypeScript", "Git"]
+---
+## Partial
+**T**의 모든 프로퍼티를 선택적으로 만드는 타입을 구성합니다. 이 유틸리티는 주어진 타입의 모든 하위 타입 집합을 나타내는 타입을 반환합니다.
+
+**예제 (Example)**
+```js
+interface Todo {
+    title: string;
+    description: string;
+}
+
+function updateTodo(todo: Todo, fieldsToUpdate: Partial<Todo>) {
+    return { ...todo, ...fieldsToUpdate };
+}
+
+const todo1 = {
+    title: 'organize desk',
+    description: 'clear clutter',
+};
+
+const todo2 = updateTodo(todo1, {
+    description: 'throw out trash',
+});
+```
+
+## Readonly
+**T**의 모든 프로퍼티를 읽기 전용(readonly)으로 설정한 타입을 구성합니다, 즉 생성된 타입의 프로퍼티는 재할당할 수 없습니다.
+
+**예제 (Example)**
+```js
+interface Todo {
+    title: string;
+}
+
+const todo: Readonly<Todo> = {
+    title: 'Delete inactive users',
+};
+
+todo.title = 'Hello'; // 오류: 읽기 전용 프로퍼티에 재할당할 수 없음
+```

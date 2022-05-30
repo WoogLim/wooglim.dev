@@ -6,6 +6,11 @@ const AuthortextStyle = css`
   font-style: normal;
 `;
 
+const NavtextStyle = css`
+  font-family: "Roboto";
+  font-style: normal;
+`;
+
 export const SectionContainer = styled.div`
   max-width: calc(100% - calc((100% - 1036px)));
   margin: 0 auto;
@@ -65,8 +70,7 @@ export const PostDate = styled.div`
   flex-direction: row;
   align-items: center;
 
-  font-family: "Roboto";
-  font-style: normal;
+  ${NavtextStyle}
   font-weight: 500;
   font-size: 14px;
   line-height: 16px;
@@ -95,7 +99,58 @@ export const AuthorLink = styled.a`
     border-radius: 100%;
   }
 `;
+
 export const ContentsWrap = styled.div`
   display: flex;
   flex-direction: column;
+`;
+
+export const SectionTitle = styled.h3`
+  margin-top: 2rem;
+  margin-bottom: 0.5rem;
+  ${NavtextStyle}
+  font-weight: 600;
+  font-size: 18px;
+  line-height: 20px;
+  font-variant: small-caps;
+
+  color: #000000;
+
+  box-sizing: border-box;
+
+  border-bottom: 3px solid #000000;
+`;
+
+// 관련 게시글 Wrap
+export const SimilarPostList = styled.div`
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
+  flex-wrap: wrap;
+`;
+
+// 관련 게시글 이동 버튼
+export const SearchSimilarPosts = styled.div`
+  display: flex;
+  justify-content: flex-end;
+
+  button {
+    all: unset;
+    cursor: pointer;
+
+    ${NavtextStyle}
+    font-weight: 600;
+    font-size: 1rem;
+    line-height: 20px;
+    font-variant: small-caps;
+
+    color: #000000;
+
+    box-sizing: border-box;
+
+    :hover {
+      color: #4a94e6;
+    }
+  }
 `;

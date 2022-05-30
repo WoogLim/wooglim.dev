@@ -1,4 +1,4 @@
-import { PostCardItem } from "../components/posts/PostCard/PostCard";
+import { PostCardItem } from "../components/PostCard";
 
 import {
   PostsConatainer,
