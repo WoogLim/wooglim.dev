@@ -11,7 +11,6 @@ type PostIndexProps = {
 };
     
 const Index: React.FC<PostIndexProps> = ({ posts }) => {
-  console.log(posts);
   return (
     <>
       <Header />

@@ -32,8 +32,6 @@ export const getStaticProps = async () => {
     "thumbnail",
     "tags",
   ]);
-
-  console.log(posts);
   return { props: { posts } };
 };
 export default Home;

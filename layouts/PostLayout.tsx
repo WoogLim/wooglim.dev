@@ -25,7 +25,6 @@ export const PostLayout = ({ children, post, similarposts }: Props) => {
   // typeof(React.Children.toArray(children)) : Array -> 고유의 키번호가 같이 붙음 .1, .2
 
   // giscus 각 포스트별 댓글..
-  console.log(similarposts)
   return (
     <SectionContainer>
       <SectionWrap>
