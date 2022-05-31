@@ -27,11 +27,11 @@ export const Navigation: React.FC = () => {
             <a>snippets</a>
           </Link>
         </MenuButton>
-        <MenuButton>
+        {/* <MenuButton>
           <Link href="/note">
             <a>note</a>
           </Link>
-        </MenuButton>
+        </MenuButton> */}
         <MenuButton>
           <Link href="/project">
             <a>project</a>

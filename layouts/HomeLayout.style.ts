@@ -7,7 +7,7 @@ const TextStyle = css`
 `;
 
 export const SectionContainer = styled.div`
-  max-width: calc(100% - calc((100% - 1070px)));
+  max-width: calc(100% - calc((100% - 802px)));
   margin: 0 auto;
   padding: 0 17px;
   margin-top: 20px;

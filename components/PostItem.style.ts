@@ -25,10 +25,6 @@ export const PostItemWrap = styled.div`
       color: #6c5ce7;
     }
   }
-
-  @media screen and (max-width: 614px) {
-    flex-direction: column;
-  }
 `;
 
 export const Contents = styled.div`
@@ -58,10 +54,8 @@ export const Thumnail = styled.img`
 
   @media screen and (max-width: 614px) {
     display: flex;
-    width:100%;
-    height:100%;
-    object-fit: contain;
-    order: 0;
+    height: 100%;
+    object-fit: cover;
   }
 `;
 

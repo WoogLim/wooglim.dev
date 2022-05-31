@@ -25,9 +25,9 @@ export const HomeSection = ({ posts }: Props) => {
             ))}
           </PostArticle>
         </PostWrap>
-        <StatusWrap>
+        {/* <StatusWrap>
           <SectionTitle>POST STATUS</SectionTitle>
-        </StatusWrap>
+        </StatusWrap> */}
       </SectionWrap>
     </SectionContainer>
   );

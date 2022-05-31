@@ -2,7 +2,7 @@ import styled from "@emotion/styled";
 
 export const HeaderContainer = styled.div`
   height: 340px;
-  max-width: calc(100% - calc((100% - 1070px)));
+  max-width: calc(100% - calc((100% - 802px)));
   margin: 0 auto;
 `;
 

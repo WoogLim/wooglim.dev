@@ -1,6 +1,5 @@
 import { Giscus } from "@giscus/react";
 import { metadata } from "../data/metadata";
-import {  } from "./GiscusItem.style";
 
 const GiscusBox = () => {
   return (

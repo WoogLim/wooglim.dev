@@ -5,7 +5,7 @@ export const Title = () => {
     <>
       <TitleWrap>
         <MainTitle>WoogLim dev Blog.</MainTitle>
-        <SubTitle>Crazy developer who loves pixel art</SubTitle>
+        <SubTitle>loves pixel art</SubTitle>
       </TitleWrap>
     </>
   );

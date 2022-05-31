@@ -14,8 +14,8 @@ export const AuthorCardWrap = styled.div`
   justify-content: flex-end;
   align-items: flex-end;
 
-  @media screen and (max-width: 678px) {
-    display:none;
+  @media screen and (max-width: 580px) {
+    display: none;
   }
 `;
 
@@ -35,7 +35,7 @@ export const Card = styled.div`
   padding: 20px 20px 0 20px;
   gap: 20px;
 
-  @media screen and (max-width: 820px) {
+  @media screen and (max-width: 656px) {
     width: 270px;
     height: 186px;
     gap: 12px;
@@ -61,7 +61,7 @@ export const AuthorImage = styled.img`
   overflow: hidden;
   border-radius: 100%;
 
-  @media screen and (max-width: 820px) {
+  @media screen and (max-width: 656px) {
     width: 62px;
     height: 62px;
   }
@@ -82,7 +82,7 @@ export const AuthroName = styled.p`
   line-height: 28px;
   font-weight: 700;
 
-  @media screen and (max-width: 820px) {
+  @media screen and (max-width: 656px) {
     font-size: 1rem;
     line-height: 1.2rem;
   }
@@ -95,7 +95,7 @@ export const AuthroJob = styled.p`
   line-height: 24px;
   font-weight: 500;
 
-  @media screen and (max-width: 820px) {
+  @media screen and (max-width: 656px) {
     font-size: 1rem;
     line-height: 1.2rem;
   }
@@ -121,10 +121,10 @@ export const AuthorLinkWrap = styled.div`
   align-items: center;
   gap: 0.5rem;
   cursor: pointer;
-  height:60px;
+  height: 60px;
 
-  @media screen and (max-width: 820px) {
-    height:50px;
+  @media screen and (max-width: 656px) {
+    height: 50px;
   }
 `;
 
@@ -137,7 +137,7 @@ export const AuthorLinkImage = styled.img`
   overflow: hidden;
   border-radius: 100%;
 
-  @media screen and (max-width: 820px) {
+  @media screen and (max-width: 656px) {
     width: 32px;
     height: 32px;
   }
@@ -171,7 +171,7 @@ export const AuthorResumeBtn = styled.button`
     color: #ffffff;
   }
 
-  @media screen and (max-width: 820px) {
+  @media screen and (max-width: 656px) {
     height: 32px;
   }
 `;

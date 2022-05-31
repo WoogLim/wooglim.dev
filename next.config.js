@@ -4,7 +4,14 @@ const nextConfig = {
   reactStrictMode: true,
 };
 
-module.exports = nextConfig;
+const withMDX = require('@next/mdx')({
+  // ...
+  options: {
+    providerImportSource: '@mdx-js/react',
+  },
+})
+
+module.exports = nextConfig, withMDX;
 
 module.exports = {
   images: {
