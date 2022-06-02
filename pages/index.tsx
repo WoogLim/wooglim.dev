@@ -14,11 +14,11 @@ type Props = {
 
 const Home: NextPage<Props> = ({ posts }: Props) => {
   return (
-    <div className="container">
+    <>
       <Header />
       <HomeSection posts={posts} />
       <Bottom />
-    </div>
+    </>
   );
 };
 

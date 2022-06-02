@@ -31,19 +31,11 @@ const CustomH3 = ({ ...props }) => {
   );
 };
 
-const CustomCodeBox = ({...props}) => {
-  console.log(props.children);
-  return (
-    <pre {...props}/>
-  )
-}
-
 type Props = {
   children: React.ReactNode;
 };
 
 export const MdxLayout = ({ children }: Props) => {
-  console.log(children);
   return (
     <MDXProvider
       components={{
@@ -51,7 +43,6 @@ export const MdxLayout = ({ children }: Props) => {
         h1: CustomH1,
         h2: CustomH2,
         h3: CustomH3,
-        pre: CustomCodeBox,
         hr: () => <hr style={{ marginTop: "1rem", marginBottom: "0" }} />,
       }}
     >

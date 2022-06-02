@@ -13,7 +13,7 @@ export const Navigation: React.FC = () => {
     <NavBar>
       <HomeButton>
         <Link href="/">
-          <LogoImage src="Logo.svg" />
+          <LogoImage src="/Images/Logo.svg" />
         </Link>
       </HomeButton>
       <MenuList>

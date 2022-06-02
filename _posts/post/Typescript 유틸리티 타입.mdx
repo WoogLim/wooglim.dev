@@ -19,7 +19,7 @@ stacks: ["Next.js", "TypeScript", "Git"]
 **T**의 모든 프로퍼티를 선택적으로 만드는 타입을 구성합니다. 이 유틸리티는 주어진 타입의 모든 하위 타입 집합을 나타내는 타입을 반환합니다.
 
 **예제 (Example)**
-```js
+~~~js
 interface Todo {
     title: string;
     description: string;
@@ -37,13 +37,13 @@ const todo1 = {
 const todo2 = updateTodo(todo1, {
     description: 'throw out trash',
 });
-```
+~~~
 
 ## Readonly
 **T**의 모든 프로퍼티를 읽기 전용(readonly)으로 설정한 타입을 구성합니다, 즉 생성된 타입의 프로퍼티는 재할당할 수 없습니다.
 
 **예제 (Example)**
-```js
+~~~js
 interface Todo {
     title: string;
 }
@@ -53,4 +53,4 @@ const todo: Readonly<Todo> = {
 };
 
 todo.title = 'Hello'; // 오류: 읽기 전용 프로퍼티에 재할당할 수 없음
-```
+~~~

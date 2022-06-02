@@ -1,15 +1,14 @@
-import "../styles/themes/prism-night-owl.css";
+import "../styles/globals.css";
 import type { AppProps } from "next/app";
 import "tailwindcss/tailwind.css";
-import { useEffect } from "react";
-import Prism from "prismjs";
+import "../styles/themes/prism-night-owl.css";
+
 
 function MyApp({ Component, pageProps }: AppProps) {
-  useEffect(() => {
-    Prism.highlightAll();
-  }, []);
 
-  return <Component {...pageProps} />;
+  return (
+      <Component {...pageProps} />
+  );
 }
 
 export default MyApp;

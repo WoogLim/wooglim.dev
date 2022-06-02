@@ -14,6 +14,15 @@ import { PostLayout } from "../../layouts/PostLayout";
 import React from "react";
 import { MdxLayout } from "../../components/common/Provider/PostMdx";
 
+import { useEffect } from "react";
+import Prism from "prismjs";
+
+require("prismjs/components/prism-javascript");
+require("prismjs/components/prism-css");
+require("prismjs/components/prism-jsx");
+
+
+
 // props type
 type Props = {
   source: MDXRemoteSerializeResult;
@@ -27,6 +36,9 @@ const PostPage: React.FC<Props> = ({
   frontMatter,
   similarPosts,
 }: Props) => {
+  useEffect(() => {
+    Prism.highlightAll();
+  }, []);
   return (
     <>
       <Header />
@@ -36,11 +48,9 @@ const PostPage: React.FC<Props> = ({
           <TagItem tag={frontMatter.tag} />
           <span>{frontMatter.date}</span>
 
-          {/* <MDXRemote {...source} /> */}
-
+          <MdxLayout>
             <MDXRemote {...source} />
-          {/* <IndexList>
-          </IndexList> */}
+          </MdxLayout>
 
           <p>{frontMatter.description}</p>
         </article>

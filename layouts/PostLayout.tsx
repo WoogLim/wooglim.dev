@@ -31,7 +31,7 @@ export const PostLayout = ({ children, post, similarposts }: Props) => {
         <ContentsWrap>
           {children}
           <SectionTitle>COMMENT</SectionTitle>
-          <GiscusBox />
+          {/* <GiscusBox /> */}
           <SectionTitle>{`${post.tag}`} 카테고리의 다른 글</SectionTitle>
           <SimilarPostList>
             {similarposts.map((post, idx) => {
