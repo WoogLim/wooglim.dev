@@ -7,5 +7,5 @@ module.exports = {
     extend: {},
   },
   plugins: [require("@tailwindcss/typography")],
-  purge: ["./components/posts/*.tsx", "./pages/**/[slug].tsx"],
+  // purge: ["./components/posts/*.tsx", "./pages/**/[slug].tsx"],
 };
