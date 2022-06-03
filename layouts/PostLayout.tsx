@@ -25,6 +25,7 @@ export const PostLayout = ({ children, post, similarposts }: Props) => {
   // typeof(React.Children.toArray(children)) : Array -> 고유의 키번호가 같이 붙음 .1, .2
 
   // giscus 각 포스트별 댓글..
+
   return (
     <SectionContainer>
       <SectionWrap>
@@ -35,21 +36,14 @@ export const PostLayout = ({ children, post, similarposts }: Props) => {
           <SectionTitle>{`${post.tag}`} 카테고리의 다른 글</SectionTitle>
           <SimilarPostList>
             {similarposts.map((post, idx) => {
-              return (
-                <PostCardItem post={post} key={idx}/>
-              );
+              return <PostCardItem post={post} key={idx} />;
             })}
           </SimilarPostList>
           <SearchSimilarPosts>
             <Link href={`/post/${post.tag}`} passHref>
-              <button>
-                관련 게시글 더 보기
-              </button>
+              <button>관련 게시글 더 보기</button>
             </Link>
           </SearchSimilarPosts>
-          {/* <Link href="">
-          
-          </Link> */}
         </ContentsWrap>
       </SectionWrap>
     </SectionContainer>

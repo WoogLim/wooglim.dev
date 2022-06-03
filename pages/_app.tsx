@@ -1,7 +1,7 @@
-import "../styles/globals.css";
 import type { AppProps } from "next/app";
-import "tailwindcss/tailwind.css";
-import "../styles/themes/prism-night-owl.css";
+import "../styles/globals.css";
+import "../styles/codeblock.css";
+// import "../styles/themes/prism-atom-dark.css";
 
 
 function MyApp({ Component, pageProps }: AppProps) {

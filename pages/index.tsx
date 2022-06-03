@@ -8,6 +8,8 @@ import { Bottom } from "../components/common/Bottom/Bottom";
 import { Header } from "../components/Header";
 import { HomeSection } from "../layouts/HomeLayout";
 
+import { useTrail, config, animated } from "react-spring";
+
 type Props = {
   posts: [PostI];
 };

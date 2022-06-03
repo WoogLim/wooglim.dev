@@ -1,7 +1,6 @@
 import matter from "gray-matter";
 import { join } from "path";
 import fs from "fs";
-import { verify } from "crypto";
 
 type Items = {
   // 각 게시물에는 문자열값을 가지는 매개변수 키가 있음.

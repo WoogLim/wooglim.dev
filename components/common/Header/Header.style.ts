@@ -1,7 +1,7 @@
 import styled from "@emotion/styled";
 
 export const HeaderContainer = styled.div`
-  height: 82px;
+  height: 72px;
   max-width: calc(100% - calc((100% - 1070px)));
   margin: 0 auto;
 `;
@@ -13,7 +13,7 @@ export const HeaderWrap = styled.div`
   
   position: fixed;
   width: 100%;
-  height: 82px;
+  height: 72px;
   left: 0;
   top: 0;
 

@@ -1,6 +1,8 @@
 import { serialize } from "next-mdx-remote/serialize";
 import { MDXRemote, MDXRemoteSerializeResult } from "next-mdx-remote";
 import rehypeSlug from "rehype-slug";
+import rehypePrismPlus from "rehype-prism-plus";
+// import { toc }from "@jsdevtools/rehype-toc"
 
 import { GetStaticProps, GetStaticPaths } from "next";
 import { PostI } from "../../types/post";
@@ -13,15 +15,6 @@ import { Header } from "../../components/common/Header/Header";
 import { PostLayout } from "../../layouts/PostLayout";
 import React from "react";
 import { MdxLayout } from "../../components/common/Provider/PostMdx";
-
-import { useEffect } from "react";
-import Prism from "prismjs";
-
-require("prismjs/components/prism-javascript");
-require("prismjs/components/prism-css");
-require("prismjs/components/prism-jsx");
-
-
 
 // props type
 type Props = {
@@ -36,14 +29,11 @@ const PostPage: React.FC<Props> = ({
   frontMatter,
   similarPosts,
 }: Props) => {
-  useEffect(() => {
-    Prism.highlightAll();
-  }, []);
   return (
     <>
       <Header />
       <PostLayout post={frontMatter} similarposts={similarPosts}>
-        <article className="prose prose-invert max-w-none prose-slate hover:prose-headings:text-blue-500">
+        <article className="prose max-w-none hover:prose-headings:text-blue-500">
           <h1>{frontMatter.title}</h1>
           <TagItem tag={frontMatter.tag} />
           <span>{frontMatter.date}</span>
@@ -66,6 +56,7 @@ const options = {
   mdxOptions: {
     rehypePlugins: [
       rehypeSlug, // h태그 id를 내용으로
+      rehypePrismPlus, // Syntax HighLight
     ],
   },
 };
