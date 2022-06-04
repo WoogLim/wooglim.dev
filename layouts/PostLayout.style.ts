@@ -12,7 +12,8 @@ const NavtextStyle = css`
 `;
 
 export const SectionContainer = styled.div`
-  max-width: calc(100% - calc((100% - 1036px)));
+// max-width: calc(100% - calc((100% - 1036px)));
+  max-width: calc(100% - calc((100% - 1138px)));
   margin: 0 auto;
 `;
 
@@ -22,7 +23,6 @@ export const SectionWrap = styled.div`
   padding: 40px 48px;
 
   background: #ffffff;
-  border: 3px dashed #000000;
   margin: 40px auto 0;
 `;
 

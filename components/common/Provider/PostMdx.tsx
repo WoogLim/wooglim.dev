@@ -6,8 +6,16 @@ import { MdxContainer, PostBox, ContentOfPost } from "./PostMdx.style";
 
 const moveScrollTarget = (e: React.BaseSyntheticEvent) => {
   e.preventDefault();
-  const elem = e.target;
-  window.scrollTo(0, elem.offsetTop - 82);
+
+  const elem = e.target.innerText
+    .replace(/\(|\)|\?/g, "")
+    .replace(/\s/g, "-")
+    .toLowerCase();
+
+  // 단언. 이미 해당 객체가 만들어져 있는 상태
+  const targetY = document.getElementById(elem)?.offsetTop;
+
+  window.scrollTo(0, targetY! - 82);
 };
 
 const CustomH1 = ({ ...props }) => {
@@ -60,17 +68,18 @@ export const MdxLayout = ({ children }: Props) => {
   const contentString = renderToString(children);
 
   const getHeadings = (source: string) => {
-    const regex = /<h3 id="(.*)">(.*?)<\/h3>/g;
+    const regex = /<h[1-6]{1} id="(.*)">(.*?)<\/h[1-6]{1}>/g;
 
     if (source.match(regex)) {
       return source.match(regex)?.map((heading) => {
-        const headingText = heading.replace("<h3>", "").replace("</h3>", "");
-        console.log(headingText);
-        const link = "#" + headingText.replace(/ /g, "_").toLowerCase();
-        console.log(link);
+        const headingText = heading
+          .replace(/<[^>]*>?/g, "")
+          .replace(/<\/[^>]*>?/g, "");
+
+        const tag = heading.match(/<\/[a-z]{1}[1-6]{1}>/g);
         return {
+          type: tag,
           text: headingText,
-          link,
         };
       });
     }
@@ -79,8 +88,6 @@ export const MdxLayout = ({ children }: Props) => {
   };
 
   const headings = getHeadings(contentString);
-  console.log("children =>>", contentString);
-  console.log("headings =>>", headings);
   return (
     <>
       <MDXProvider
@@ -95,17 +102,19 @@ export const MdxLayout = ({ children }: Props) => {
       >
         <MdxContainer>
           <PostBox>{childrenArray}</PostBox>
-          {/* <ContentOfPost>
-            {headings!.length > 0 ? (
-              <ol>
-                {headings?.map((heading) => (
-                  <li key={heading.text}>
-                    <a href={heading.link}>{heading.text}</a>
+          <ContentOfPost>
+            {headings!.length > 0
+              ? headings?.map((heading, index) => (
+                  <li key={index}>
+                    {heading.type}
+                    <a onClick={moveScrollTarget}>
+                      {heading.type}
+                      {heading.text}
+                    </a>
                   </li>
-                ))}
-              </ol>
-            ) : null}
-          </ContentOfPost> */}
+                ))
+              : null}
+          </ContentOfPost>
         </MdxContainer>
       </MDXProvider>
     </>

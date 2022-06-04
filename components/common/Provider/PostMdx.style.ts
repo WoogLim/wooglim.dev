@@ -13,11 +13,10 @@ export const MdxContainer = styled.div`
 export const PostBox = styled.div``;
 
 export const ContentOfPost = styled.ul`
-  font-family: "Roboto";
-  font-style: bold;
-  text-transform: capitalize;
-  right: 20px;
-  top: 180px;
-  width: 240px;
-  flex-direction: column;
+  display: inline-block;
+  position: -webkit-sticky;
+  position: sticky;
+  top: 92px;
+  background: #8a4baf;
+  height: 120px;
 `;

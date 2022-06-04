@@ -43,7 +43,7 @@ export const NavBar = styled.div`
   max-width: 1036px;
   height: 98px;
 
-  display: flex;
+  display: inline-flex;
   width:100%;
   flex-direction: row;
   justify-content: flex-start;
@@ -52,10 +52,14 @@ export const NavBar = styled.div`
   box-sizing: border-box;
   margin: 0 auto;
   
+  position: sticky;
+  top:0;
+  position: -webkit-sticky;
+  position: sticky;
+
   @media screen and (max-width: 1036px) {
   
   }
-}
 `;
 
 export const MenuButton = styled.button`
