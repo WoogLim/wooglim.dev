@@ -2,7 +2,17 @@ import { renderToString } from "react-dom/server";
 import { MDXProvider } from "@mdx-js/react";
 import React from "react";
 
-import { MdxContainer, PostBox, ContentOfPost } from "./PostMdx.style";
+import {
+  MdxContainer,
+  PostBox,
+  ContentOfPost,
+  IndexH1,
+  IndexH2,
+  IndexH3,
+  IndexH4,
+  IndexH5,
+  IndexH6,
+} from "./PostMdx.style";
 
 const moveScrollTarget = (e: React.BaseSyntheticEvent) => {
   e.preventDefault();
@@ -97,7 +107,11 @@ export const MdxLayout = ({ children }: Props) => {
           h2: CustomH2,
           h3: CustomH3,
           pre: CustomCodeBlock,
-          hr: () => <hr style={{ marginTop: "1rem", marginBottom: "0", opacity: "0"}} />,
+          hr: () => (
+            <hr
+              style={{ marginTop: "1rem", marginBottom: "0", opacity: "0" }}
+            />
+          ),
         }}
       >
         <MdxContainer>
@@ -107,17 +121,17 @@ export const MdxLayout = ({ children }: Props) => {
               ? headings?.map((heading, index) => (
                   <li key={index}>
                     {heading.type === "h1" ? (
-                      <h1 onClick={moveScrollTarget}>{heading.text}</h1>
+                      <IndexH1 onClick={moveScrollTarget}>{heading.text}</IndexH1>
                     ) : heading.type === "h2" ? (
-                      <h2 onClick={moveScrollTarget}>{heading.text}</h2>
+                      <IndexH2 onClick={moveScrollTarget}>{heading.text}</IndexH2>
                     ) : heading.type === "h3" ? (
-                      <h3 onClick={moveScrollTarget}>{heading.text}</h3>
+                      <IndexH3 onClick={moveScrollTarget}>{heading.text}</IndexH3>
                     ) : heading.type === "h4" ? (
-                      <h4 onClick={moveScrollTarget}>{heading.text}</h4>
+                      <IndexH4 onClick={moveScrollTarget}>{heading.text}</IndexH4>
                     ) : heading.type === "h5" ? (
-                      <h5 onClick={moveScrollTarget}>{heading.text}</h5>
+                      <IndexH5 onClick={moveScrollTarget}>{heading.text}</IndexH5>
                     ) : heading.type === "h6" ? (
-                      <h6 onClick={moveScrollTarget}>{heading.text}</h6>
+                      <IndexH6 onClick={moveScrollTarget}>{heading.text}</IndexH6>
                     ) : (
                       ""
                     )}

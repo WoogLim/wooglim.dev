@@ -12,7 +12,7 @@ const NavtextStyle = css`
 `;
 
 export const SectionContainer = styled.div`
-// max-width: calc(100% - calc((100% - 1036px)));
+  // max-width: calc(100% - calc((100% - 1036px)));
   max-width: calc(100% - calc((100% - 1138px)));
   margin: 0 auto;
 `;
