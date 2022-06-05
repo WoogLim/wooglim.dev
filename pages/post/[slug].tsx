@@ -41,8 +41,6 @@ const PostPage: React.FC<Props> = ({
           <MdxLayout>
             <MDXRemote {...source} />
           </MdxLayout>
-
-          <p>{frontMatter.description}</p>
         </article>
       </PostLayout>
       <Bottom />

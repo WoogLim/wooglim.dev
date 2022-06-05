@@ -15,7 +15,7 @@ const moveScrollTarget = (e: React.BaseSyntheticEvent) => {
   // 단언. 이미 해당 객체가 만들어져 있는 상태
   const targetY = document.getElementById(elem)?.offsetTop;
 
-  window.scrollTo(0, targetY! - 82);
+  window.scrollTo(0, targetY! - 74);
 };
 
 const CustomH1 = ({ ...props }) => {
@@ -76,9 +76,9 @@ export const MdxLayout = ({ children }: Props) => {
           .replace(/<[^>]*>?/g, "")
           .replace(/<\/[^>]*>?/g, "");
 
-        const tag = heading.match(/<\/[a-z]{1}[1-6]{1}>/g);
+        const tag = heading.match(/<\/[a-z]{1}[1-6]{1}>/g) + "";
         return {
-          type: tag,
+          type: tag.replace(/<|>|\//g, ""),
           text: headingText,
         };
       });
@@ -97,20 +97,30 @@ export const MdxLayout = ({ children }: Props) => {
           h2: CustomH2,
           h3: CustomH3,
           pre: CustomCodeBlock,
-          hr: () => <hr style={{ marginTop: "1rem", marginBottom: "0" }} />,
+          hr: () => <hr style={{ marginTop: "1rem", marginBottom: "0", opacity: "0"}} />,
         }}
       >
         <MdxContainer>
           <PostBox>{childrenArray}</PostBox>
-          <ContentOfPost>
+          <ContentOfPost className="postOfContents">
             {headings!.length > 0
               ? headings?.map((heading, index) => (
                   <li key={index}>
-                    {heading.type}
-                    <a onClick={moveScrollTarget}>
-                      {heading.type}
-                      {heading.text}
-                    </a>
+                    {heading.type === "h1" ? (
+                      <h1 onClick={moveScrollTarget}>{heading.text}</h1>
+                    ) : heading.type === "h2" ? (
+                      <h2 onClick={moveScrollTarget}>{heading.text}</h2>
+                    ) : heading.type === "h3" ? (
+                      <h3 onClick={moveScrollTarget}>{heading.text}</h3>
+                    ) : heading.type === "h4" ? (
+                      <h4 onClick={moveScrollTarget}>{heading.text}</h4>
+                    ) : heading.type === "h5" ? (
+                      <h5 onClick={moveScrollTarget}>{heading.text}</h5>
+                    ) : heading.type === "h6" ? (
+                      <h6 onClick={moveScrollTarget}>{heading.text}</h6>
+                    ) : (
+                      ""
+                    )}
                   </li>
                 ))
               : null}
