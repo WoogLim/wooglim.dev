@@ -12,9 +12,18 @@ const NavtextStyle = css`
 `;
 
 export const SectionContainer = styled.div`
-  // max-width: calc(100% - calc((100% - 1036px)));
-  max-width: calc(100% - calc((100% - 1138px)));
+  max-width: calc(100% - calc((100% - 1132px)));
   margin: 0 auto;
+
+  @media screen and (max-width: 1152px) {
+    max-width: calc(100% - calc((100% - 870px)));
+  }
+
+  article {
+    h1 {
+      margin: 0;
+    }
+  }
 `;
 
 export const SectionWrap = styled.div`
@@ -24,6 +33,10 @@ export const SectionWrap = styled.div`
 
   background: #ffffff;
   margin: 40px auto 0;
+
+  @media screen and (max-width: 832px) {
+    padding: 40px 24px;
+  }
 `;
 
 export const AuthorCard = styled.div`
@@ -103,6 +116,22 @@ export const AuthorLink = styled.a`
 export const ContentsWrap = styled.div`
   display: flex;
   flex-direction: column;
+  @media screen and (max-width: 1152px) {
+    max-width: 774px;
+  }
+
+  .dateWriting {
+    ::after{
+      content: "·";
+      margin-left:6px;
+    }
+
+    font-family: "Roboto";
+    font-weight: 600;
+    font-style: normal;
+    font-size: 13px;
+
+  }
 `;
 
 export const SectionTitle = styled.h3`

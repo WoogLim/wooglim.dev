@@ -56,7 +56,7 @@ export const PostsSearch = styled.input`
   flex: 1;
   display: flex;
   align-itmes: center;
-  height:48px;
+  height: 48px;
 
   padding: 6px 20px 6px 0.6rem;
   border-radius: 8px;
@@ -109,22 +109,25 @@ export const PostList = styled.div`
   margin-top: 1rem;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  grid-gap: 2rem 2rem;
-
-  @media screen and (max-width: 1036px) {
-    grid-gap: 1rem 1rem;
-  }
+  grid-gap: 0.6rem;
+  caret-color: rgba(0, 0, 0, 0);
 
   @media screen and (max-width: 864px) {
     grid-template-columns: repeat(2, 1fr);
-    grid-gap: 1rem 2rem;
   }
-  
+
   @media screen and (max-width: 664px) {
-    grid-gap: 0
+    grid-gap: 0;
   }
-  
+
   @media screen and (max-width: 594px) {
     grid-template-columns: repeat(1, 1fr);
   }
+`;
+
+export const NotFoundPost = styled.div`
+  display: flex;
+  flex-direction: row;
+  align-itesm: center;
+  padding: 0 17px;
 `;

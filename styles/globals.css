@@ -16,11 +16,11 @@ body {
 a {
   color: inherit;
   text-decoration: none !important;
+  font-family:  'Noto Sans KR', sans-serif;
 }
 
 * {
   box-sizing: border-box;
-  caret-color: rgba(0, 0, 0, 0);
 }
 
 /**

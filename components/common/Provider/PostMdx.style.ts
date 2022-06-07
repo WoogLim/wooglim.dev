@@ -6,7 +6,7 @@ export const MdxContainer = styled.div`
   display: flex;
   flex-direction: row;
 
-  @media screen and (max-width: 1076px) {
+  @media screen and (max-width: 1152px) {
     flex-direction: column;
   }
 `;
@@ -30,10 +30,9 @@ export const PostBox = styled.div`
     margin-top: 20px;
   }
 
-  
-  @media screen and (max-width: 1076px) {
-    max-width: 1036px;
-  }
+  // @media screen and (max-width: 1152px) {
+  //   max-width: 774px;
+  // }
 `;
 
 export const ContentOfPost = styled.ul`
@@ -45,6 +44,8 @@ export const ContentOfPost = styled.ul`
     margin-bottom: 0.8em;
     padding-left: 0.4em;
   }
+  
+  caret-color: rgba(0, 0, 0, 0);
 
   display: flex;
   flex-direction: column;
@@ -56,7 +57,10 @@ export const ContentOfPost = styled.ul`
   max-height: calc(100vh - 184px);
   list-style: none;
   padding-left: 10px;
+  margin-left: 20px;
   font-size: 1rem;
+
+  border-left: 2px dashed #F2F2F2;
 
   h1,
   h2,
@@ -64,14 +68,16 @@ export const ContentOfPost = styled.ul`
   h4,
   h5,
   h6 {
-    margin: 0;
-    font-weight: 600;
-    color: #1f365b;
+    font-weight: 500;
+    color: #757075;
+    font-size: 14px;
   }
 
   li {
     list-style: none;
     cursor: pointer;
+    margin-top: 2px;
+    margin-bottom: 0;
   }
 
   li:not(:first-child) {
@@ -96,31 +102,32 @@ export const ContentOfPost = styled.ul`
     border-radius: 10px;
   }
 
-  @media screen and (max-width: 1076px) {
+  @media screen and (max-width: 1152px) {
     display: none;
   }
 `;
 
 export const IndexH1 = styled.h1`
-  font-size: 1em;
+  all: unset;
+  font-size: 16px;
 `;
 export const IndexH2 = styled.h2`
-  font-size: 1em;
-  padding-left: 1em;
+  all: unset;
+  padding-left: 0.5em;
 `;
 export const IndexH3 = styled.h3`
-  font-size: 1em;
-  padding-left: 2em;
+  all: unset;
+  padding-left: 1em;
 `;
 export const IndexH4 = styled.h4`
-  font-size: 1em;
-  padding-left: 3em;
+  all: unset;
+  padding-left: 1.5em;
 `;
 export const IndexH5 = styled.h5`
-  font-size: 1em;
-  padding-left: 4em;
+  all: unset;
+  padding-left: 2em;
 `;
 export const IndexH6 = styled.h6`
-  font-size: 1em;
-  padding-left: 5em;
+  all: unset;
+  padding-left: 2.5em;
 `;

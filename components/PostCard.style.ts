@@ -24,10 +24,6 @@ export const PostCard = styled.div`
       color: #4a94e6;
     }
   }
-
-  @media screen and (min-width: 864px) {
-    max-width: 334.64px;
-  }
 `;
 
 // 게시글 썸네일

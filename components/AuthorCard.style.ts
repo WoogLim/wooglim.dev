@@ -13,7 +13,7 @@ export const AuthorCardWrap = styled.div`
   flex-direction: column;
   justify-content: flex-end;
   align-items: flex-end;
-
+  z-index:2;
   @media screen and (max-width: 580px) {
     display: none;
   }

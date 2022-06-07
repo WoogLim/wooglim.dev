@@ -11,6 +11,21 @@ export const HeaderWrap = styled.div`
   flex-direction: column;
   height: 100%;
   padding: 0 17px;
+
+  ul {
+    height:100%;
+
+    margin-bottom: 23px;
+
+    ::after {
+      position: absolute;
+      height: 100%;
+      width: 100%;
+      content: "";
+      background: #6c5ce7;
+      z-index: -1;
+    }
+  }
 `;
 
 export const HeaderBackgroud = styled.div`

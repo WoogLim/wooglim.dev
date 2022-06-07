@@ -1,14 +1,14 @@
 import Link from "next/link";
 import {
   NavBar,
-  DropDownMenu,
   LogoImage,
   MenuList,
   MenuButton,
   HomeButton,
 } from "./Navigation.style";
 
-export const Navigation: React.FC = () => {
+export const Navigation = () => {
+
   return (
     <NavBar>
       <HomeButton>
@@ -27,11 +27,6 @@ export const Navigation: React.FC = () => {
             <a>snippets</a>
           </Link>
         </MenuButton>
-        {/* <MenuButton>
-          <Link href="/note">
-            <a>note</a>
-          </Link>
-        </MenuButton> */}
         <MenuButton>
           <Link href="/project">
             <a>project</a>

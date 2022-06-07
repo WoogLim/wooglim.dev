@@ -14,6 +14,7 @@ export const TitleWrap = styled.div`
   display: flex;
   flex-direction: column;
   justify-content: center;
+  padding-top: 1rem;
   gap: 20px;
 `;
 

@@ -1,4 +1,4 @@
-import {} from "./TagItem.style";
+import { TagType, TagBtn } from "./TagItem.style";
 import { PostI } from "../types/post";
 
 type Props = {
@@ -8,10 +8,12 @@ type Props = {
 
 // {tags.map((tag, index) => (
 //     <li key={index}>{tag}</li>
-// ))} 
+// ))}
 
 export const TagItem = ({ tag }: Props) => {
-  return <>
-    <span>{tag}</span>
-  </>;
+  return (
+    <TagBtn>
+      <TagType>{tag}</TagType>
+    </TagBtn>
+  );
 };

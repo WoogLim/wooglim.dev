@@ -10,10 +10,10 @@ import { AuthorCard } from "./AuthorCard";
 
 export const Header = () => {
   return (
-    <HeaderContainer>
+    <HeaderContainer className="mainIndex">
       <HeaderWrap>
         <HeaderBackgroud />
-        <Navigation />
+        <Navigation/>
 
         <IntroduceWrap>
                 <Title />

@@ -11,6 +11,7 @@ export const BottomContainer = styled.div`
   margin: 40px auto 0;
   box-sizing: border-box;
   border-top: 3px solid #000000;
+  caret-color: rgba(0, 0, 0, 0);
 `;
 
 export const FooterWrap = styled.div`

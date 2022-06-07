@@ -11,6 +11,7 @@ export const SectionContainer = styled.div`
   margin: 0 auto;
   padding: 0 17px;
   margin-top: 20px;
+  caret-color: rgba(0, 0, 0, 0);
 `;
 
 export const SectionWrap = styled.div`

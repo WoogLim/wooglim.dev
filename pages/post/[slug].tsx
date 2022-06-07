@@ -35,8 +35,11 @@ const PostPage: React.FC<Props> = ({
       <PostLayout post={frontMatter} similarposts={similarPosts}>
         <article className="prose max-w-none hover:prose-headings:text-blue-500">
           <h1>{frontMatter.title}</h1>
-          <TagItem tag={frontMatter.tag} />
-          <span>{frontMatter.date}</span>
+
+          <div className="mt-6 mb-6">
+            <span className="dateWriting">{frontMatter.date}</span>
+            <TagItem tag={frontMatter.tag} />
+          </div>
 
           <MdxLayout>
             <MDXRemote {...source} />
