@@ -9,20 +9,50 @@ body {
   scroll-behavior: smooth;
   padding: 0;
   margin: 0;
+  height: 100%;
   font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen,
     Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
+}
+
+body {
+  overflow-y: scroll;
+}
+
+body::-webkit-scrollbar {
+  width: 8px;
+  background-color: rgb(243, 243, 243);
+}
+
+body::-webkit-scrollbar-track {
+  border-radius: 3px;
+  background-color: transparent;
+}
+
+body::-webkit-scrollbar-thumb {
+  border-radius: 5px;
+  background-color: rgb(71, 70, 82);
+  border: 2px solid rgb(71, 70, 82);
+}
+
+#__next {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+main {
+  flex: 1;
 }
 
 a {
   color: inherit;
   text-decoration: none !important;
-  font-family:  'Noto Sans KR', sans-serif;
+  font-family: "Noto Sans KR", sans-serif;
 }
 
 * {
   box-sizing: border-box;
 }
-
 /**
  * MIT License
  * Copyright (c) 2018 Sarah Drasner

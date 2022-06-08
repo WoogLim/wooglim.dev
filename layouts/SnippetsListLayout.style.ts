@@ -5,9 +5,11 @@ const TitleFontStyle = css`
   font-family: "Roboto";
 `;
 
-export const SnippetsConatainer = styled.div`
+export const SnippetsConatainer = styled.main`
   max-width: calc(100% - calc((100% - 1070px)));
+  width: 100%;
   margin: 0 auto;
+  padding-top: 60px;
 `;
 
 export const ListsWrap = styled.div`

@@ -1,8 +1,16 @@
 import styled from "@emotion/styled";
+import { css } from "@emotion/react";
 
-export const HeaderContainer = styled.div`
+const Nav_up = css`
+  top: -72px;
+  -webkit-transition: 2s
+  transition: 2s
+`;
+
+export const HeaderContainer = styled.header`
+  width: 100%;
   margin: 0 auto;
-  position: sticky;
+  position: fixed;
   z-index: 10;
   top: 0;
 `;

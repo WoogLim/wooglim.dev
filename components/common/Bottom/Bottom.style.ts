@@ -6,8 +6,9 @@ const textStyle = css`
   font-style: normal;
 `;
 
-export const BottomContainer = styled.div`
+export const BottomContainer = styled.footer`
   max-width: calc(100% - calc((100% - 1036px)));
+  width: 100%;
   margin: 40px auto 0;
   box-sizing: border-box;
   border-top: 3px solid #000000;
@@ -15,7 +16,7 @@ export const BottomContainer = styled.div`
 `;
 
 export const FooterWrap = styled.div`
-  height: 90px;
+  padding: 24px 0;
   display: flex;
   flex-direction: row;
   align-items: center;

@@ -1,9 +1,18 @@
 import styled from "@emotion/styled";
 
-export const HeaderContainer = styled.div`
+export const HeaderContainer = styled.header`
   height: 340px;
   max-width: calc(100% - calc((100% - 802px)));
+  width: 100%;
   margin: 0 auto;
+
+  @media screen and (max-width: 656px) {
+    height:290px;    
+  }
+
+  @media screen and (max-width: 580px) {
+    height:240px;    
+  }
 `;
 
 export const HeaderWrap = styled.div`
@@ -13,8 +22,6 @@ export const HeaderWrap = styled.div`
   padding: 0 17px;
 
   ul {
-    height:100%;
-
     margin-bottom: 23px;
 
     ::after {
@@ -38,11 +45,28 @@ export const HeaderBackgroud = styled.div`
   background: #6c5ce7;
   border-bottom: 3px solid #000000;
   z-index: -1;
+
+  @media screen and (max-width: 656px) {
+    height:270px;    
+  }
+
+  @media screen and (max-width: 580px) {
+    height:240px;    
+  }
 `;
 
 export const IntroduceWrap = styled.div`
   position: relative;
-  height: 100%;
+  height: 254px;
   display: flex;
   flex-direction: row;
+
+  @media screen and (max-width: 656px) {
+    
+  }
+
+  
+  @media screen and (max-width: 656px) {
+    
+  }
 `;

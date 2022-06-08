@@ -11,9 +11,11 @@ const NavtextStyle = css`
   font-style: normal;
 `;
 
-export const SectionContainer = styled.div`
+export const SectionContainer = styled.main`
   max-width: calc(100% - calc((100% - 1132px)));
+  width: 100%;
   margin: 0 auto;
+  padding-top: 72px;
 
   @media screen and (max-width: 1152px) {
     max-width: calc(100% - calc((100% - 870px)));

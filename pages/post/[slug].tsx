@@ -2,6 +2,7 @@ import { serialize } from "next-mdx-remote/serialize";
 import { MDXRemote, MDXRemoteSerializeResult } from "next-mdx-remote";
 import rehypeSlug from "rehype-slug";
 import rehypePrismPlus from "rehype-prism-plus";
+
 // import { toc }from "@jsdevtools/rehype-toc"
 
 import { GetStaticProps, GetStaticPaths } from "next";
@@ -13,7 +14,7 @@ import { TagItem } from "../../components/TagItem";
 import { Bottom } from "../../components/common/Bottom/Bottom";
 import { Header } from "../../components/common/Header/Header";
 import { PostLayout } from "../../layouts/PostLayout";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { MdxLayout } from "../../components/common/Provider/PostMdx";
 
 // props type
@@ -29,6 +30,17 @@ const PostPage: React.FC<Props> = ({
   frontMatter,
   similarPosts,
 }: Props) => {
+  // const [scrollY, setScrollY] = useState(0);
+
+  // const handleScroll = (e: Event) => {
+  //   setScrollY(window.scrollY);
+  // };
+
+  // useEffect(() => {
+  //   window.addEventListener("scroll", handleScroll);
+  //   return () => window.removeEventListener("scroll", handleScroll);
+  // });
+
   return (
     <>
       <Header />

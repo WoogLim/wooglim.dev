@@ -1,9 +1,25 @@
 import styled from "@emotion/styled";
 import { css } from "@emotion/react";
 
-type Props = {
-  type?: string;
-};
+export const NavBar = styled.ul`
+  max-width: 1036px;
+  height: 74px;
+
+  caret-color: rgba(0, 0, 0, 0);
+
+  display: inline-flex;
+  width: 100%;
+  flex-direction: row;
+  justify-content: flex-start;
+  padding: 0px;
+  box-sizing: border-box;
+  margin: 0 auto;
+
+  position: sticky;
+  top: 0;
+  position: -webkit-sticky;
+  z-index: 2;
+`;
 
 const menuTextStyle = css`
   font-family: "Roboto";
@@ -41,26 +57,6 @@ export const DropDownMenu = styled.div`
   align-items: flex-start;
   padding: .5rem  
   box-sizing: border-box
-`;
-
-export const NavBar = styled.ul`
-  max-width: 1036px;
-  height: 74px;
-
-  caret-color: rgba(0, 0, 0, 0);
-
-  display: inline-flex;
-  width: 100%;
-  flex-direction: row;
-  justify-content: flex-start;
-  padding: 0px;
-  box-sizing: border-box;
-  margin: 0 auto;
-
-  position: sticky;
-  top: 0;
-  position: -webkit-sticky;
-  z-index: 2;
 `;
 
 export const MenuButton = styled.button`
