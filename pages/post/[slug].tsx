@@ -14,7 +14,6 @@ import { TagItem } from "../../components/TagItem";
 import { Bottom } from "../../components/common/Bottom/Bottom";
 import { Header } from "../../components/common/Header/Header";
 import { PostLayout } from "../../layouts/PostLayout";
-import React, { useEffect, useState } from "react";
 import { MdxLayout } from "../../components/common/Provider/PostMdx";
 
 // props type

@@ -8,11 +8,10 @@ const FontStyle = css`
 // 스니펫 아이템
 export const ItemWrap = styled.ul`
   box-sizing: border-box;
-  width: 100%;
   padding: 0.5rem 0.3rem;
-  color: #ffffff; 
-  display: grid;
-  grid-template-columns: 20% 50% 20% 10%;
+  color: #ffffff;
+  width: 100%;
+  display: flex;
 
   li {
     display: flex;
@@ -20,22 +19,21 @@ export const ItemWrap = styled.ul`
     list-style: none;
     ${FontStyle}
     font-style: normal;
-    font-weight: 600;
-    font-size: 1rem;
+    font-weight: 500;
     line-height: 1.4rem;
 
     color: #000000;
   }
 
-  :hover{
+  :hover {
     background: #f1f1f1;
+    transition: 0.2s;
   }
 `;
 
-export const ItemNameWrap = styled.li`
-`;
+export const ItemName = styled.button`
+  all: unset;
 
-export const ItemName = styled.div`
   padding: 4px 6px 4px 4px;
 
   background: #f1f1f1;
@@ -44,16 +42,30 @@ export const ItemName = styled.div`
 
   cursor: pointer;
 
-  :hover{
+  :hover {
     background: #fefefe;
   }
 `;
 
+export const ItemNameWrap = styled.li`
+  font-size: 1rem;
+  flex: 1;
+`;
+
 export const ItemDescription = styled.li`
+  font-size: 0.9rem;
+  flex: 3;
+  padding-right: 1rem;
 `;
 
 export const ItemCategory = styled.li`
+  font-size: 1rem;
+  flex: 0.5;
+  justify-content: flex-start;
 `;
 
 export const ItemUpdate = styled.li`
+  font-size: 1rem;
+  flex: 0.5;
+  justify-content: flex-end;
 `;

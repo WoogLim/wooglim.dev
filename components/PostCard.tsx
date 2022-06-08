@@ -25,12 +25,6 @@ export const PostCardItem = ({ post }: PostsProps) => {
         <PostSubtude>
           {post.description}
         </PostSubtude>
-        
-        <PostAuthor>
-            <PostView>
-              2
-            </PostView>
-        </PostAuthor>
       </PostCard>
     </Link>
   );

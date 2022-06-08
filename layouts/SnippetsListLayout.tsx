@@ -33,10 +33,10 @@ export const SnippetsListLayout = () => {
 
         <ItemListWrap>
             <ListHeader>
-                <span>name</span>
-                <span>description</span>
-                <span>category</span>
-                <span>last updated</span>
+                <li>name</li>
+                <li>description</li>
+                <li>category</li>
+                <li>last updated</li>
             </ListHeader>
             <ItemList>
                 <SnippetsItem/>

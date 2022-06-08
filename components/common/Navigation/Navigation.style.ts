@@ -67,7 +67,12 @@ export const MenuButton = styled.button`
   a {
     all: unset;
     ${menuTextStyle}
+    :hover{
+      color: black;
+      transition: .4s
+    }
   }
+
 `;
 
 export const HomeButton = styled.button`

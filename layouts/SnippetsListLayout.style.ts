@@ -115,32 +115,50 @@ export const ItemListWrap = styled.div`
   gap: 0.5rem;
 `;
 
-export const ListHeader = styled.div`
+export const ListHeader = styled.ul`
   box-sizing: border-box;
 
   /* Auto layout */
 
-  display: grid;
-  grid-template-columns: 20% 50% 20% 10%;
+  display: flex;
   flex-direction: row;
-  padding: 0px 0.3rem;
 
   height: 36px;
 
   border-bottom: 3px solid #000000;
 
-  span {
+  padding: 0.5rem 0.3rem;
+
+  li {
+    list-style: none;
     display: inline-flex;
     ${TitleFontStyle}
     font-style: normal;
     font-weight: 600;
     font-size: 0.9rem;
-    line-height: 2.4rem;
-
+    line-height: 1.2rem;
     text-transform: uppercase;
-
     color: #000000;
     white-space: nowrap;
+  }
+
+  li:nth-child(1) {
+    flex: 1;
+  }
+
+  li:nth-child(2) {
+    flex: 3;
+    padding-right: 1rem;
+  }
+
+  li:nth-child(3) {
+    flex: 0.5;
+    justify-content: flex-start;
+  }
+
+  li:nth-child(4) {
+    flex: 0.5;
+    justify-content: flex-end;
   }
 `;
 

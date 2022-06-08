@@ -21,7 +21,7 @@ export const AuthorCard = () => {
           <AuthorImage src="https://avatars.githubusercontent.com/u/51357635?s=400&u=36fd01b69ccd7729620c086927f9c0847ffdb0e1&v=4" />
           <AuthorInfo>
             <AuthroName>WoogLim</AuthroName>
-            <AuthroJob>Backend Developer</AuthroJob>
+            <AuthroJob>Fullstack Engineer</AuthroJob>
           </AuthorInfo>
         </AuthorProfile>
         <AuthorLink>

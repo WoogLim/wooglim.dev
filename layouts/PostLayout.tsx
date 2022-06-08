@@ -35,13 +35,18 @@ export const PostLayout = ({ children, post, similarposts }: Props) => {
           {/* <GiscusBox /> */}
           <SectionTitle>{`${post.tag}`} 카테고리의 다른 글</SectionTitle>
           <SimilarPostList>
-            {similarposts.map((post, idx) => {
+            {
+            similarposts.length < 1 ? `관련 게시글이 없습니다.` :
+            similarposts.map((post, idx) => {
               return <PostCardItem post={post} key={idx} />;
             })}
           </SimilarPostList>
           <SearchSimilarPosts>
             <Link href={`/post/${post.tag}`} passHref>
+            {
+            similarposts.length < 1 ? "" :
               <button>관련 게시글 더 보기</button>
+            }
             </Link>
           </SearchSimilarPosts>
         </ContentsWrap>

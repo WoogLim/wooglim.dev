@@ -14,7 +14,7 @@ export const PostCard = styled.div`
   box-sizing: border-box;
   border: 3px solid #ffffff;
   border-radius: 16px;
-  height: 376px;
+  height: 320px;
 
   :hover {
     cursor: pointer;
@@ -22,6 +22,7 @@ export const PostCard = styled.div`
 
     h3 {
       color: #4a94e6;
+      transition: 0.3s;
     }
   }
 `;
