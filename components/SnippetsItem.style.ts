@@ -12,6 +12,7 @@ export const ItemWrap = styled.ul`
   color: #ffffff;
   width: 100%;
   display: flex;
+  border-radius: 4px;
 
   li {
     display: flex;
@@ -26,24 +27,27 @@ export const ItemWrap = styled.ul`
   }
 
   :hover {
-    background: #f1f1f1;
+    background: #f7f2fc;
     transition: 0.2s;
   }
 `;
 
 export const ItemName = styled.button`
   all: unset;
+  font-family: 'IBM Plex Sans';
+  font-weight: 800;
+  font-size: 1rem;
 
   padding: 4px 6px 4px 4px;
 
-  background: #f1f1f1;
   border-radius: 8px;
-  color: #3e1ffc;
+  color: #695ddf;
 
   cursor: pointer;
 
   :hover {
-    background: #fefefe;
+    color: #4c39ff;
+    transition: 0.2s;
   }
 `;
 
@@ -53,7 +57,8 @@ export const ItemNameWrap = styled.li`
 `;
 
 export const ItemDescription = styled.li`
-  font-size: 0.9rem;
+  ${FontStyle}
+  font-size: 1rem;
   flex: 3;
   padding-right: 1rem;
 `;

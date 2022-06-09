@@ -42,6 +42,10 @@ export const SnippetsListLayout = () => {
                 <SnippetsItem/>
                 <SnippetsItem/>
                 <SnippetsItem/>
+                <SnippetsItem/>
+                <SnippetsItem/>
+                <SnippetsItem/>
+                <SnippetsItem/>
             </ItemList>
         </ItemListWrap>
         

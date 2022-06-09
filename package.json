@@ -1,12 +1,11 @@
 {
-  "name": "wooglimdevblog",
+  "name": "wooglimdev",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
-    "lint": "next lint"
+    "start": "next start"
   },
   "dependencies": {
     "@emotion/react": "^11.9.0",

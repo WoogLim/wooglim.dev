@@ -6,18 +6,31 @@ export const MdxContainer = styled.div`
   display: flex;
   flex-direction: row;
 
+  font-family: "Noto Sans";
+  font-weight: 500;
+
   @media screen and (max-width: 1152px) {
     flex-direction: column;
   }
 `;
 
 export const PostBox = styled.div`
+  font-family: "IBM Plex Sans";
+
+  p {
+    font-family: "Noto Sans KR";
+    font-size: 1rem;
+    font-weight: 500;
+  }
+
   h1,
   h2,
   h3,
   h4,
   h5,
   h6 {
+    font-family: "IBM Plex Sans";
+    font-weight: 800;
     margin: 0;
   }
   display: flex;
@@ -44,7 +57,7 @@ export const ContentOfPost = styled.ul`
     margin-bottom: 0.8em;
     padding-left: 0.4em;
   }
-  
+
   caret-color: rgba(0, 0, 0, 0);
 
   display: flex;
@@ -60,7 +73,7 @@ export const ContentOfPost = styled.ul`
   margin-left: 20px;
   font-size: 1rem;
 
-  border-left: 2px dashed #F2F2F2;
+  border-left: 2px dashed #f2f2f2;
 
   h1,
   h2,
@@ -68,9 +81,10 @@ export const ContentOfPost = styled.ul`
   h4,
   h5,
   h6 {
-    font-weight: 500;
+    font-family: "IBM Plex Sans";
+    font-weight: 600;
     color: #757075;
-    font-size: 14px;
+    font-size: 16px;
   }
 
   li {
