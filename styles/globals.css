@@ -158,12 +158,10 @@ body::-webkit-scrollbar {
 }
 
 body::-webkit-scrollbar-track {
-  border-radius: 3px;
   background-color: transparent;
 }
 
 body::-webkit-scrollbar-thumb {
-  border-radius: 5px;
   background-color: rgb(71, 70, 82);
   border: 2px solid rgb(71, 70, 82);
 }
