@@ -6,6 +6,7 @@ import {
   PostTitle,
   PostSubtude,
   PostAuthor,
+  PostTags,
   PostView,
 } from "./PostCard.style";
 
@@ -18,13 +19,17 @@ export const PostCardItem = ({ post }: PostsProps) => {
     <Link href={`/post/${post.slug}`} passHref>
       <PostCard>
         <PostThumnail>
-            {/* 배포시 Image 태그로 변경 필요 height: 180 */}
-            <img src={post.thumbnail}/>
+          {/* 배포시 Image 태그로 변경 필요 height: 180 */}
+          <img src={post.thumbnail} />
         </PostThumnail>
         <PostTitle>{post.title}</PostTitle>
-        <PostSubtude>
-          {post.description}
-        </PostSubtude>
+        <PostSubtude>{post.description}</PostSubtude>
+        <PostAuthor>
+          <PostTags>
+            <span>{post.tag}</span>
+          </PostTags>
+          <PostView>2</PostView>
+        </PostAuthor>
       </PostCard>
     </Link>
   );

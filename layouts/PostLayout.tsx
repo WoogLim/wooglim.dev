@@ -41,14 +41,14 @@ export const PostLayout = ({ children, post, similarposts }: Props) => {
               return <PostCardItem post={post} key={idx} />;
             })}
           </SimilarPostList>
-          <SearchSimilarPosts>
+          {/* <SearchSimilarPosts>
             <Link href={`/post/${post.tag}`} passHref>
             {
             similarposts.length < 1 ? "" :
               <button>관련 게시글 더 보기</button>
             }
             </Link>
-          </SearchSimilarPosts>
+          </SearchSimilarPosts> */}
         </ContentsWrap>
       </SectionWrap>
     </SectionContainer>

@@ -14,7 +14,7 @@ export const PostCard = styled.div`
   box-sizing: border-box;
   border: 3px solid #ffffff;
   border-radius: 16px;
-  height: 320px;
+  height: 35 0px;
 
   :hover {
     cursor: pointer;
@@ -31,7 +31,7 @@ export const PostCard = styled.div`
 export const PostThumnail = styled.div`
   display: flex;
   box-sizing: border-box;
-  height: 180px;
+  max-height: 155px;
   overflow: hidden;
   border-radius: 8px;
   order: 0;
@@ -51,7 +51,7 @@ export const PostTitle = styled.h3`
   font-weight: 700;
   font-size: 1.2rem;
   line-height: 1.8rem;
-  max-height: 3.2rem;
+  max-height: 1.8rem;
 
   text-overflow: ellipsis;
   overflow: hidden;
@@ -95,18 +95,43 @@ export const PostAuthor = styled.div`
   order: 3;
   display: flex;
   flex-direction: row;
-  justify-content: flex-end;
   border-top: 3px solid #000000;
+  padding-top: 6px;
+`;
+
+export const PostTags = styled.p`
+  ${FontStyle}
+  flex:1;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+
+  span{
+    all: unset;
+    font-style: normal;
+    font-weight: 600;
+    font-size: 14px;
+    line-height: 1rem;
+    text-transform: capitalize;
+
+    box-sizing: border-box;
+
+    background: #f2f2f2;
+    padding: 4px;
+  }
 `;
 
 export const PostView = styled.p`
+  flex: 1;
+
   ${FontStyle}
   font-style: normal;
   font-weight: 600;
   font-size: 1rem;
-  line-height: 2rem;
-
-  color: #000000;
+  line-height: 1rem;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
 
   :after {
     content: "view";
