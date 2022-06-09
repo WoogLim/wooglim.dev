@@ -57,5 +57,5 @@ export const PostArticle = styled.div`
   display: flex;
   flex-direction: column;
   padding: 20px 0px 0px;
-  gap: 32px;
+  gap: 16px;
 `;
