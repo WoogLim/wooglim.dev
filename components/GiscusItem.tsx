@@ -6,15 +6,15 @@ const GiscusBox = ({ slug }: { slug: string }) => {
     <>
       <Giscus
         repo={`${metadata.giscus.id}/${metadata.giscus.repo}`}
-        repoId={`${process.env.NEXT_PUBLIC_GISCUS_REPOSITORY_ID}`}
-        category={`${metadata.giscus.category}`}
+        repoId={process.env.NEXT_PUBLIC_GISCUS_REPOSITORY_ID!}
+        category={metadata.giscus.category}
         categoryId={process.env.NEXT_PUBLIC_GISCUS_CATEGORY_ID}
         term={slug}
         mapping="pathname"
         reactionsEnabled="1"
         emitMetadata="0"
         theme="light"
-        inputPosition="top"
+        inputPosition="bottom"
         lang="en"
       />
     </>
