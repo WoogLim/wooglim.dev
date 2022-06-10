@@ -14,7 +14,7 @@ import Link from "next/link";
 
 type Props = {
   children: React.ReactNode;
-  post: PostI
+  post: Omit<PostI, "slug">
   // Omit<PostI, "slug">;
   similarposts: [PostI];
 };
@@ -25,14 +25,13 @@ export const PostLayout = ({ children, post, similarposts }: Props) => {
   // typeof(React.Children.toArray(children)) : Array -> 고유의 키번호가 같이 붙음 .1, .2
 
   // giscus 각 포스트별 댓글..
-
   return (
     <SectionContainer>
       <SectionWrap>
         <ContentsWrap>
           {children}
           <SectionTitle>COMMENT</SectionTitle>
-          <GiscusBox slug={post.slug}/>
+          <GiscusBox slug={post.title}/>
           <SectionTitle>{`${post.tag}`} 카테고리의 다른 글</SectionTitle>
           <SimilarPostList>
             {
