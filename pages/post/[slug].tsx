@@ -20,7 +20,7 @@ import { MdxLayout } from "../../components/common/Provider/PostMdx";
 type Props = {
   source: MDXRemoteSerializeResult;
   // slug 속성만 제거
-  frontMatter: Omit<PostI, "slug">;
+  frontMatter: PostI;
   similarPosts: [PostI];
 };
 

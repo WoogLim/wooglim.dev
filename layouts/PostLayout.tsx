@@ -14,7 +14,7 @@ import Link from "next/link";
 
 type Props = {
   children: React.ReactNode;
-  post: Omit<PostI, "slug">;
+  post: PostI
   // Omit<PostI, "slug">;
   similarposts: [PostI];
 };
@@ -32,7 +32,7 @@ export const PostLayout = ({ children, post, similarposts }: Props) => {
         <ContentsWrap>
           {children}
           <SectionTitle>COMMENT</SectionTitle>
-          {/* <GiscusBox /> */}
+          <GiscusBox slug={post.slug}/>
           <SectionTitle>{`${post.tag}`} 카테고리의 다른 글</SectionTitle>
           <SimilarPostList>
             {

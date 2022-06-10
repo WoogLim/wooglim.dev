@@ -1,18 +1,19 @@
 import { Giscus } from "@giscus/react";
 import { metadata } from "../data/metadata";
 
-const GiscusBox = () => {
+const GiscusBox = ({slug} : {slug : string}) => {
   return (
     <>
       <Giscus
         repo={`${metadata.giscus.id}/${metadata.giscus.repo}`}
-        repoId={`${metadata.giscus.repo}`}
-        category={`${metadata.giscus.category}`}
+        repoId={`${process.env.NEXT_PUBLIC_GISCUS_REPOSITORY_ID}`}
+        category={`${process.env.NEXT_PUBLIC_GISCUS_CATEGORY}`}
         categoryId={process.env.NEXT_PUBLIC_GISCUS_CATEGORY_ID}
+        term={slug}
         mapping="pathname"
         reactionsEnabled="1"
         emitMetadata="0"
-        theme="white"
+        theme="light"
       />
     </>
   );
