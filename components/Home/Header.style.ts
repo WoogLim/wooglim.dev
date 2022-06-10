@@ -7,11 +7,11 @@ export const HeaderContainer = styled.header`
   margin: 0 auto;
 
   @media screen and (max-width: 656px) {
-    height:290px;    
+    height: 290px;
   }
 
   @media screen and (max-width: 580px) {
-    height:240px;    
+    height: 240px;
   }
 `;
 
@@ -32,6 +32,14 @@ export const HeaderWrap = styled.div`
       background: #6c5ce7;
       z-index: -1;
     }
+
+    @media screen and (max-width: 580px) {
+      position: fixed;
+      top: 0;
+      left: 0;
+      padding: 0 17px 0 12px;
+      background: #6c5ce7;
+    }
   }
 `;
 
@@ -47,11 +55,11 @@ export const HeaderBackgroud = styled.div`
   z-index: -1;
 
   @media screen and (max-width: 656px) {
-    height:270px;    
+    height: 270px;
   }
 
   @media screen and (max-width: 580px) {
-    height:240px;    
+    height: 240px;
   }
 `;
 
@@ -62,11 +70,8 @@ export const IntroduceWrap = styled.div`
   flex-direction: row;
 
   @media screen and (max-width: 656px) {
-    
   }
 
-  
   @media screen and (max-width: 656px) {
-    
   }
 `;

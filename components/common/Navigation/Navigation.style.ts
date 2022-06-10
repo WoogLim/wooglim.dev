@@ -7,7 +7,7 @@ export const NavBar = styled.ul`
 
   caret-color: rgba(0, 0, 0, 0);
 
-  display: inline-flex;
+  display: flex;
   width: 100%;
   flex-direction: row;
   justify-content: flex-start;
@@ -19,6 +19,30 @@ export const NavBar = styled.ul`
   top: 0;
   position: -webkit-sticky;
   z-index: 2;
+
+  @media screen and (max-width: 580px) {
+    justify-content: space-between;
+  }
+
+  .open {
+    display: flex;
+    position: fixed;
+    top: 60px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-bottom: 3px solid #333333;
+    padding: 28px 0 0 24px;
+    background: #6c5ce7;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+
+    a {
+      font-size: 1.2rem;
+      font-weight: 600;
+    }
+  }
 `;
 
 const menuTextStyle = css`
@@ -32,12 +56,46 @@ const menuTextStyle = css`
   color: #ffffff;
 `;
 
+export const HomeButton = styled.button`
+  all: unset;
+  cursor: pointer;
+
+  margin-right: 20px;
+  display: flex;
+  align-items: center;
+
+  @media screen and (max-width: 580px) {
+    margin-right: 0;
+    order: 2;
+  }
+`;
+
+export const MenuToggleBtn = styled.button`
+  display: none;
+
+  @media screen and (max-width: 580px) {
+    display: flex;
+    height: 100%;
+    align-items: center;
+    left: -4px;
+
+    svg {
+      fill: #ffffff;
+    }
+  }
+`;
+
 export const MenuList = styled.div`
   display: flex;
   flex-direction: row;
   align-items: center;
   padding: 0px;
   gap: 20px;
+  order: 1;
+
+  @media screen and (max-width: 580px) {
+    display: none;
+  }
 `;
 
 export const LogoImage = styled.img`
@@ -67,17 +125,9 @@ export const MenuButton = styled.button`
   a {
     all: unset;
     ${menuTextStyle}
-    :hover{
+    :hover {
       color: black;
-      transition: .4s
+      transition: 0.4s;
     }
   }
-
-`;
-
-export const HomeButton = styled.button`
-  all: unset;
-  cursor: pointer;
-
-  margin-right: 20px;
 `;
