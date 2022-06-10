@@ -20,7 +20,7 @@ export const HomeSection = ({ posts }: Props) => {
         <PostWrap>
           <SectionTitle>RECENTLY POSTED</SectionTitle>
           <PostArticle>
-            {posts.map((post) => (
+            {posts.slice(0,5).map((post) => (
               <PostItem post={post} key={post.slug} />
             ))}
           </PostArticle>

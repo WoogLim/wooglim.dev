@@ -4,7 +4,7 @@ import {
   HeaderBackgroud,
   IntroduceWrap,
 } from "./Header.style";
-import { Navigation } from "./common/Navigation/Navigation";
+import { Navigation } from "../common/Navigation/Navigation";
 import { Title } from "./HeaderTitle";
 import { AuthorCard } from "./AuthorCard";
 

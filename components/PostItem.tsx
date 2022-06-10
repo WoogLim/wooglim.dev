@@ -9,8 +9,8 @@ import {
 } from "./PostItem.style";
 
 import { PostI } from "../types/post";
+import Image from "next/image";
 import Link from "next/link";
-import Image from "next/Image";
 
 type Props = {
   post: PostI;

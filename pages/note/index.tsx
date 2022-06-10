@@ -8,7 +8,7 @@ const Index: React.FC = () => {
   return (
     <>
       <Header />
-      <NoteListLayout />
+      준비중입니다! 😅
       <Bottom />
     </>
   );

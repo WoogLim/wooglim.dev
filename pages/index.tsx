@@ -4,8 +4,8 @@ import { NextPage } from "next";
 import { PostI } from "../types/post";
 import { getAllPosts } from "../lib/PostMdxLib";
 
-import { Bottom } from "../components/common/Bottom/Bottom";
-import { Header } from "../components/Header";
+import { Bottom } from "../components/Home/Bottom";
+import { Header } from "../components/Home/Header";
 import { HomeSection } from "../layouts/HomeLayout";
 
 type Props = {

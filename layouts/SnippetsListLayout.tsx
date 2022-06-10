@@ -19,19 +19,19 @@ export const SnippetsListLayout = () => {
       <ListsWrap>
         <MenuWrap>
           <h3>snippets</h3>
-          <span>빠른 재사용을 위해 코드와 지식을 기록합니다.</span>
+          <span>준비중입니다! 😅</span>
         </MenuWrap>
-        <ListFilter>
+        
+        {/* <ListFilter>
           <SnippetsSearchBox>
             <SnippetsSearch spellCheck={false} placeholder="Find a Snippets..." />
             <SnippetsSearchBtn/>
           </SnippetsSearchBox>
           <SnippetsDropDownSelect data-dropdown={true}>
-              {/* 작업중 */}
           </SnippetsDropDownSelect>
-        </ListFilter>
+        </ListFilter> */}
 
-        <ItemListWrap>
+        {/* <ItemListWrap>
             <ListHeader>
                 <li>name</li>
                 <li>description</li>
@@ -47,7 +47,7 @@ export const SnippetsListLayout = () => {
                 <SnippetsItem/>
                 <SnippetsItem/>
             </ItemList>
-        </ItemListWrap>
+        </ItemListWrap> */}
         
       </ListsWrap>
     </SnippetsConatainer>
