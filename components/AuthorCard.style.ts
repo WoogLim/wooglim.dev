@@ -131,16 +131,11 @@ export const AuthorLinkWrap = styled.div`
 export const AuthorLinkImage = styled.img`
   box-sizing: border-box;
 
-  width: 40px;
-  height: 40px;
+  width: 28px;
+  height: 28px;
   object-fit: contain;
   overflow: hidden;
   border-radius: 100%;
-
-  @media screen and (max-width: 656px) {
-    width: 32px;
-    height: 32px;
-  }
 `;
 
 export const AuthorResumeBtn = styled.button`

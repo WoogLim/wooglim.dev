@@ -29,10 +29,9 @@ export const AuthorCard = () => {
             <AuthorResumeBtn>View Resume</AuthorResumeBtn>
           </AuthorInfoWrap>
           <AuthorLinkWrap>
-            <a><AuthorLinkImage src="https://dummyimage.com/40x40"/></a>
-            <a><AuthorLinkImage src="https://dummyimage.com/40x40"/></a>
-            <a><AuthorLinkImage src="https://dummyimage.com/40x40"/></a>
-            <a><AuthorLinkImage src="https://dummyimage.com/40x40"/></a>
+            <a><AuthorLinkImage src="/Images/Home/linkedin.svg"/></a>
+            <a><AuthorLinkImage src="/Images/Home/twitter.svg"/></a>
+            <a><AuthorLinkImage src="/Images/Home/github.svg"/></a>
           </AuthorLinkWrap>
         </AuthorLink>
       </Card>

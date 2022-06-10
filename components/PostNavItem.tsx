@@ -8,6 +8,7 @@ import {
   PostAuthor,
   PostView,
 } from "./PostNavItem.style";
+import Image from "next/image";
 
 type Props = {
   post: PostI;
@@ -18,13 +19,16 @@ export const PostCardItem = ({ post }: Props) => {
     <Link href={`/post/${post.slug}`} passHref>
       <PostCard>
         <PostThumnail>
-            {/* 배포시 Image 태그로 변경 필요 height: 180 */}
-            <img src={post.thumbnail}/>
+          <Image
+            src={post.thumbnail}
+            alt="thumbnail"
+            width={600}
+            height={420}
+            layout="intrinsic"
+          />
         </PostThumnail>
         <PostTitle>{post.title}</PostTitle>
-        <PostSubtude>
-          {post.description}
-        </PostSubtude>
+        <PostSubtude>{post.description}</PostSubtude>
       </PostCard>
     </Link>
   );

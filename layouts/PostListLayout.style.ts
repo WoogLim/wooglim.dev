@@ -81,7 +81,6 @@ export const PostsSearchBtn = styled.button`
   top: 0.85rem;
   right: 0.4rem;
   display: inline-block;
-  background: url("/images/search.svg") no-repeat 0px 0px;
   background-size: contain;
   width: 1.4rem;
   height: 1.4rem;

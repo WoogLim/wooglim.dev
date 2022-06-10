@@ -1,5 +1,5 @@
 import { PostCardItem } from "../components/PostCard";
-
+import searchIcon from "../Images/search.svg";
 import {
   PostsConatainer,
   PostsWrap,
@@ -14,6 +14,7 @@ import {
 
 import { PostI } from "../types/post";
 import React, { useState, useEffect } from "react";
+import Image from "next/image";
 
 type PostIndexProps = {
   posts: [PostI];
@@ -25,9 +26,7 @@ export const PostListLayout = ({ posts }: PostIndexProps) => {
     posts.map((post: PostI) => post.title.toLowerCase())
   );
   const [searchWord, setSearchWord] = useState("");
-  const [postNumber, setPostNumber] = useState<number>(
-    posts.length
-  );
+  const [postNumber, setPostNumber] = useState<number>(posts.length);
 
   const onChangeSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     e.preventDefault();
@@ -62,7 +61,14 @@ export const PostListLayout = ({ posts }: PostIndexProps) => {
                 onChange={onChangeSearch}
                 placeholder="Search"
               />
-              <PostsSearchBtn />
+              <PostsSearchBtn>
+                <Image
+                  src="/Images/search.svg"
+                  alt="search"
+                  layout="fill"
+                  objectFit="cover"
+                />
+              </PostsSearchBtn>
             </PostsSearchBox>
             <PostNumber>{`${postNumber} Articles`}</PostNumber>
           </PostsHeaderWrap>
