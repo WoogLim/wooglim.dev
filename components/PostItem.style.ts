@@ -48,19 +48,22 @@ export const Contents = styled.div`
   }
 `;
 
-export const Thumnail = styled.img`
+export const Thumnail = styled.div`
   box-sizing: border-box;
 
   width: 180px;
   height: 120px;
-  object-fit: cover;
-  overflow: hidden;
-  border-radius: 1rem;
-  order: 1;
+  
+  img {
+    object-fit: cover;
+    overflow: hidden;
+    border-radius: 1rem;
+    order: 1;
+  }
 
   @media screen and (max-width: 614px) {
     display: flex;
-    width:100%;
+    width: 100%;
     order: 0;
     height: 140px;
   }

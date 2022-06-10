@@ -65,8 +65,8 @@ export const PostListLayout = ({ posts }: PostIndexProps) => {
                 <Image
                   src="/Images/search.svg"
                   alt="search"
-                  layout="fill"
-                  objectFit="cover"
+                  width={22.4}
+                  height={22.4}
                 />
               </PostsSearchBtn>
             </PostsSearchBox>

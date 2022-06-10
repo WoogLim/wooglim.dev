@@ -140,7 +140,6 @@
 
 html,
 body {
-  scroll-behavior: smooth;
   padding: 0;
   margin: 0;
   height: 100%;
@@ -164,6 +163,10 @@ body::-webkit-scrollbar-track {
 body::-webkit-scrollbar-thumb {
   background-color: rgb(71, 70, 82);
   border: 2px solid rgb(71, 70, 82);
+}
+
+.postContainer{
+  scroll-behavior: smooth;
 }
 
 #__next {

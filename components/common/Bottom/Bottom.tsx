@@ -14,7 +14,13 @@ export const Bottom = () => {
         <Copyright>© 2022 Geon Lim. All right reserved</Copyright>
         <BlogLinks>
           <LinkButton href="https://github.com/WoogLim/woogLim.dev">
-            <Image src="/Images/Home/github.svg" alt="github" width="40" height="40"/>
+            <Image
+              src="/Images/Home/github.svg"
+              alt="github"
+              width={40}
+              height={40}
+              layout="intrinsic"
+            />
           </LinkButton>
         </BlogLinks>
       </FooterWrap>

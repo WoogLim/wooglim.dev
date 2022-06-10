@@ -10,6 +10,7 @@ import {
 
 import { PostI } from "../types/post";
 import Link from "next/link";
+import Image from "next/Image";
 
 type Props = {
   post: PostI;
@@ -26,7 +27,15 @@ export const PostItem = ({ post }: Props) => {
             <PostItemDate>{post.date}</PostItemDate>
           </Summary>
         </Contents>
-        <Thumnail src={post.thumbnail} />
+        <Thumnail>
+          <Image
+            src={post.thumbnail}
+            alt="thumbnail"
+            width={600}
+            height={420}
+            layout="intrinsic"
+          />
+        </Thumnail>
       </PostItemWrap>
     </Link>
   );
