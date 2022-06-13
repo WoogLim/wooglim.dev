@@ -8,69 +8,90 @@ const FontStyle = css`
 // 스니펫 아이템
 export const ItemWrap = styled.ul`
   box-sizing: border-box;
-  padding: 0.5rem 0.3rem;
-  color: #ffffff;
   width: 100%;
   display: flex;
-  border-radius: 4px;
+  flex-direction: column;
+  cursor: pointer;
+  padding: 8px;
+  box-sizing: border-box;
+  border: 3px solid #ffffff;
+  box-shadow: 0px 0px 0px 1px rgba(0, 0, 0, 1);
+  max-height:170px;
 
   li {
     display: flex;
-    align-items: center;
     list-style: none;
     ${FontStyle}
     font-style: normal;
     font-weight: 500;
-    line-height: 1.4rem;
-
-    color: #000000;
+    line-height: 1.3rem;
   }
 
   :hover {
-    background: #f7f2fc;
     transition: 0.2s;
+    border: 3px solid #000000;
   }
 `;
 
-export const ItemName = styled.button`
-  all: unset;
-  font-family: 'IBM Plex Sans';
-  font-weight: 800;
-  font-size: 1rem;
-
-  padding: 4px 6px 4px 4px;
-
+export const ItemName = styled.div`
+  ${FontStyle}
+  font-weight: 700;
+  font-size: 1.4rem;
   border-radius: 8px;
-  color: #695ddf;
-
-  cursor: pointer;
-
-  :hover {
-    color: #4c39ff;
-    transition: 0.2s;
-  }
+  margin-top: 4px;
 `;
 
-export const ItemNameWrap = styled.li`
-  font-size: 1rem;
-  flex: 1;
+export const ItemInfo = styled.div`
+  display: flex;
+  justify-content: space-between;
 `;
 
 export const ItemDescription = styled.li`
+  margin-top: 6px;
   ${FontStyle}
-  font-size: 1rem;
+  font-size: 0.9rem;
+  max-height:90px;
+  overflow: hidden;
   flex: 3;
-  padding-right: 1rem;
+  position: relative;
+  
+  :after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 15%;
+    height: 1.6rem;
+    background: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0),
+      rgba(255, 255, 255, 1) 75%
+    );
+  }
 `;
 
-export const ItemCategory = styled.li`
-  font-size: 1rem;
-  flex: 0.5;
+export const ItemLanguage = styled.li`
+  ${FontStyle}
+  flex:1;
+  display: flex;
   justify-content: flex-start;
+  align-items: center;
+  color: #575757;
+
+  span {
+    all: unset;
+    font-style: normal;
+    font-weight: 600;
+    font-size: 14px;
+    line-height: 1rem;
+    text-transform: capitalize;
+
+    box-sizing: border-box;
+  }
 `;
 
 export const ItemUpdate = styled.li`
-  font-size: 1rem;
-  flex: 0.5;
-  justify-content: flex-end;
+  font-size: 0.8rem;
+  text-transform: capitalize;
+  color: #575757;
 `;

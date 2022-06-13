@@ -1,5 +1,4 @@
 import { PostCardItem } from "../components/PostCard";
-import searchIcon from "../Images/search.svg";
 import {
   PostsConatainer,
   PostsWrap,

@@ -53,7 +53,7 @@ export const Thumnail = styled.div`
 
   width: 180px;
   height: 120px;
-  
+
   img {
     object-fit: cover;
     overflow: hidden;
@@ -99,6 +99,7 @@ export const SummarySub = styled.p`
   overflow: hidden;
 
   color: #4e4e4e;
+  }
 `;
 
 export const PostItemDate = styled.p`

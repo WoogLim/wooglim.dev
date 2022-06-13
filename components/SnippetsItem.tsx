@@ -1,24 +1,35 @@
 import Link from "next/link";
+import { SnippetI } from "../types/snippet";
 import {
   ItemWrap,
-  ItemNameWrap,
   ItemName,
   ItemDescription,
-  ItemCategory,
+  ItemInfo,
+  ItemLanguage,
   ItemUpdate,
 } from "./SnippetsItem.style";
 
-export const SnippetsItem = () => {
+type SnippetsProps = {
+  snippet: SnippetI;
+};
+
+export const SnippetItem = ({ snippet }: SnippetsProps) => {
   return (
-    <ItemWrap>
-      <ItemNameWrap>
+    <Link href={`/snippet/${snippet.slug}`} passHref>
+      <ItemWrap>
+        <ItemInfo>
+          <ItemLanguage>
+            <span>{snippet.language}</span>
+          </ItemLanguage>
+          <ItemUpdate>{snippet.update}</ItemUpdate>
+        </ItemInfo>
         <ItemName>
-          <p>useState</p>
+          {snippet.title}
         </ItemName>
-      </ItemNameWrap>
-      <ItemDescription>useState 를 통해 컴포넌트에서 바뀌는 값 관리하기. 지금까지 우리가 리액트 컴포넌트를 만들 때는, 동적인 부분이 하나도 없었습니다. 값이 바뀌는 일이 없었죠.</ItemDescription>
-      <ItemCategory>React</ItemCategory>
-      <ItemUpdate>2022. 05. 25</ItemUpdate>
-    </ItemWrap>
+        <ItemDescription>
+          {snippet.description}
+        </ItemDescription>
+      </ItemWrap>
+    </Link>
   );
 };

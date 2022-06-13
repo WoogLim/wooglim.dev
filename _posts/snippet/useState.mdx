@@ -1,0 +1,55 @@
+---
+title: "useState()"
+description: "useState 를 통해 컴포넌트에서 바뀌는 값 관리하기"
+language: "react"
+category: "frontend"
+update: "2022. 05. 26"
+---
+# Using the State Hooks
+Hook은 React 16.8버전에 새로 추가되었습니다. Hook은 클래스 컴포넌트를 작성하지 않아도 state와 같은 특징들을 사용할 수 있습니다.
+
+## 기본적인 예시
+~~~js {5}
+import React, { useState } from 'react';
+
+function Example() {
+  // 새로운 state 변수를 선언하고, count라 부르겠습니다.
+  const [count, setCount] = useState(0);
+
+  return (
+    <div>
+      <p>You clicked {count} times</p>
+      <button onClick={() => setCount(count + 1)}>
+        Click me
+      </button>
+    </div>
+  );
+}
+~~~
+---
+
+## Hook과 같은 기능을 하는 클래스 예시
+
+React에서 클래스를 사용해봤다면, 아래의 코드는 익숙할 겁니다.
+
+~~~js
+class Example extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      count: 0
+    };
+  }
+
+  render() {
+    return (
+      <div>
+        <p>You clicked {this.state.count} times</p>
+        <button onClick={() => this.setState({ count: this.state.count + 1 })}>
+          Click me
+        </button>
+      </div>
+    );
+  }
+}
+~~~

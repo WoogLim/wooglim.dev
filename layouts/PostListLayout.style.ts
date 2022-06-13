@@ -9,7 +9,7 @@ export const PostsConatainer = styled.main`
   max-width: calc(100% - calc((100% - 1070px)));
   width: 100%;
   margin: 0 auto;
-  padding-top: 60px;
+  padding-top: 28px;
 `;
 
 export const PostsWrap = styled.div`
@@ -77,11 +77,8 @@ export const PostsSearchBtn = styled.button`
   all: unset;
 
   cursor: pointer;
-  position: absolute;
-  top: 0.85rem;
-  right: 0.4rem;
+  padding-right: 8px;
   display: inline-block;
-  background-size: contain;
   width: 1.4rem;
   height: 1.4rem;
 `;
@@ -95,8 +92,8 @@ export const PostNumber = styled.div`
   ${FontStyle}
   text-transform: capitalize;
   font-style: normal;
-  font-weight: 400;
-  font-size: 2rem;
+  font-weight: 600;
+  font-size: 1.4rem;
 
   color: #000000;
 

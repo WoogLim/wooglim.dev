@@ -28,7 +28,7 @@ export const PostCardItem = ({ post }: PostsProps) => {
             height={420}
             layout="intrinsic"
           />
-        </PostThumnail>
+        </PostThumnail> 
         <PostTitle>{post.title}</PostTitle>
         <PostSubtude>{post.description}</PostSubtude>
         <PostAuthor>

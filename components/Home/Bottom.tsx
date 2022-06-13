@@ -19,7 +19,7 @@ export const Bottom = () => {
               alt="github"
               width={28}
               height={28}
-              layout="intrinsic"
+              layout="intrinsic"  
             />
           </LinkButton>
         </BlogLinks>
