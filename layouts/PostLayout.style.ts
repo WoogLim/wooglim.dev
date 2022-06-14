@@ -12,6 +12,7 @@ const NavtextStyle = css`
 `;
 
 export const SectionContainer = styled.main`
+  caret-color: rgba(0, 0, 0, 0);
   max-width: calc(100% - calc((100% - 1132px)));
   width: 100%;
   margin: 0 auto;
@@ -123,16 +124,15 @@ export const ContentsWrap = styled.div`
   }
 
   .dateWriting {
-    ::after{
+    ::after {
       content: "·";
-      margin-left:6px;
+      margin-left: 6px;
     }
 
     font-family: "Roboto";
     font-weight: 600;
     font-style: normal;
     font-size: 13px;
-
   }
 `;
 

@@ -24,7 +24,7 @@ pre[class*="language-"]::-webkit-scrollbar-track {
 }
 
 pre[class*="language-"]::-webkit-scrollbar-thumb {
-  background-color: #4E80EE ;
+  background-color: #3a3a3ac2 ;
   outline: 0px solid rgba(255, 255, 255, 0.7);
   border-radius: 10px;
 }
@@ -32,24 +32,12 @@ pre[class*="language-"]::-webkit-scrollbar-thumb {
 .code-title {
   color: #ffffff;
   position: absolute;
-  top: -2rem;
+  top:-1.4rem;
   font-size: 1.2rem;
   line-height: 2rem;
   border-radius: 6px 6px 0 0;
   font-variant: small-caps;
-  background: #1c2632;
-  padding: 0 1rem;
-}
-
-.code-title {
-  color: #ffffff;
-  position: absolute;
-  top: -2rem;
-  font-size: 1.2rem;
-  line-height: 2rem;
-  border-radius: 6px 6px 0 0;
-  font-variant: small-caps;
-  background: #1c2632;
+  background: rgb(59, 130, 246);
   padding: 0 1rem;
 }
 
@@ -60,13 +48,13 @@ pre[class*="language-"]::-webkit-scrollbar-thumb {
   margin-left: -16px;
   margin-right: -16px;
   border-left-width: 4px;
-  border-left-color: rgb(31, 41, 55);
+  border-left-color: inherit;
 }
 
 .highlight-line {
   margin-left: -16px;
   margin-right: -16px;
-  background-color: rgba(55, 65, 81, 0.5);
+  background-color: rgba(206, 225, 255, 0.5);
   border-left-width: 4px;
   border-left-color: rgb(59, 130, 246);
 }

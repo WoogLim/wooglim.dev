@@ -1,5 +1,4 @@
 import styled from "@emotion/styled";
-import { css } from "@emotion/react";
 
 export const MdxContainer = styled.div`
   flex: 1;
@@ -20,7 +19,7 @@ export const PostBox = styled.div`
   p {
     font-family: "Noto Sans KR";
     font-size: 1rem;
-    font-weight: 600;
+    font-weight: 500;
   }
 
   h1,

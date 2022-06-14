@@ -10,7 +10,6 @@ import {
 import GiscusBox from "../components/GiscusItem";
 import { PostCardItem } from "../components/PostNavItem";
 import { PostI } from "../types/post";
-import Link from "next/link";
 
 type Props = {
   children: React.ReactNode;
