@@ -11,7 +11,7 @@ export const Bottom = () => {
   return (
     <BottomContainer>
       <FooterWrap>
-        <Copyright>© 2022 Geon Lim. All right reserved</Copyright>
+        <Copyright>© 2022 GeonLim.</Copyright>
         <BlogLinks>
           <LinkButton href="https://github.com/WoogLim/woogLim.dev">
             <Image
