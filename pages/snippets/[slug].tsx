@@ -77,7 +77,7 @@ export const getStaticProps: GetStaticProps = async (context) => {
 };
 
 export const getStaticPaths: GetStaticPaths = () => {
-  const snippets = getAllSnippets(["slug"]);
+  const snippets = getAllSnippets(["slug"]).snippets;
 
   const paths = snippets.map((snippet) => ({
     params: {

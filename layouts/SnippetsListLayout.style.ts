@@ -93,8 +93,8 @@ export const FitlerContainer = styled.div`
     flex-direction: column;
     align-items: flex-start;
 
-    .searchBox{
-      width:100%;
+    .searchBox {
+      width: 100%;
     }
   }
 `;
@@ -118,28 +118,94 @@ export const SelectWrap = styled.div`
   }
 `;
 
-export const SelectBox = styled.div`
-  display: flex;
-  justify-content: center;
-  align-items: center;
-
-  color: #ffffff;
-  width: 84px;
-  height: 38px;
+export const FilterWrap = styled.div`
   cursor: pointer;
+  position: relative;
+`;
+
+export const SelectBox = styled.button`
+  color: #ffffff;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  height: 38px;
 
   box-sizing: border-box;
   border: 3px solid #695ddf;
   border-radius: 4px;
+  padding: 0px 24px 0px 4px;
+  position: relative;
 
-  @media screen and (max-width: 664px) {
-    width: 64px;
+  ::after {
+    position: absolute;
+    right: 6px;
+    content: " ";
+    border-bottom: 4px solid;
+    border-left: 4px solid rgba(0, 0, 0, 0);
+    border-right: 4px solid rgba(0, 0, 0, 0);
+    color: #ffffff;
+    transform: rotate(-180deg);
+    -webkit-transform: rotate(-180deg);
+    -moz-transform: rotate(-180deg);
+    -o-transform: rotate(-180deg);
+    -ms-transform: rotate(-180deg);
   }
 
   :hover {
     border: 3px solid #000000;
     transition: 0.2s;
   }
+`;
+
+export const FilterList = styled.ul`
+  display: none;
+  position: absolute;
+  top: 35px;
+  left: 0px;
+  min-width: 120px;
+  background: #ffffff;
+  color: #333333;
+  border-radius: 4px;
+  z-index: 1;
+  border: 3px solid #000000;
+  max-height: 240px;
+  overflow-y: scroll;
+
+  ::-webkit-scrollbar {
+    width: 7px;
+    background-color: #ffffff;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background-color: rgb(71, 70, 82);
+    border-radius: 8px;
+  }
+`;
+
+export const FilterItem = styled.li`
+  display: flex;
+  padding: 12px 12px;
+  ${FilterTextStyle}
+  font-weight:600;
+
+  :hover {
+    background: #eeeeee;
+  }
+`;
+
+export const ClearBtn = styled.button`
+  all: unset;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+
+  color: #ffffff;
+  height: 38px;
+  cursor: pointer;
+
+  box-sizing: border-box;
+  border: 3px solid #695ddf;
+  border-radius: 4px;
 `;
 
 export const SerachWrap = styled.div`
@@ -150,7 +216,7 @@ export const SerachWrap = styled.div`
   justify-content: flex-end;
 
   @media screen and (max-width: 664px) {
-    width:100%;
+    width: 100%;
   }
 `;
 
@@ -172,7 +238,7 @@ export const SnippetsSearchBox = styled.div`
 
   position: relative;
   box-sizing: border-box;
-  width:100%;
+  width: 100%;
 `;
 
 export const SnippetsSearch = styled.input`

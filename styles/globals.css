@@ -356,3 +356,11 @@ pre[class*="language-"] {
 .token.italic {
   font-style: italic;
 }
+
+.dropMenu[data-dropdown="true"]{
+  display:block;
+}
+
+.dropMenu[data-dropdown="false"]{
+  display:none;
+}

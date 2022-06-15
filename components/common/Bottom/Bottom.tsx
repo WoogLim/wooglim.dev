@@ -17,8 +17,8 @@ export const Bottom = () => {
             <Image
               src="/Images/Home/github.svg"
               alt="github"
-              width={40}
-              height={40}
+              width={28}
+              height={28}
               layout="intrinsic"
             />
           </LinkButton>

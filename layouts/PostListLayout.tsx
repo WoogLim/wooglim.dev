@@ -29,7 +29,7 @@ export const PostListLayout = ({ posts }: PostIndexProps) => {
 
   const onChangeSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     e.preventDefault();
-    setSearchWord(e.target.value);
+    setSearchWord(e.currentTarget.value);
     // searchFilter.searchWord = e.target.value;
   };
 

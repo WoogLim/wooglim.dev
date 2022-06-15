@@ -8,12 +8,16 @@ import {
   FitlerContainer,
   SelectWrap,
   SerachWrap,
+  FilterWrap,
   SelectBox,
+  FilterList,
+  FilterItem,
+  ClearBtn,
   ListFilter,
   SnippetsSearchBox,
   SnippetsSearch,
   SnippetsSearchBtn,
-  PostNumber
+  PostNumber,
 } from "./SnippetsListLayout.style";
 
 import { SnippetI } from "../types/snippet";
@@ -22,21 +26,52 @@ import Image from "next/image";
 
 type SnippetIndexProps = {
   snippets: [SnippetI];
+  categories: string[];
+  languages: string[];
 };
 
-export const SnippetsListLayout = ({ snippets }: SnippetIndexProps) => {
+export const SnippetsListLayout = ({
+  snippets,
+  categories,
+  languages,
+}: SnippetIndexProps) => {
   const [filteredSnippets, setFilteredSnippets] =
     useState<SnippetI[]>(snippets);
   const [snippetTitles, setSnippetTitles] = useState<string[]>(
     snippets.map((snippet: SnippetI) => snippet.title.toLowerCase())
   );
-  const [searchWord, setSearchWord] = useState("");
   const [postNumber, setPostNumber] = useState<number>(snippets.length);
+
+  // 필터
+  const [searchWord, setSearchWord] = useState("");
+  const [category, setCategory] = useState("");
+  // const [language, setLanguage] = useState("");
 
   const onChangeSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     e.preventDefault();
-    setSearchWord(e.target.value);
+    setSearchWord(e.currentTarget.value);
     // searchFilter.searchWord = e.target.value;
+  };
+
+  const onSelectCategory = (e: React.MouseEvent<HTMLLIElement>) => {
+    setCategory(e.currentTarget.innerText);
+  };
+
+  const onClickDropMenu = (e: React.MouseEvent<HTMLButtonElement>) => {
+    const dropdown = e.currentTarget.nextElementSibling;
+    dropdown?.setAttribute("data-dropdown", "true");
+  };
+
+  const onFilterClear = (e: React.MouseEvent<HTMLButtonElement>) => {
+    setCategory("");
+    setSearchWord("");
+  }
+
+  const onBlueDropMenu = (e: React.FocusEvent<HTMLButtonElement>) => {
+    const dropdown = e.currentTarget.nextElementSibling;
+    setTimeout(() => {
+      dropdown?.setAttribute("data-dropdown", "false");
+    }, 200);
   };
 
   useEffect(() => {
@@ -45,13 +80,22 @@ export const SnippetsListLayout = ({ snippets }: SnippetIndexProps) => {
     );
 
     const filteredSnippets: SnippetI[] = [...snippets].filter(
-      (post: SnippetI) =>
-        filteredSinppetsTitles.includes(post.title.toLowerCase())
+      (snippet: SnippetI) =>
+        filteredSinppetsTitles.includes(snippet.title.toLowerCase())
     );
 
-    setFilteredSnippets(filteredSnippets);
-    setPostNumber(filteredSnippets.length);
-  }, [searchWord, snippetTitles, snippets]);
+    const filteredCategory: SnippetI[] = filteredSnippets.filter(
+      (snippet: SnippetI) => category.includes(snippet.category)
+    );
+
+    if (category != "") {
+      setFilteredSnippets(filteredCategory);
+      setPostNumber(filteredCategory.length);
+    } else {
+      setFilteredSnippets(filteredSnippets);
+      setPostNumber(filteredSnippets.length);
+    }
+  }, [searchWord, snippetTitles, category, snippets]);
 
   return (
     <SnippetsConatainer>
@@ -59,14 +103,26 @@ export const SnippetsListLayout = ({ snippets }: SnippetIndexProps) => {
         <MenuWrap>
           <h3>snippets</h3>
           <span>짧은 코드 조각 모음</span>
-            <PostNumber>{`${postNumber} Snippets`}</PostNumber>
+          <PostNumber>{`${postNumber} Snippets`}</PostNumber>
         </MenuWrap>
 
         <FitlerContainer>
           <SelectWrap>
-            <SelectBox>범주</SelectBox>
-            <SelectBox>언어</SelectBox>
-            <SelectBox>초기화</SelectBox>
+            <FilterWrap>
+              <SelectBox onClick={onClickDropMenu} onBlur={onBlueDropMenu}>
+                범주
+              </SelectBox>
+              <FilterList className="dropMenu" data-dropdown="false">
+                {categories.map((category, idx) => {
+                  return (
+                    <FilterItem key={idx} onClick={onSelectCategory}>
+                      {category}
+                    </FilterItem>
+                  );
+                })}
+              </FilterList>
+            </FilterWrap>
+            <ClearBtn onClick={onFilterClear}>초기화</ClearBtn>
           </SelectWrap>
           <SerachWrap>
             <ListFilter className="searchBox">
@@ -93,7 +149,7 @@ export const SnippetsListLayout = ({ snippets }: SnippetIndexProps) => {
         <ItemListWrap>
           <ItemList>
             {filteredSnippets.length < 1
-              ? ""
+              ? `There is no snippet titled "${searchWord}"`
               : filteredSnippets.map((snippet, idx) => {
                   return <SnippetItem snippet={snippet} key={idx} />;
                 })}

@@ -1,0 +1,30 @@
+---
+title: "filter()"
+description: "filter() 메서드는 주어진 함수의 테스트를 통과하는 모든 요소를 모아 새로운 배열로 반환"
+language: "Javascript"
+category: "Array.prototype"
+update: "2022. 05. 26"
+---
+
+# Array.prototype.filter()
+
+filter() 메서드는 주어진 함수의 테스트를 통과하는 모든 요소를 모아 새로운 배열로 반환합니다.
+
+## 구문
+~~~js
+arr.filter(callback(element[, index[, array]])[, thisArg])
+~~~
+
+위의 코드는 이전 페이지의 카운터 예시를 바탕으로 하지만, 문서의 타이틀을 클릭 횟수가 포함된 문장으로 표현할 수 있도록 새로운 기능을 더했습니다.
+
+데이터 가져오기, 구독(subscription) 설정하기, 수동으로 React 컴포넌트의 DOM을 수정하는 것까지 이 모든 것이 side effects입니다. 이런 기능들(operations)을 side effect(혹은 effect)라 부르는 것이 익숙하지 않을 수도 있지만, 아마도 이전에 만들었던 컴포넌트에서 위의 기능들을 구현해보았을 것입니다.
+
+---
+
+## 매개변수
+
+- callback : 각 요소를 시험할 함수. true를 반환하면 요소를 유지하고, false를 반환하면 버립니다. 다음 세 가지 매개변수를 받습니다.
+- element : 처리할 현재 요소.
+- index Optional : 처리할 현재 요소의 인덱스.
+- array Optional : filter를 호출한 배열.
+- thisArg Optional : callback을 실행할 때 this로 사용하는 값.

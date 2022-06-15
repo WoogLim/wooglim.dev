@@ -11,7 +11,7 @@ const moveScrollTarget = (e: React.BaseSyntheticEvent) => {
   e.preventDefault();
 
   const elem = e.target.innerText
-    .replace(/\(|\)|\?/g, "")
+    .replace(/\(|\)|\?|\./g, "")
     .replace(/\s/g, "-")
     .toLowerCase();
 

@@ -6,11 +6,17 @@ type Items = {
   [key: string]: string;
 };
 
-type Post = {
+type Snippet = {
   data: {
     [key: string]: string;
   };
   content: string;
+};
+
+type FilterItems = {
+  snippets: Items[]
+  categories: string[];
+  languages: string[];
 };
 
 // 게시물 경로내 목록 파일 가져오기
@@ -24,7 +30,7 @@ function getSnippetFilePaths(): string[] {
 }
 
 // 게시물 단건(상세) 조회
-export function getSnippet(slug: string): Post {
+export function getSnippet(slug: string): Snippet {
   // 해당 포스트(slug) 경로 조회
   const fullPath = join(SNIPPETS_PATH, `${slug}.mdx`);
   // 포스트 컨텐츠 utf-8 인코딩 방식으로 변경
@@ -35,8 +41,11 @@ export function getSnippet(slug: string): Post {
   return { data, content };
 }
 
-// 게시글 아이템 정리
-export function getSnippetItems(filePath: string, fields: string[] = []): Items {
+// 스니펫 아이템 정리
+export function getSnippetItems(
+  filePath: string,
+  fields: string[] = []
+): Items {
   // mdx 파일 경로 slug 생성
   const slug = filePath.replace(/\.mdx?$/, "");
   // matter 데이터(데이터, 게시글) 가져오기
@@ -50,7 +59,7 @@ export function getSnippetItems(filePath: string, fields: string[] = []): Items 
     if (field === "slug") {
       items[field] = slug;
     }
-    // 게시글 내용 로드
+    // 스니펫 내용 로드
     if (field === "content") {
       items[field] = content;
     }
@@ -65,12 +74,16 @@ export function getSnippetItems(filePath: string, fields: string[] = []): Items 
 }
 
 // 모든 포스트 가져오기
-export function getAllSnippets(fields: string[]): Items[] {
+export function getAllSnippets(fields: string[]): FilterItems {
   // 모든 포스트의 경로 가져오기
   const filePaths = getSnippetFilePaths();
   // 위 filePaths의 포스트를 날짜별로 sort하여 가져오기
-  const snipptes = filePaths
+  const snippets = filePaths
     .map((filePath) => getSnippetItems(filePath, fields))
     .sort((post1, post2) => (post1.date < post2.date ? 1 : -1));
-  return snipptes;
+  const categories = [...new Set(snippets.map((snippet) => snippet.category))];
+  const languages = [...new Set(snippets.map((snippet) => snippet.language))];
+
+  // .filter((post) => post.tag === tagName && post.postnumber !== postNumber).slice(0, 3)
+  return {snippets, categories, languages};
 }

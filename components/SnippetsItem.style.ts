@@ -14,8 +14,7 @@ export const ItemWrap = styled.ul`
   cursor: pointer;
   padding: 8px;
   box-sizing: border-box;
-  border: 3px solid #ffffff;
-  box-shadow: 0px 0px 0px 1px rgba(0, 0, 0, 1);
+  border: 3px solid #A4A4A4;
   max-height:170px;
 
   li {
