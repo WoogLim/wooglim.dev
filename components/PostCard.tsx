@@ -16,7 +16,6 @@ type PostsProps = {
 };
 
 export const PostCardItem = ({ post }: PostsProps) => {
-  console.log(post.thumbnail);
   return (
     <Link href={`/post/${post.slug}`} passHref>
       <PostCard>

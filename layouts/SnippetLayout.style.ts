@@ -8,11 +8,11 @@ const titleTextStyle = css`
 
 export const SectionContainer = styled.main`
   caret-color: rgba(0, 0, 0, 0);
-  max-width: calc(100% - calc((100% - 802px)));
   width: 100%;
   margin: 0 auto;
   padding-top: 72px;
-
+  display: flex;
+  flex-direction:flex;
   @media screen and (max-width: 1152px) {
     max-width: calc(100% - calc((100% - 870px)));
   }
@@ -45,16 +45,15 @@ export const ContentsWrap = styled.div`
   }
 
   .dateWriting {
-    ::after{
+    ::after {
       content: "·";
-      margin-left:6px;
+      margin-left: 6px;
     }
 
     font-family: "Roboto";
     font-weight: 600;
     font-style: normal;
     font-size: 13px;
-
   }
 `;
 

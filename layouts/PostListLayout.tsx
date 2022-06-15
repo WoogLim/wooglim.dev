@@ -69,7 +69,7 @@ export const PostListLayout = ({ posts }: PostIndexProps) => {
                 />
               </PostsSearchBtn>
             </PostsSearchBox>
-            <PostNumber>{`${postNumber} Articles`}</PostNumber>
+            <PostNumber>{`${postNumber} Posts`}</PostNumber>
           </PostsHeaderWrap>
 
           {/* Posts 게시글 카드 */}

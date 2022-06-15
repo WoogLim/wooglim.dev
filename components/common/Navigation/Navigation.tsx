@@ -15,7 +15,6 @@ export const Navigation = () => {
   
   const MenuClickHandler = () => {
     const menuBox = document.getElementsByClassName('blogMenu');
-    console.log(menuBox);
     menuOepn === false ? menuBox[0].classList.add('open') : menuBox[0].classList.remove('open');
     menuOepn === false ? setMenuOepn(true) : setMenuOepn(false);
   };

@@ -29,9 +29,9 @@ export const getStaticProps = async () => {
     "language",
     "category",
     "update",
+    "serisenumber",
     "slug"
   ]);
-
   return { props: { snippets: item.snippets, categories: item.categories, languages: item.languages} };
 };
 

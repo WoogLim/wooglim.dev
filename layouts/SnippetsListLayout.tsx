@@ -44,8 +44,8 @@ export const SnippetsListLayout = ({
 
   // 필터
   const [searchWord, setSearchWord] = useState("");
-  const [category, setCategory] = useState("");
-  // const [language, setLanguage] = useState("");
+  // const [category, setCategory] = useState("");
+  const [language, setLanguage] = useState("");
 
   const onChangeSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     e.preventDefault();
@@ -53,8 +53,8 @@ export const SnippetsListLayout = ({
     // searchFilter.searchWord = e.target.value;
   };
 
-  const onSelectCategory = (e: React.MouseEvent<HTMLLIElement>) => {
-    setCategory(e.currentTarget.innerText);
+  const onSelectLanguage = (e: React.MouseEvent<HTMLLIElement>) => {
+    setLanguage(e.currentTarget.innerText);
   };
 
   const onClickDropMenu = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -63,9 +63,9 @@ export const SnippetsListLayout = ({
   };
 
   const onFilterClear = (e: React.MouseEvent<HTMLButtonElement>) => {
-    setCategory("");
+    setLanguage("");
     setSearchWord("");
-  }
+  };
 
   const onBlueDropMenu = (e: React.FocusEvent<HTMLButtonElement>) => {
     const dropdown = e.currentTarget.nextElementSibling;
@@ -84,18 +84,18 @@ export const SnippetsListLayout = ({
         filteredSinppetsTitles.includes(snippet.title.toLowerCase())
     );
 
-    const filteredCategory: SnippetI[] = filteredSnippets.filter(
-      (snippet: SnippetI) => category.includes(snippet.category)
+    const filteredLanguage: SnippetI[] = filteredSnippets.filter(
+      (snippet: SnippetI) => language.includes(snippet.language)
     );
 
-    if (category != "") {
-      setFilteredSnippets(filteredCategory);
-      setPostNumber(filteredCategory.length);
+    if (language != "") {
+      setFilteredSnippets(filteredLanguage);
+      setPostNumber(filteredLanguage.length);
     } else {
       setFilteredSnippets(filteredSnippets);
       setPostNumber(filteredSnippets.length);
     }
-  }, [searchWord, snippetTitles, category, snippets]);
+  }, [searchWord, snippetTitles, language, snippets]);
 
   return (
     <SnippetsConatainer>
@@ -110,13 +110,13 @@ export const SnippetsListLayout = ({
           <SelectWrap>
             <FilterWrap>
               <SelectBox onClick={onClickDropMenu} onBlur={onBlueDropMenu}>
-                범주
+                언어
               </SelectBox>
               <FilterList className="dropMenu" data-dropdown="false">
-                {categories.map((category, idx) => {
+                {languages.map((language, idx) => {
                   return (
-                    <FilterItem key={idx} onClick={onSelectCategory}>
-                      {category}
+                    <FilterItem key={idx} onClick={onSelectLanguage}>
+                      {language}
                     </FilterItem>
                   );
                 })}

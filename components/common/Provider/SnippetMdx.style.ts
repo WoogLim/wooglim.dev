@@ -18,7 +18,7 @@ export const PostBox = styled.div`
 
   p {
     font-family: "Noto Sans KR";
-    font-size: 1.2rem;
+    font-size: 1rem;
     font-weight: 500;
   }
 

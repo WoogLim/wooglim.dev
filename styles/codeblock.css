@@ -2,9 +2,15 @@
  * [rehype-prism-plus - unified](https://unifiedjs.com/explore/package/rehype-prism-plus/)
  */
 .codeBox {
-  margin-top: 3rem;
   position: relative;
   background: #ffffff;
+  margin-top: 1rem;
+  border-radius: 4px;
+  box-shadow: 0px 0px 6px rgba(0, 0, 0, 0.1);
+}
+
+.codeBox pre {
+  margin: 0px !important;
 }
 
 pre[class*="language-"] {
@@ -24,20 +30,20 @@ pre[class*="language-"]::-webkit-scrollbar-track {
 }
 
 pre[class*="language-"]::-webkit-scrollbar-thumb {
-  background-color: #3a3a3ac2 ;
+  background-color: #3a3a3ac2;
   outline: 0px solid rgba(255, 255, 255, 0.7);
   border-radius: 10px;
 }
 
 .code-title {
-  color: #ffffff;
+  color: rgb(59, 130, 246);
+  font-weight: 900;
   position: absolute;
-  top:-1.4rem;
+  right: 0;
+  top: 0.65rem;
   font-size: 1.2rem;
   line-height: 2rem;
-  border-radius: 6px 6px 0 0;
   font-variant: small-caps;
-  background: rgb(59, 130, 246);
   padding: 0 1rem;
 }
 

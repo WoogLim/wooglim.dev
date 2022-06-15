@@ -87,3 +87,15 @@ export function getAllSnippets(fields: string[]): FilterItems {
   // .filter((post) => post.tag === tagName && post.postnumber !== postNumber).slice(0, 3)
   return {snippets, categories, languages};
 }
+
+// 관련 태그의 포스트 목록 가져오기
+export function getSimilarSnippets(fields: string[], language: string): Items[] {
+  // 모든 포스트의 경로 가져오기
+  const filePaths = getSnippetFilePaths();
+  // 위 filePaths의 포스트를 날짜별로 sort하여 가져오기
+  const snippets = filePaths
+    .map((filePath) => getSnippetItems(filePath, fields))
+    .sort((snippet1, snippet2) => (snippet2.serisenumber > snippet1.serisenumber ? -1 : 1))
+    .filter((post) => post.language === language).slice(0, 3)
+  return snippets;
+}

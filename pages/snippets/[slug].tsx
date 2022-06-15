@@ -6,7 +6,11 @@ import rehypePrismPlus from "rehype-prism-plus";
 
 import { GetStaticProps, GetStaticPaths } from "next";
 import { SnippetI } from "../../types/snippet";
-import { getSnippet, getAllSnippets } from "../../lib/SnippetsLib";
+import {
+  getSnippet,
+  getAllSnippets,
+  getSimilarSnippets,
+} from "../../lib/SnippetsLib";
 import { ParsedUrlQuery } from "querystring";
 
 import { TagItem } from "../../components/TagItem";
@@ -15,24 +19,31 @@ import { Header } from "../../components/common/Header/Header";
 import { SnippetLayout } from "../../layouts/SnippetLayout";
 import { MdxLayout } from "../../components/common/Provider/SnippetMdx";
 
+import Link from "next/link";
+
 // props type
 type Props = {
   source: MDXRemoteSerializeResult;
   // slug 속성만 제거
   frontMatter: Omit<SnippetI, "slug">;
+  similarSnippets: [SnippetI];
 };
 
-const SnipetPage: React.FC<Props> = ({ source, frontMatter }: Props) => {
+const SnipetPage: React.FC<Props> = ({
+  source,
+  frontMatter,
+  similarSnippets,
+}: Props) => {
   return (
     <>
       <Header />
-      <SnippetLayout post={frontMatter}>
+      <SnippetLayout similarSnippets={similarSnippets}>
         <article className="prose max-w-none hover:prose-headings:text-blue-500">
           <h1 className="flex justify-center">{frontMatter.title}</h1>
 
           <div className="mt-10 mb-10 flex justify-center">
             <TagItem tag={`${frontMatter.language} - `} />
-            <TagItem tag={`${frontMatter.category} - `}/>
+            <TagItem tag={`${frontMatter.category} - `} />
             <TagItem tag={`${frontMatter.update} Updated.`} />
           </div>
 
@@ -40,8 +51,8 @@ const SnipetPage: React.FC<Props> = ({ source, frontMatter }: Props) => {
             <MDXRemote {...source} />
           </MdxLayout>
         </article>
+        <Bottom />
       </SnippetLayout>
-      <Bottom />
     </>
   );
 };
@@ -68,10 +79,25 @@ export const getStaticProps: GetStaticProps = async (context) => {
   // serialize the data on the server side
   const mdxSource = await serialize(content, { scope: data, ...options });
 
+  // 관련 스니펫 수집
+  const similarSnippets = getSimilarSnippets(
+    [
+      "title",
+      "description",
+      "language",
+      "category",
+      "update",
+      "serisenumber",
+      "slug",
+    ],
+    data.language
+  );
+
   return {
     props: {
       source: mdxSource,
       frontMatter: data,
+      similarSnippets: similarSnippets,
     },
   };
 };

@@ -6,15 +6,17 @@ import {
   SectionTitle,
 } from "./SnippetLayout.style";
 import { SnippetI } from "../types/snippet";
+import { SnippetIndexList } from "../components/SnippetIndexList";
 
 type Props = {
   children: React.ReactNode;
-  post: Omit<SnippetI, "slug">;
+  similarSnippets: SnippetI[];
 };
 
-export const SnippetLayout = ({ children, post }: Props) => {
+export const SnippetLayout = ({ children, similarSnippets }: Props) => {
     return (
       <SectionContainer>
+        <SnippetIndexList similarSnippets={similarSnippets}/>
         <SectionWrap>
           <ContentsWrap>
             {children}
