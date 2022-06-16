@@ -14,7 +14,6 @@ type SnippetsProps = {
 };
 
 export const SnippetItem = ({ snippet }: SnippetsProps) => {
-
   return (  
     <Link href={`/snippets/${snippet.slug}`} passHref>
       <ItemWrap>

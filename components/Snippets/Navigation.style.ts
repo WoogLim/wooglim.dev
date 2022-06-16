@@ -2,8 +2,8 @@ import styled from "@emotion/styled";
 import { css } from "@emotion/react";
 
 export const NavBar = styled.ul`
-  max-width: 1036px;
-  height: 62x;
+  max-width: 100%;
+  height: 64px;
 
   caret-color: rgba(0, 0, 0, 0);
 
@@ -11,7 +11,6 @@ export const NavBar = styled.ul`
   width: 100%;
   flex-direction: row;
   justify-content: flex-start;
-  padding: 0px;
   box-sizing: border-box;
   margin: 0 auto;
 
@@ -53,7 +52,13 @@ const menuTextStyle = css`
   line-height: 2rem;
   text-transform: capitalize;
   vertical-align: baseline;
-  color: #ffffff;
+  color: #000000;
+
+  @media screen and (max-width: 580px) {
+    color: #ffffff;
+    margin-right: 0;
+    order: 2;
+  }
 `;
 
 export const HomeButton = styled.button`

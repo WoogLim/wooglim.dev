@@ -15,7 +15,7 @@ import { ParsedUrlQuery } from "querystring";
 
 import { TagItem } from "../../components/TagItem";
 import { Bottom } from "../../components/common/Bottom/Bottom";
-import { Header } from "../../components/common/Header/Header";
+import { Header } from "../../components/Snippets/Header";
 import { SnippetLayout } from "../../layouts/SnippetLayout";
 import { MdxLayout } from "../../components/common/Provider/SnippetMdx";
 
@@ -37,21 +37,12 @@ const SnipetPage: React.FC<Props> = ({
   return (
     <>
       <Header />
-      <SnippetLayout similarSnippets={similarSnippets}>
+      <SnippetLayout>
         <article className="prose max-w-none hover:prose-headings:text-blue-500">
-          <h1 className="flex justify-center">{frontMatter.title}</h1>
-
-          <div className="mt-10 mb-10 flex justify-center">
-            <TagItem tag={`${frontMatter.language} - `} />
-            <TagItem tag={`${frontMatter.category} - `} />
-            <TagItem tag={`${frontMatter.update} Updated.`} />
-          </div>
-
-          <MdxLayout>
+          <MdxLayout similarSnippets={similarSnippets} frontMatter={frontMatter}>
             <MDXRemote {...source} />
           </MdxLayout>
         </article>
-        <Bottom />
       </SnippetLayout>
     </>
   );

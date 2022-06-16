@@ -1,11 +1,21 @@
 import { renderToString } from "react-dom/server";
 import { MDXProvider } from "@mdx-js/react";
+import { SnippetI } from "../../../types/snippet";
+import Link from "next/link";
 import React from "react";
 
 import {
   MdxContainer,
-  PostBox
+  PostBox,
+  ListContainer,
+  TopicCategory,
+  TopicItem,
+  IndexList,
+  ListItem,
+  TopicTitle,
+  TopicSummary,
 } from "./SnippetMdx.style";
+import { Bottom } from "../../Snippets/Bottom";
 
 const moveScrollTarget = (e: React.BaseSyntheticEvent) => {
   e.preventDefault();
@@ -21,30 +31,29 @@ const moveScrollTarget = (e: React.BaseSyntheticEvent) => {
   window.scrollTo(0, targetY! - 72);
 };
 
-
 const CustomH1 = ({ ...props }) => {
-    return (
-      <a href={`#${props.id}`} onClick={moveScrollTarget}>
-        <h1 {...props} />
-      </a>
-    );
-  };
-  
-  const CustomH2 = ({ ...props }) => {
-    return (
-      <a href={`#${props.id}`} onClick={moveScrollTarget}>
-        <h2 {...props} />
-      </a>
-    );
-  };
-  
-  const CustomH3 = ({ ...props }) => {
-    return (
-      <a href={`#${props.id}`} onClick={moveScrollTarget}>
-        <h3 {...props} />
-      </a>
-    );
-  };
+  return (
+    <a href={`#${props.id}`} onClick={moveScrollTarget}>
+      <h1 {...props} />
+    </a>
+  );
+};
+
+const CustomH2 = ({ ...props }) => {
+  return (
+    <a href={`#${props.id}`} onClick={moveScrollTarget}>
+      <h2 {...props} />
+    </a>
+  );
+};
+
+const CustomH3 = ({ ...props }) => {
+  return (
+    <a href={`#${props.id}`} onClick={moveScrollTarget}>
+      <h3 {...props} />
+    </a>
+  );
+};
 
 const CustomCodeBlock = ({ ...props }) => {
   return (
@@ -59,12 +68,47 @@ const CustomCodeBlock = ({ ...props }) => {
 
 type Props = {
   children: React.ReactElement;
+  similarSnippets: SnippetI[];
+  frontMatter: Omit<SnippetI, "slug">;
 };
 
-export const MdxLayout = ({ children }: Props) => {
+export const MdxLayout = ({
+  children,
+  similarSnippets,
+  frontMatter,
+}: Props) => {
   const childrenArray = React.Children.toArray(children);
   const contentString = renderToString(children);
 
+  const getHeadings = (source: string) => {
+    const regex = /<h[1-6]{1} id="(.*)">(.*?)<\/h[1-6]{1}>/g;
+
+    if (source.match(regex)) {
+      return source.match(regex)?.map((heading) => {
+        const headingText = heading
+          .replace(/<[^>]*>?/g, "")
+          .replace(/<\/[^>]*>?/g, "");
+
+        const tag = heading.match(/<\/[a-z]{1}[1-6]{1}>/g) + "";
+        return {
+          type: tag.replace(/<|>|\//g, ""),
+          text: headingText,
+        };
+      });
+    }
+
+    return [];
+  };
+
+  const category = [
+    ...new Set(similarSnippets.map((snippet) => snippet.category)),
+  ];
+
+  const listItem = category.map((item) =>
+    similarSnippets.filter((snippet) => snippet.category === item)
+  );
+
+  const headings = getHeadings(contentString);
   return (
     <>
       <MDXProvider
@@ -82,7 +126,66 @@ export const MdxLayout = ({ children }: Props) => {
         }}
       >
         <MdxContainer>
-          <PostBox>{childrenArray}</PostBox>
+          <ListContainer>
+            {listItem.map((list, idx) => {
+              return (
+                <TopicCategory key={idx}>
+                  <p className="topicTitle">{list[0].category}</p>
+                  {list.map((item, idx) => {
+                    return (
+                      <TopicItem key={idx}>
+                        <Link href={`/snippets/${item.slug}`}>
+                          {item.title === frontMatter.title ? <p className="subTopic view">{item.title}</p> : <p className="subTopic">{item.title}</p> }
+                        </Link>
+
+                        {headings!.length > 0 &&
+                        item.title === frontMatter.title
+                          ? headings?.map((heading, index) => (
+                              <IndexList key={index}>
+                                {heading.type === "h1" ? (
+                                  <ListItem onClick={moveScrollTarget}>
+                                    {heading.text}
+                                  </ListItem>
+                                ) : heading.type === "h2" ? (
+                                  <ListItem onClick={moveScrollTarget}>
+                                    {heading.text}
+                                  </ListItem>
+                                ) : heading.type === "h3" ? (
+                                  <ListItem onClick={moveScrollTarget}>
+                                    {heading.text}
+                                  </ListItem>
+                                ) : heading.type === "h4" ? (
+                                  <ListItem onClick={moveScrollTarget}>
+                                    {heading.text}
+                                  </ListItem>
+                                ) : heading.type === "h5" ? (
+                                  <ListItem onClick={moveScrollTarget}>
+                                    {heading.text}
+                                  </ListItem>
+                                ) : heading.type === "h6" ? (
+                                  <ListItem onClick={moveScrollTarget}>
+                                    {heading.text}
+                                  </ListItem>
+                                ) : (
+                                  ""
+                                )}
+                              </IndexList>
+                            ))
+                          : null}
+                      </TopicItem>
+                    );
+                  })}
+                </TopicCategory>
+              );
+            })}
+          </ListContainer>
+
+          <PostBox>
+            <TopicTitle>{frontMatter.title}</TopicTitle>
+            <TopicSummary>{frontMatter.description}</TopicSummary>
+            {childrenArray}
+            <Bottom/>
+          </PostBox>
         </MdxContainer>
       </MDXProvider>
     </>
