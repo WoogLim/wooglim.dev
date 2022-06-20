@@ -11,7 +11,12 @@ import {
   TopicCategory,
   TopicItem,
   IndexList,
-  ListItem,
+  IndexH1,
+  IndexH2,
+  IndexH3,
+  IndexH4,
+  IndexH5,
+  IndexH6,
   TopicTitle,
   TopicSummary,
 } from "./SnippetMdx.style";
@@ -143,29 +148,29 @@ export const MdxLayout = ({
                           ? headings?.map((heading, index) => (
                               <IndexList key={index}>
                                 {heading.type === "h1" ? (
-                                  <ListItem onClick={moveScrollTarget}>
+                                  <IndexH1 onClick={moveScrollTarget}>
                                     {heading.text}
-                                  </ListItem>
+                                  </IndexH1>
                                 ) : heading.type === "h2" ? (
-                                  <ListItem onClick={moveScrollTarget}>
+                                  <IndexH2 onClick={moveScrollTarget}>
                                     {heading.text}
-                                  </ListItem>
+                                  </IndexH2>
                                 ) : heading.type === "h3" ? (
-                                  <ListItem onClick={moveScrollTarget}>
+                                  <IndexH3 onClick={moveScrollTarget}>
                                     {heading.text}
-                                  </ListItem>
+                                  </IndexH3>
                                 ) : heading.type === "h4" ? (
-                                  <ListItem onClick={moveScrollTarget}>
+                                  <IndexH4 onClick={moveScrollTarget}>
                                     {heading.text}
-                                  </ListItem>
+                                  </IndexH4>
                                 ) : heading.type === "h5" ? (
-                                  <ListItem onClick={moveScrollTarget}>
+                                  <IndexH5 onClick={moveScrollTarget}>
                                     {heading.text}
-                                  </ListItem>
+                                  </IndexH5>
                                 ) : heading.type === "h6" ? (
-                                  <ListItem onClick={moveScrollTarget}>
+                                  <IndexH6 onClick={moveScrollTarget}>
                                     {heading.text}
-                                  </ListItem>
+                                  </IndexH6>
                                 ) : (
                                   ""
                                 )}

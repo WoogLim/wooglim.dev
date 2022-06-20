@@ -35,7 +35,8 @@ export const ItemWrap = styled.ul`
 export const ItemName = styled.div`
   ${FontStyle}
   font-weight: 700;
-  font-size: 1.4rem;
+  font-size: 1.2rem;
+  line-height: 1.4rem;
   border-radius: 8px;
   margin-top: 4px;
 `;

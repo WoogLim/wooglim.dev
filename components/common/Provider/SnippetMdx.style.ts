@@ -5,7 +5,7 @@ export const MdxContainer = styled.div`
   flex-direction: row;
   padding-left: 20rem;
 
-  font-family: "Noto Sans";
+  font-family: "Noto Sans CKR";
   font-weight: 500;
 
   @media screen and (max-width: 1152px) {
@@ -16,12 +16,12 @@ export const MdxContainer = styled.div`
 `;
 
 export const PostBox = styled.div`
-  font-family: "IBM Plex Sans";
+  font-family: "Noto Sans CKR";
   padding-top: 2rem;
   margin: 0 auto;
   width: 100%;
   p {
-    font-family: "Noto Sans KR";
+    font-family: "Noto Sans CKR";
     font-size: 1rem;
     font-weight: 500;
   }
@@ -39,10 +39,20 @@ export const PostBox = styled.div`
     border-bottom: 1px solid #e8e8e8;
   }
   h1 {
-    font-size: 1.8rem;
+    font-size: 2rem;
+    color: #000000;
   }
   h2 {
-    font-size: 1.6rem;
+    font-size: 1.8rem;
+    color: #333333;
+  }
+  h3 {
+    font-size: 1.2rem;
+    color: #515151;
+  }
+  h4 {
+    font-size: 1rem;
+    color: #808080;
   }
 
   display: flex;
@@ -65,15 +75,13 @@ export const PostBox = styled.div`
 `;
 
 export const ListContainer = styled.aside`
-  font-family: "IBM Plex Sans";
-
   position: fixed;
   top: 62px;
   left: 0;
   height: 100%;
   background: #fefefe;
   width: 20rem;
-  padding: 2rem 0;
+  padding: 1.4rem 0;
   overflow-y: scroll;
 
   ::-webkit-scrollbar {
@@ -92,6 +100,16 @@ export const ListContainer = styled.aside`
 
   a {
     display: block;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: "Noto Sans CKR";
+    font-weight: 600;
   }
 
   @media screen and (max-width: 1152px) {
@@ -130,15 +148,15 @@ export const TopicItem = styled.ul`
     height: 32px;
 
     :hover {
-      color: #4280ee;
+    color: #6C5CE7;
     }
   }
 
   .view {
     position: relative;
     height: 32px;
-    color: #4280ee;
-    font-weight:700;
+    color: #6C5CE7;
+    font-weight: 700;
 
     ::after {
       position: absolute;
@@ -146,7 +164,7 @@ export const TopicItem = styled.ul`
       content: "";
       height: 100%;
       width: 4px;
-      background: #4280ee;
+      background: #6C5CE7;
     }
   }
 `;
@@ -154,23 +172,63 @@ export const TopicItem = styled.ul`
 export const IndexList = styled.li`
   all: unset;
   display: block;
-  font-size: 0.9rem;
   cursor: pointer;
   :hover {
     color: #665ddf;
   }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    margin: 0;
+    font-weight: 600;
+  }
 `;
 
-export const ListItem = styled.h6`
+export const IndexH1 = styled.h1`
+  color: #000000;
   padding-left: 0.8rem;
-  font-weight: 600;
+  font-size: 1rem;
+`;
+
+export const IndexH2 = styled.h2`
+  color: #333333;
+  padding-left: 0.8rem;
+  font-size: 0.95rem;
+`;
+
+export const IndexH3 = styled.h3`
+  color: #808080;
+  padding-left: 1.2rem;
+  font-size: 0.90rem;
+`;
+
+export const IndexH4 = styled.h4`
+  padding-left: 0.8rem;
+  padding-left: 1.4rem;
+  font-size: 0.90rem;
+`;
+
+export const IndexH5 = styled.h5`
+  padding-left: 0.8rem;
+  padding-left: 1.6rem;
+  font-size: 0.90rem;
+`;
+
+export const IndexH6 = styled.h6`
+  padding-left: 0.8rem;
+  padding-left: 1.8rem;
+  font-size: 0.90rem;
 `;
 
 export const TopicTitle = styled.span`
   display: block;
-  font-size: 2.2rem;
+  font-size: 2rem;
   font-weight: 700;
-  color: #4280ee;
+  color: #000000;
   line-height: 2rem;
   padding-bottom: 8px;
   border-bottom: 2px solid #e8e8e8;

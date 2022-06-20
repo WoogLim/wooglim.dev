@@ -45,7 +45,7 @@ export const SnippetsListLayout = ({
   // 필터
   const [searchWord, setSearchWord] = useState("");
   // const [category, setCategory] = useState("");
-  const [language, setLanguage] = useState("");
+  const [category, setCategory] = useState("");
 
   const onChangeSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     e.preventDefault();
@@ -53,8 +53,8 @@ export const SnippetsListLayout = ({
     // searchFilter.searchWord = e.target.value;
   };
 
-  const onSelectLanguage = (e: React.MouseEvent<HTMLLIElement>) => {
-    setLanguage(e.currentTarget.innerText);
+  const onSelectCategory = (e: React.MouseEvent<HTMLLIElement>) => {
+    setCategory(e.currentTarget.innerText);
   };
 
   const onClickDropMenu = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -63,7 +63,7 @@ export const SnippetsListLayout = ({
   };
 
   const onFilterClear = (e: React.MouseEvent<HTMLButtonElement>) => {
-    setLanguage("");
+    setCategory("");
     setSearchWord("");
   };
 
@@ -85,17 +85,17 @@ export const SnippetsListLayout = ({
     );
 
     const filteredLanguage: SnippetI[] = filteredSnippets.filter(
-      (snippet: SnippetI) => language.includes(snippet.language)
+      (snippet: SnippetI) => category.includes(snippet.language)
     );
 
-    if (language != "") {
+    if (category != "") {
       setFilteredSnippets(filteredLanguage);
       setPostNumber(filteredLanguage.length);
     } else {
       setFilteredSnippets(filteredSnippets);
       setPostNumber(filteredSnippets.length);
     }
-  }, [searchWord, snippetTitles, language, snippets]);
+  }, [searchWord, snippetTitles, category, snippets]);
 
   return (
     <SnippetsConatainer>
@@ -110,13 +110,13 @@ export const SnippetsListLayout = ({
           <SelectWrap>
             <FilterWrap>
               <SelectBox onClick={onClickDropMenu} onBlur={onBlueDropMenu}>
-                언어
+                범주
               </SelectBox>
               <FilterList className="dropMenu" data-dropdown="false">
-                {languages.map((language, idx) => {
+                {categories.map((category, idx) => {
                   return (
-                    <FilterItem key={idx} onClick={onSelectLanguage}>
-                      {language}
+                    <FilterItem key={idx} onClick={onSelectCategory}>
+                      {category}
                     </FilterItem>
                   );
                 })}

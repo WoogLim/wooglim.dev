@@ -80,7 +80,7 @@ export const ContentOfPost = styled.ul`
   h4,
   h5,
   h6 {
-    font-family: "IBM Plex Sans";
+    font-family: "Noto Sans CKR";
     font-weight: 600;
     color: #757075;
     font-size: 16px;

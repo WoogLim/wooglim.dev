@@ -170,6 +170,7 @@ export const FilterList = styled.ul`
   border: 3px solid #000000;
   max-height: 240px;
   overflow-y: scroll;
+  white-space: nowrap;
 
   ::-webkit-scrollbar {
     width: 7px;

@@ -81,7 +81,7 @@ export const getStaticProps: GetStaticProps = async (context) => {
       "serisenumber",
       "slug",
     ],
-    data.language
+    data.category
   );
 
   return {
