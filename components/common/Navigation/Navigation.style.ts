@@ -42,6 +42,7 @@ export const NavBar = styled.ul`
       font-size: 1.2rem;
       font-weight: 600;
     }
+
   }
 `;
 

@@ -9,6 +9,8 @@ import {
   MenuToggleBtn,
 } from "./Navigation.style";
 
+import { ThemeSwitch } from "./ThemeSwitch";
+
 export const Navigation = () => {
   const [menuOepn, setMenuOepn] = useState(false);
 
@@ -48,6 +50,7 @@ export const Navigation = () => {
           </Link>
         </MenuButton>
       </MenuList>
+      <ThemeSwitch />
       <MenuToggleBtn onClick={MenuClickHandler}>
         {menuOepn === false ? (
           <svg xmlns="http://www.w3.org/2000/svg" height="48" width="48">

@@ -8,14 +8,16 @@ import {
   HomeButton,
   MenuToggleBtn,
 } from "./Navigation.style";
+import { ThemeSwitch } from "../common/Navigation/ThemeSwitch";
 
 export const Navigation = () => {
   const [menuOepn, setMenuOepn] = useState(false);
 
-  
   const MenuClickHandler = () => {
-    const menuBox = document.getElementsByClassName('blogMenu');
-    menuOepn === false ? menuBox[0].classList.add('open') : menuBox[0].classList.remove('open');
+    const menuBox = document.getElementsByClassName("blogMenu");
+    menuOepn === false
+      ? menuBox[0].classList.add("open")
+      : menuBox[0].classList.remove("open");
     menuOepn === false ? setMenuOepn(true) : setMenuOepn(false);
   };
 
@@ -48,6 +50,7 @@ export const Navigation = () => {
           </Link>
         </MenuButton>
       </MenuList>
+      <ThemeSwitch />
       <MenuToggleBtn onClick={MenuClickHandler}>
         {menuOepn === false ? (
           <svg xmlns="http://www.w3.org/2000/svg" height="48" width="48">
