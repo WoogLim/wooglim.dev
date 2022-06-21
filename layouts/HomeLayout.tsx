@@ -18,7 +18,7 @@ export const HomeSection = ({ posts }: Props) => {
     <SectionContainer>
       <SectionWrap>
         <PostWrap>
-          <SectionTitle>RECENTLY POSTED</SectionTitle>
+          <SectionTitle>RECENT POST</SectionTitle>
           <PostArticle>
             {posts.slice(0,5).map((post) => (
               <PostItem post={post} key={post.slug} />
