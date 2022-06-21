@@ -5,6 +5,7 @@ import { PostI } from "../../types/post";
 import { Bottom } from "../../components/common/Bottom/Bottom";
 import { Header } from "../../components/common/Header/Header";
 import { PostListLayout } from "../../layouts/PostListLayout";
+import Head from "next/head";
 
 type PostIndexProps = {
   posts: [PostI];
