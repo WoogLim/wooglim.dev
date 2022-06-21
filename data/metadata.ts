@@ -1,27 +1,28 @@
-export const metadata = {
-  repository: "https://github.com/WoogLim/woogLim.dev",
-  giscus: {
-    id: "WoogLim",
-    repo: "woogLim.dev",
-    category: "General",
-  },
-  meta: {
-    title: "WoogLim | WoogLim 개발 블로그",
-    author: "Geon Lim",
-    headerTitle: "Next.js personal-blog",
-    description: "A blog created with Next.jMys and Tailwind.css",
-    language: "en-us",
-    siteUrl: "https://wooglim.dev",
-    siteRepo: "https://github.com/WoogLim/woogLim.dev",
-    siteLogo: "",
-    image: "",
-    socialBanner: "",
-    email: "address@yoursite.com",
-    github: "https://github.com",
-    twitter: "https://twitter.com/Twitter",
-    facebook: "https://facebook.com",
-    youtube: "https://youtube.com",
-    linkedin: "https://www.linkedin.com",
-    locale: "en-US",
-  },
+const reposityory = "https://github.com/WoogLim/woogLim.dev";
+
+const giscus = {
+  id: "WoogLim",
+  repo: "woogLim.dev",
+  category: "General",
+}
+
+const meta = {
+  url: "https://www.wooglim.dev",
+  title: "wooglim | web Developer",
+  description: "A web developer who dreams of escaping the SI/SM industry",
+  name: "Geon Lim",
+
+  imageUrl: "",
+}
+
+const social = {
+  github: "https://github.com/WoogLim",
+  linkedin: "",
+  rss: ""
 };
+
+export {
+  reposityory,
+  giscus,
+  meta,
+}

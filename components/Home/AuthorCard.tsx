@@ -30,7 +30,6 @@ export const AuthorCard = () => {
           </AuthorInfoWrap>
           <AuthorLinkWrap>
             <a><AuthorLinkImage src="/Images/Home/linkedin.svg"/></a>
-            <a><AuthorLinkImage src="/Images/Home/twitter.svg"/></a>
             <a><AuthorLinkImage src="/Images/Home/github.svg"/></a>
           </AuthorLinkWrap>
         </AuthorLink>

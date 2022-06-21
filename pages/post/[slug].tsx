@@ -15,12 +15,14 @@ import { Bottom } from "../../components/common/Bottom/Bottom";
 import { Header } from "../../components/common/Header/Header";
 import { PostLayout } from "../../layouts/PostLayout";
 import { MdxLayout } from "../../components/common/Provider/PostMdx";
+import { NextSeo } from "next-seo";
+import { meta } from "../../data/metadata";
 
 // props type
 type Props = {
   source: MDXRemoteSerializeResult;
   // slug 속성만 제거
-  frontMatter: Omit<PostI, "slug">;
+  frontMatter: PostI;
   similarPosts: [PostI];
 };
 
@@ -42,6 +44,27 @@ const PostPage: React.FC<Props> = ({
 
   return (
     <>
+    <NextSeo
+      title={frontMatter.title}
+      description={frontMatter.description}
+      canonical={`${meta.url}/post/${frontMatter.slug}`}
+      openGraph={{
+        type: 'post',
+        url: `${meta.url}/post/${frontMatter.slug}`,
+        article: {
+          publishedTime: new Date(frontMatter.date).toISOString(),
+          tags: [...frontMatter.tag],
+        },
+        images: [
+          {
+            url: `${meta.url}${frontMatter.thumbnail}`,
+            width: 850,
+            height: 650,
+            alt: frontMatter.title,
+          },
+        ],
+      }}
+    />
       <Header />
       <PostLayout post={frontMatter} similarposts={similarPosts}>
         <article className="prose max-w-none hover:prose-headings:text-blue-500">

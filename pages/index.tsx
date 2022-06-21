@@ -7,6 +7,7 @@ import { getAllPosts } from "../lib/PostMdxLib";
 import { Bottom } from "../components/Home/Bottom";
 import { Header } from "../components/Home/Header";
 import { HomeSection } from "../layouts/HomeLayout";
+import { NextSeo } from "next-seo";
 
 type Props = {
   posts: [PostI];
@@ -15,6 +16,7 @@ type Props = {
 const Home: NextPage<Props> = ({ posts }: Props) => {
   return (
     <>
+      <NextSeo title="Home" />
       <Header />
       <HomeSection posts={posts} />
       <Bottom />

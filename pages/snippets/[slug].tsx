@@ -18,6 +18,8 @@ import { Bottom } from "../../components/common/Bottom/Bottom";
 import { Header } from "../../components/Snippets/Header";
 import { SnippetLayout } from "../../layouts/SnippetLayout";
 import { MdxLayout } from "../../components/common/Provider/SnippetMdx";
+import { NextSeo } from "next-seo";
+import { meta } from "../../data/metadata";
 
 import Link from "next/link";
 
@@ -25,7 +27,7 @@ import Link from "next/link";
 type Props = {
   source: MDXRemoteSerializeResult;
   // slug 속성만 제거
-  frontMatter: Omit<SnippetI, "slug">;
+  frontMatter: SnippetI;
   similarSnippets: [SnippetI];
 };
 
@@ -36,10 +38,34 @@ const SnipetPage: React.FC<Props> = ({
 }: Props) => {
   return (
     <>
+      <NextSeo
+        title={frontMatter.title}
+        description={frontMatter.description}
+        canonical={`${meta.url}/snippets/${frontMatter.slug}`}
+        openGraph={{
+          type: 'snippets',
+          url: `${meta.url}/snippets/${frontMatter.slug}`,
+          article: {
+            publishedTime: new Date(frontMatter.update).toISOString(),
+            tags: [...frontMatter.category],
+          },
+          images: [
+            {
+              url: `${meta.url}${meta.imageUrl}`,
+              width: 850,
+              height: 650,
+              alt: frontMatter.title,
+            },
+          ],
+        }}
+      />
       <Header />
       <SnippetLayout>
         <article className="prose max-w-none hover:prose-headings:text-blue-500">
-          <MdxLayout similarSnippets={similarSnippets} frontMatter={frontMatter}>
+          <MdxLayout
+            similarSnippets={similarSnippets}
+            frontMatter={frontMatter}
+          >
             <MDXRemote {...source} />
           </MdxLayout>
         </article>
