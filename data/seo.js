@@ -14,7 +14,7 @@ export const Seo = {
     site_name: "wooglim dev blog",
     images: [
       {
-        url: "https://www.wooglim.dev/Images/Logo.svg",
+        url: meta.imageUrl,
         width: 1280,
         height: 720,
         alt: "wooglim.dev",

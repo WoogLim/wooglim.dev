@@ -12,7 +12,7 @@ const meta = {
   description: "A web developer who dreams of escaping the SI/SM industry",
   name: "Geon Lim",
 
-  imageUrl: "",
+  imageUrl: "https://user-images.githubusercontent.com/51357635/174721635-604cd749-8fba-48f0-b088-4f1a541ea83d.svg",
 }
 
 const social = {
