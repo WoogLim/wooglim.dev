@@ -21,7 +21,7 @@ export const PostItem = ({ post }: Props) => {
     <Link href={`/post/${post.slug}`}>
       <PostItemWrap>
         <Contents>
-          <Summary>
+          <Summary className="dark:text-neutral-300">
             <SummaryTitle>{post.title}</SummaryTitle>
             <SummarySub>{post.description}</SummarySub>
             <PostItemDate>{post.date}</PostItemDate>
@@ -32,7 +32,7 @@ export const PostItem = ({ post }: Props) => {
             src={post.thumbnail}
             alt="thumbnail"
             width={600}
-            height={420}
+            height={360}
             layout="intrinsic"
           />
         </Thumnail>

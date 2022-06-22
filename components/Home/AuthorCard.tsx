@@ -16,7 +16,7 @@ import {
 export const AuthorCard = () => {
   return (
     <AuthorCardWrap>
-      <Card>
+      <Card className="dark:bg-zinc-300">
         <AuthorProfile>
           <AuthorImage src="https://avatars.githubusercontent.com/u/51357635?s=400&u=36fd01b69ccd7729620c086927f9c0847ffdb0e1&v=4" />
           <AuthorInfo>
@@ -26,7 +26,7 @@ export const AuthorCard = () => {
         </AuthorProfile>
         <AuthorLink>
           <AuthorInfoWrap>
-            <AuthorResumeBtn>View Resume</AuthorResumeBtn>
+            <AuthorResumeBtn className="dark:text-neutral-50 dark:bg-slate-800">View Resume</AuthorResumeBtn>
           </AuthorInfoWrap>
           <AuthorLinkWrap>
             <a><AuthorLinkImage src="/Images/Home/linkedin.svg"/></a>

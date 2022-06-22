@@ -8,11 +8,11 @@ import { Navigation } from "../common/Navigation/Navigation";
 import { Title } from "./HeaderTitle";
 import { AuthorCard } from "./AuthorCard";
 
-export const Header = () => {
+const Header = () => {
   return (
     <HeaderContainer className="mainIndex">
-      <HeaderWrap>
-        <HeaderBackgroud />
+      <HeaderWrap className="dark:bg-slate-800">
+        <HeaderBackgroud className="dark:bg-slate-800"/>
         <Navigation/>
 
         <IntroduceWrap>
@@ -23,3 +23,5 @@ export const Header = () => {
     </HeaderContainer>
   );
 };
+
+export default Header;

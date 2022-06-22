@@ -2,12 +2,11 @@ import React from "react";
 import { getAllPosts } from "../../lib/PostMdxLib";
 import { PostI } from "../../types/post";
 // Layout
-import { Bottom } from "../../components/common/Bottom/Bottom";
-import { Header } from "../../components/common/Header/Header";
 import { PostListLayout } from "../../layouts/PostListLayout";
 import Head from "next/head";
 import { NextSeo } from "next-seo";
 import { meta } from "../../data/metadata";
+import Container from "../../layouts/Container"
 
 type PostIndexProps = {
   posts: [PostI];
@@ -15,16 +14,14 @@ type PostIndexProps = {
 
 const Index: React.FC<PostIndexProps> = ({ posts }) => {
   return (
-    <>
+    <Container>
       <NextSeo
         title="post"
         description="기술 관련 포스트 모음"
         canonical={`${meta.url}/post`}
       />
-      <Header />
       <PostListLayout posts={posts} />
-      <Bottom />
-    </>
+    </Container>
   );
 };
 

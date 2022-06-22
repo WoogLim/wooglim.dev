@@ -22,7 +22,7 @@ export const PostItemWrap = styled.div`
 
   &:hover {
     h2 {
-      color: #6c5ce7;
+      color: rgb(253 224 71 / var(--tw-text-opacity));
     }
   }
 
@@ -86,26 +86,22 @@ export const SummaryTitle = styled.h2`
 `;
 
 export const SummarySub = styled.p`
-  display: flex;
-  flex: 1;
+  display: block;
   max-height: 48px;
 
-  ${textStyle}
+  font-family: "IBM Plex Sans";
   font-weight: 500;
   font-size: 1rem;
   line-height: 1.4rem;
 
   text-overflow: ellipsis;
   overflow: hidden;
-
-  color: #4e4e4e;
-  }
 `;
 
 export const PostItemDate = styled.p`
   ${textStyle}
   font-weight: 500;
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   line-height: 1rem;
 
   display: flex;

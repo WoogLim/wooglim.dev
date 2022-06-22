@@ -18,7 +18,7 @@ type PostsProps = {
 export const PostCardItem = ({ post }: PostsProps) => {
   return (
     <Link href={`/post/${post.slug}`} passHref>
-      <PostCard>
+      <PostCard className="dark:border-zinc-900 dark:hover:border-gray-300 dark:hover:prose-h3:text-yellow-300">
         <PostThumnail>
           <Image
             src={post.thumbnail}
@@ -28,11 +28,11 @@ export const PostCardItem = ({ post }: PostsProps) => {
             layout="intrinsic"
           />
         </PostThumnail> 
-        <PostTitle>{post.title}</PostTitle>
-        <PostSubtude>{post.description}</PostSubtude>
-        <PostAuthor>
+        <PostTitle className="dark:text-zinc-300 dark:hover:text-yellow-300">{post.title}</PostTitle>
+        <PostSubtude className="dark:text-zinc-300">{post.description}</PostSubtude>
+        <PostAuthor className="dark:border-zinc-300">
           <PostTags>
-            <span>{post.tag}</span>
+            <span className="dark:bg-gray-800 dark:text-zinc-300">{post.tag}</span>
           </PostTags>
           {/* <PostView>2</PostView> */}
         </PostAuthor>

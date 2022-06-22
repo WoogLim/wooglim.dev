@@ -142,7 +142,6 @@ html,
 body {
   padding: 0;
   margin: 0;
-  height: 100%;
   font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen,
     Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
 }
@@ -225,7 +224,6 @@ pre[class*="language-"] {
   -moz-hyphens: none;
   -ms-hyphens: none;
   hyphens: none;
-  border-radius: 0px 6px 6px 6px;
 }
 
 pre[class*="language-"]::-moz-selection,

@@ -49,6 +49,7 @@ export const PostBox = styled.div`
   h3 {
     font-size: 1.2rem;
     color: #515151;
+    margin-bottom:1rem;
   }
   h4 {
     font-size: 1rem;

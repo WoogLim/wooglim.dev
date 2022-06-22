@@ -14,11 +14,12 @@ export const NavBar = styled.ul`
   padding: 0px;
   box-sizing: border-box;
   margin: 0 auto;
+  background: inherit;
 
   position: sticky;
   top: 0;
   position: -webkit-sticky;
-  z-index: 2;
+  z-index: 3;
 
   @media screen and (max-width: 580px) {
     justify-content: space-between;
@@ -33,7 +34,7 @@ export const NavBar = styled.ul`
     bottom: 0;
     border-bottom: 3px solid #333333;
     padding: 28px 0 0 24px;
-    background: #6c5ce7;
+    background: inherit;
     flex-direction: column;
     align-items: flex-start;
     gap: 12px;

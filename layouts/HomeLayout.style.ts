@@ -6,7 +6,7 @@ const TextStyle = css`
   font-style: normal;
 `;
 
-export const SectionContainer = styled.main`
+export const SectionContainer = styled.div`
   max-width: calc(100% - calc((100% - 802px)));
   width: 100%;
   margin: 0 auto;
@@ -41,6 +41,7 @@ export const StatusWrap = styled.div`
 
 export const SectionTitle = styled.p`
   ${TextStyle}
+  margin-top: 1rem;
   font-weight: 600;
   font-size: 18px;
   line-height: 20px;
@@ -56,6 +57,6 @@ export const SectionTitle = styled.p`
 export const PostArticle = styled.div`
   display: flex;
   flex-direction: column;
-  padding: 20px 0px 0px;
+  padding: 20px 0px 0px 0px;
   gap: 16px;
 `;

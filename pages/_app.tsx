@@ -3,15 +3,20 @@ import "../styles/globals.css";
 import "../styles/codeblock.css";
 import { DefaultSeo } from "next-seo";
 import { Seo } from "../data/seo";
-import "../styles/themes/prism-one-light.css";
+import "../styles/themes/prism-night-owl.css";
 
 function MyApp({ Component, pageProps }: AppProps) {
-  return(
+  if (typeof localStorage != "undefined") {
+    localStorage.theme === "dark"
+      ? document.documentElement.classList.add("dark")
+      : document.documentElement.classList.remove("dark");
+  }
+  return (
     <>
       <DefaultSeo {...Seo} />
-      <Component {...pageProps} />;
+      <Component {...pageProps}/>
     </>
-  )
+  );
 }
 
 export default MyApp;

@@ -16,17 +16,17 @@ type SnippetsProps = {
 export const SnippetItem = ({ snippet }: SnippetsProps) => {
   return (  
     <Link href={`/snippets/${snippet.slug}`} passHref>
-      <ItemWrap>
+      <ItemWrap className="dark:border-zinc-300 dark:hover:border-yellow-400 dark:bg-zinc-900">
         <ItemInfo>
-          <ItemLanguage>
+          <ItemLanguage className="dark:text-zinc-300">
             <span>{snippet.language}</span>
           </ItemLanguage>
-          <ItemUpdate>{snippet.update}</ItemUpdate>
+          <ItemUpdate className="dark:text-zinc-300">{snippet.update}</ItemUpdate>
         </ItemInfo>
-        <ItemName>
+        <ItemName className="dark:text-zinc-300">
           {snippet.title}
         </ItemName>
-        <ItemDescription>
+        <ItemDescription className="dark:text-zinc-300">
           {snippet.description}
         </ItemDescription>
       </ItemWrap>

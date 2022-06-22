@@ -11,7 +11,7 @@ const NavtextStyle = css`
   font-style: normal;
 `;
 
-export const SectionContainer = styled.main`
+export const SectionContainer = styled.div`
   caret-color: rgba(0, 0, 0, 0);
   max-width: calc(100% - calc((100% - 1132px)));
   width: 100%;

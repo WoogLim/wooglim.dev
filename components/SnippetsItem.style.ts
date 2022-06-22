@@ -38,7 +38,7 @@ export const ItemName = styled.div`
   font-size: 1.2rem;
   line-height: 1.4rem;
   border-radius: 8px;
-  margin-top: 4px;
+  margin: 8px 0px;
 `;
 
 export const ItemInfo = styled.div`
@@ -62,11 +62,11 @@ export const ItemDescription = styled.li`
     right: 0;
     width: 15%;
     height: 1.6rem;
-    background: linear-gradient(
-      90deg,
-      rgba(255, 255, 255, 0),
-      rgba(255, 255, 255, 1) 75%
-    );
+    // background: linear-gradient(
+    //   90deg,
+    //   rgba(255, 255, 255, 0),
+    //   rgba(255, 255, 255, 1) 75%
+    // );
   }
 `;
 

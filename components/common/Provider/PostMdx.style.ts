@@ -49,11 +49,10 @@ export const PostBox = styled.div`
 
 export const ContentOfPost = styled.ul`
   ::before {
-    content: "TABLE OF CONTENTS";
+    content: "INDEX";
     letter-spacing: 0.3em;
-    color: #1f365b;
     font-weight: 700;
-    margin-bottom: 0.8em;
+    margin-bottom: 0.4em;
     padding-left: 0.4em;
   }
 

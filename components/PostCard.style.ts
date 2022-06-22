@@ -65,7 +65,7 @@ export const PostSubtude = styled.p`
   overflow: hidden;
   position: relative;
 
-  ${FontStyle}
+  font-family: "IBM Plex Sans";
   font-style: normal;
   font-weight: 500;
   font-size: 1rem;
@@ -82,11 +82,11 @@ export const PostSubtude = styled.p`
     right: 0;
     width: 15%;
     height: 1.6rem;
-    background: linear-gradient(
-      90deg,
-      rgba(255, 255, 255, 0),
-      rgba(255, 255, 255, 1) 75%
-    );
+    // background: linear-gradient(
+    //   90deg,
+    //   rgba(255, 255, 255, 0),
+    //   rgba(255, 255, 255, 1) 75%
+    // );
   }
 `;
 

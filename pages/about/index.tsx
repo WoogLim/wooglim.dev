@@ -1,17 +1,14 @@
 import React from "react";
 // Layout
-import { Bottom } from "../../components/common/Bottom/Bottom";
 import { AboutLayout } from "../../layouts/AboutLayout";
-import { Header } from "../../components/common/Header/Header";
+import Container from "../../layouts/Container";
 
     
 const Index: React.FC = () => {
   return (
-    <>
-      <Header />
+    <Container>
       <AboutLayout />
-      <Bottom />
-    </>
+    </Container>
   );
 };
 

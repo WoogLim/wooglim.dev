@@ -5,7 +5,7 @@ const TitleFontStyle = css`
   font-family: "Roboto";
 `;
 
-export const NoteContainer = styled.main`
+export const NoteContainer = styled.div`
   max-width: calc(100% - calc((100% - 1070px)));
   width: 100%;
   margin: 0 auto;

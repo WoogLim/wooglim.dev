@@ -10,6 +10,9 @@ const titleTextStyle = css`
 `;
 
 export const TitleWrap = styled.div`
+  position: absolute;
+  bottom: 3.6rem;
+  left: 0;
   flex: 1;
   display: flex;
   flex-direction: column;

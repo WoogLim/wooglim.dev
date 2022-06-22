@@ -11,12 +11,11 @@ import { getPost, getAllPosts, getSimilarPosts } from "../../lib/PostMdxLib";
 import { ParsedUrlQuery } from "querystring";
 
 import { TagItem } from "../../components/TagItem";
-import { Bottom } from "../../components/common/Bottom/Bottom";
-import { Header } from "../../components/common/Header/Header";
 import { PostLayout } from "../../layouts/PostLayout";
 import { MdxLayout } from "../../components/common/Provider/PostMdx";
 import { NextSeo } from "next-seo";
 import { meta } from "../../data/metadata";
+import Container from "../../layouts/Container";
 
 // props type
 type Props = {
@@ -43,34 +42,33 @@ const PostPage: React.FC<Props> = ({
   // });
 
   return (
-    <>
-    <NextSeo
-      title={frontMatter.title}
-      description={frontMatter.description}
-      canonical={`${meta.url}/post/${frontMatter.slug}`}
-      openGraph={{
-        type: 'post',
-        url: `${meta.url}/post/${frontMatter.slug}`,
-        article: {
-          publishedTime: new Date(frontMatter.date).toISOString(),
-          tags: [...frontMatter.tag],
-        },
-        images: [
-          {
-            url: `${meta.url}${frontMatter.thumbnail}`,
-            width: 850,
-            height: 650,
-            alt: frontMatter.title,
+    <Container>
+      <NextSeo
+        title={frontMatter.title}
+        description={frontMatter.description}
+        canonical={`${meta.url}/post/${frontMatter.slug}`}
+        openGraph={{
+          type: "post",
+          url: `${meta.url}/post/${frontMatter.slug}`,
+          article: {
+            publishedTime: new Date(frontMatter.date).toISOString(),
+            tags: [...frontMatter.tag],
           },
-        ],
-      }}
-    />
-      <Header />
+          images: [
+            {
+              url: `${meta.url}${frontMatter.thumbnail}`,
+              width: 850,
+              height: 650,
+              alt: frontMatter.title,
+            },
+          ],
+        }}
+      />
       <PostLayout post={frontMatter} similarposts={similarPosts}>
         <article className="prose max-w-none hover:prose-headings:text-blue-500">
-          <h1>{frontMatter.title}</h1>
+          <h1 className="dark:text-zinc-200">{frontMatter.title}</h1>
 
-          <div className="mt-6 mb-6">
+          <div className="mt-6 mb-6 dark:text-zinc-300">
             <span className="dateWriting">{frontMatter.date}</span>
             <TagItem tag={frontMatter.tag} />
           </div>
@@ -80,8 +78,7 @@ const PostPage: React.FC<Props> = ({
           </MdxLayout>
         </article>
       </PostLayout>
-      <Bottom />
-    </>
+    </Container>
   );
 };
 

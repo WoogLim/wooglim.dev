@@ -27,8 +27,8 @@ export const PostCardItem = ({ post }: Props) => {
             layout="intrinsic"
           />
         </PostThumnail>
-        <PostTitle>{post.title}</PostTitle>
-        <PostSubtude>{post.description}</PostSubtude>
+        <PostTitle className="dark:text-zinc-200">{post.title}</PostTitle>
+        <PostSubtude className="dark:text-zinc-300">{post.description}</PostSubtude>
       </PostCard>
     </Link>
   );

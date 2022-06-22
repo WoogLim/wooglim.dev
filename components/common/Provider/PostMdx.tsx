@@ -31,7 +31,7 @@ const moveScrollTarget = (e: React.BaseSyntheticEvent) => {
 const CustomH1 = ({ ...props }) => {
   return (
     <a href={`#${props.id}`} onClick={moveScrollTarget}>
-      <h1 {...props} />
+      <h1 {...props} className="dark:text-zinc-300 dark:hover:text-yellow-400"/>
     </a>
   );
 };
@@ -39,7 +39,7 @@ const CustomH1 = ({ ...props }) => {
 const CustomH2 = ({ ...props }) => {
   return (
     <a href={`#${props.id}`} onClick={moveScrollTarget}>
-      <h2 {...props} />
+      <h2 {...props} className="dark:text-zinc-300 dark:hover:text-yellow-400"/>
     </a>
   );
 };
@@ -47,15 +47,15 @@ const CustomH2 = ({ ...props }) => {
 const CustomH3 = ({ ...props }) => {
   return (
     <a href={`#${props.id}`} onClick={moveScrollTarget}>
-      <h3 {...props} />
+      <h3 {...props} className="dark:text-zinc-300 dark:hover:text-yellow-400"/>
     </a>
   );
 };
 
 const CustomCodeBlock = ({ ...props }) => {
   return (
-    <div className="codeBox">
-      <div className="code-title">
+    <div className="codeBox  dark:text-zinc-900 ">
+      <div className="code-title dark:bg-zinc-200 dark:text-zinc-900">
         <span>{props.className.split("-")[1]}</span>
       </div>
       <pre {...props} />
@@ -115,23 +115,23 @@ export const MdxLayout = ({ children }: Props) => {
         }}
       >
         <MdxContainer>
-          <PostBox>{childrenArray}</PostBox>
-          <ContentOfPost className="postOfContents">
+          <PostBox className="dark:text-zinc-100">{childrenArray}</PostBox>
+          <ContentOfPost className="postOfContents dark:text-zinc-100">
             {headings!.length > 0
               ? headings?.map((heading, index) => (
                   <li key={index}>
                     {heading.type === "h1" ? (
-                      <IndexH1 onClick={moveScrollTarget}>{heading.text}</IndexH1>
+                      <IndexH1 className="dark:text-zinc-300" onClick={moveScrollTarget}>{heading.text}</IndexH1>
                     ) : heading.type === "h2" ? (
-                      <IndexH2 onClick={moveScrollTarget}>{heading.text}</IndexH2>
+                      <IndexH2 className="dark:text-zinc-300 dark:hover:text-yellow-400" onClick={moveScrollTarget}>{heading.text}</IndexH2>
                     ) : heading.type === "h3" ? (
-                      <IndexH3 onClick={moveScrollTarget}>{heading.text}</IndexH3>
+                      <IndexH3 className="dark:text-zinc-300 dark:hover:text-yellow-400" onClick={moveScrollTarget}>{heading.text}</IndexH3>
                     ) : heading.type === "h4" ? (
-                      <IndexH4 onClick={moveScrollTarget}>{heading.text}</IndexH4>
+                      <IndexH4 className="dark:text-zinc-300 dark:hover:text-yellow-400" onClick={moveScrollTarget}>{heading.text}</IndexH4>
                     ) : heading.type === "h5" ? (
-                      <IndexH5 onClick={moveScrollTarget}>{heading.text}</IndexH5>
+                      <IndexH5 className="dark:text-zinc-300 dark:hover:text-yellow-400" onClick={moveScrollTarget}>{heading.text}</IndexH5>
                     ) : heading.type === "h6" ? (
-                      <IndexH6 onClick={moveScrollTarget}>{heading.text}</IndexH6>
+                      <IndexH6 className="dark:text-zinc-300 dark:hover:text-yellow-400" onClick={moveScrollTarget}>{heading.text}</IndexH6>
                     ) : (
                       ""
                     )}

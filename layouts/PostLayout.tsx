@@ -26,13 +26,13 @@ export const PostLayout = ({ children, post, similarposts }: Props) => {
   // giscus 각 포스트별 댓글..
   return (
     <SectionContainer>
-      <SectionWrap>
+      <SectionWrap className="dark:bg-zinc-900">
         <ContentsWrap>
           {children}
-          <SectionTitle>COMMENT</SectionTitle>
+          <SectionTitle className="dark:text-zinc-200 dark:border-zinc-300">COMMENT</SectionTitle>
           <GiscusBox slug={post.title}/>
-          <SectionTitle>{`${post.tag}`} 카테고리의 다른 글</SectionTitle>
-          <SimilarPostList>
+          <SectionTitle className="dark:text-zinc-200 dark:border-zinc-300">{`${post.tag}`} 카테고리의 다른 글</SectionTitle>
+          <SimilarPostList className="dark:text-zinc-200">
             {
             similarposts.length < 1 ? `관련 게시글이 없습니다.` :
             similarposts.map((post, idx) => {

@@ -4,8 +4,8 @@ export const Title = () => {
   return (
     <>
       <TitleWrap>
-        <MainTitle>WoogLim dev Blog.</MainTitle>
-        <SubTitle>loves pixel art</SubTitle>
+        <MainTitle className="dark:text-zinc-300">WoogLim dev Blog.</MainTitle>
+        <SubTitle className="dark:text-zinc-300">loves pixel art</SubTitle>
       </TitleWrap>
     </>
   );

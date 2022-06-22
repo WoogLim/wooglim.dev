@@ -1,13 +1,10 @@
 import React from "react";
-import { Bottom } from "../../components/common/Bottom/Bottom";
-import { Header } from "../../components/common/Header/Header";
+import Container from "../../layouts/Container"
 
 const Posts: React.FC = () => {
     return (
-        <>
-            <Header />
-            <Bottom />
-        </>
+        <Container>
+        </Container>
     );
 };
 

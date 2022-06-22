@@ -5,7 +5,7 @@ const TitleFontStyle = css`
   font-family: "Roboto";
 `;
 
-export const ProjectConatainer = styled.main`
+export const ProjectConatainer = styled.div`
   max-width: calc(100% - calc((100% - 1070px)));
   width: 100%;
   margin: 0 auto;
@@ -31,8 +31,6 @@ export const MenuWrap = styled.div`
     font-size: 2.8rem;
     line-height: 1em;
     font-variant: small-caps;
-
-    color: #000000;
   }
 
   span {

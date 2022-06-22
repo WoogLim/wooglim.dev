@@ -1,4 +1,5 @@
 import { Giscus } from "@giscus/react";
+import { useEffect } from "react";
 import { giscus } from "../data/metadata";
 
 const GiscusBox = ({ slug }: { slug: string }) => {
@@ -13,7 +14,7 @@ const GiscusBox = ({ slug }: { slug: string }) => {
         mapping="pathname"
         reactionsEnabled="1"
         emitMetadata="0"
-        theme="light"
+        theme='transparent_dark'
         inputPosition="bottom"
         lang="en"
       />

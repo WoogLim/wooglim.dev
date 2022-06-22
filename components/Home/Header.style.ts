@@ -1,13 +1,13 @@
 import styled from "@emotion/styled";
 
 export const HeaderContainer = styled.header`
-  height: 340px;
+  height: 320px;
   max-width: calc(100% - calc((100% - 802px)));
   width: 100%;
   margin: 0 auto;
 
   @media screen and (max-width: 656px) {
-    height: 290px;
+    height: 270px;
   }
 
   @media screen and (max-width: 580px) {
@@ -20,6 +20,7 @@ export const HeaderWrap = styled.div`
   flex-direction: column;
   height: 100%;
   padding: 0 17px;
+  background: #6c5ce7;
 
   ul {
     margin-bottom: 23px;
@@ -29,7 +30,6 @@ export const HeaderWrap = styled.div`
       height: 100%;
       width: 100%;
       content: "";
-      background: #6c5ce7;
       z-index: -1;
     }
 
@@ -38,7 +38,7 @@ export const HeaderWrap = styled.div`
       top: 0;
       left: 0;
       padding: 0 17px 0 12px;
-      background: #6c5ce7;
+      background: inherit;
     }
   }
 `;
@@ -52,7 +52,6 @@ export const HeaderBackgroud = styled.div`
 
   background: #6c5ce7;
   border-bottom: 3px solid #000000;
-  z-index: -1;
 
   @media screen and (max-width: 656px) {
     height: 270px;
@@ -68,10 +67,4 @@ export const IntroduceWrap = styled.div`
   height: 254px;
   display: flex;
   flex-direction: row;
-
-  @media screen and (max-width: 656px) {
-  }
-
-  @media screen and (max-width: 656px) {
-  }
 `;

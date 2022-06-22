@@ -7,10 +7,8 @@ const textStyle = css`
 `;
 
 export const BottomContainer = styled.footer`
-  max-width: calc(100% - calc((100% - 802px)));
   width: 100%;
-  padding: 0 17px;
-  margin: 40px auto;
+  margin-top: 20px;
   caret-color: rgba(0, 0, 0, 0);
 `;
 
@@ -38,15 +36,17 @@ export const BlogLinks = styled.div`
 `;
 
 export const LinkButton = styled.a`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
   text-style: none;
+  border-radius: 100%;
+  width: 34px;
+  height: 34px;
 
   img {
-    box-sizing: border-box;
-
-    width: 40px;
-    height: 40px;
-    object-fit: contain;
-    overflow: hidden;
     border-radius: 100%;
+    object-fit: cover;
   }
 `;

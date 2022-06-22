@@ -4,10 +4,10 @@ import { NextPage } from "next";
 import { PostI } from "../types/post";
 import { getAllPosts } from "../lib/PostMdxLib";
 
-import { Bottom } from "../components/Home/Bottom";
-import { Header } from "../components/Home/Header";
 import { HomeSection } from "../layouts/HomeLayout";
 import { NextSeo } from "next-seo";
+
+import Container from "../layouts/HomeContainer"
 
 type Props = {
   posts: [PostI];
@@ -15,12 +15,11 @@ type Props = {
 
 const Home: NextPage<Props> = ({ posts }: Props) => {
   return (
-    <>
+    <Container>
       <NextSeo title="Home" />
-      <Header />
+      
       <HomeSection posts={posts} />
-      <Bottom />
-    </>
+    </Container>
   );
 };
 

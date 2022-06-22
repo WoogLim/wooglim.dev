@@ -8,12 +8,15 @@ const AuthorCardTextStyle = css`
 `;
 
 export const AuthorCardWrap = styled.div`
+  position: absolute;
+  bottom: -1.07rem;
+  right: 0;
   flex: 1;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
   align-items: flex-end;
-  z-index:2;
+  z-index: 2;
   @media screen and (max-width: 580px) {
     display: none;
   }
@@ -77,7 +80,6 @@ export const AuthorInfo = styled.div`
 
 export const AuthroName = styled.p`
   ${AuthorCardTextStyle}
-  color: #000000;
   font-size: 24px;
   line-height: 28px;
   font-weight: 700;
@@ -90,7 +92,6 @@ export const AuthroName = styled.p`
 
 export const AuthroJob = styled.p`
   ${AuthorCardTextStyle}
-  color: #737373;
   font-size: 20px;
   line-height: 24px;
   font-weight: 500;
@@ -133,7 +134,7 @@ export const AuthorLinkImage = styled.img`
 
   width: 28px;
   height: 28px;
-  object-fit: contain;
+  object-fit: cover;
   overflow: hidden;
   border-radius: 100%;
 `;

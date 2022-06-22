@@ -5,12 +5,14 @@ type Props = {
   scrollY?: number
 };
 
-export const Header = ({ scrollY }: Props) => {
+const Header = ({ scrollY }: Props) => {
   return (
     <HeaderContainer>
-      <HeaderWrap>
+      <HeaderWrap className="dark:bg-slate-800 dark:border-slate-900">
         <Navigation />
       </HeaderWrap>
     </HeaderContainer>
   );
 };
+
+export default Header;

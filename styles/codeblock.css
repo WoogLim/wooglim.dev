@@ -3,9 +3,9 @@
  */
 .codeBox {
   position: relative;
-  background: #ffffff;
+  background: #4d4d4d;
   margin-top: 1rem;
-  border-radius: 4px;
+  border-radius: 8px;
   box-shadow: 0px 0px 6px rgba(0, 0, 0, 0.1);
 }
 
@@ -24,7 +24,7 @@ pre[class*="language-"]::-webkit-scrollbar {
 }
 
 pre[class*="language-"]::-webkit-scrollbar-track {
-  -webkit-box-shadow: #1c2632;
+  -webkit-box-shadow: #95a7bc;
   box-shadow: #1c2632;
   border-radius: 10px;
 }
@@ -36,15 +36,17 @@ pre[class*="language-"]::-webkit-scrollbar-thumb {
 }
 
 .code-title {
-  color: rgb(59, 130, 246);
-  font-weight: 900;
+  height:1.4rem;
+  color: #ffffff;
+  font-weight: 700;
   position: absolute;
-  right: 0;
-  top: 0.65rem;
-  font-size: 1.2rem;
-  line-height: 2rem;
+  top: -1.4rem;
+  right: 0.2rem;
+  font-size: 1rem;
+  line-height: 1.2rem;
   font-variant: small-caps;
-  padding: 0 1rem;
+  padding: 0 0.5rem;
+  background: rgb(59, 130, 246);
 }
 
 .code-line {
@@ -54,13 +56,13 @@ pre[class*="language-"]::-webkit-scrollbar-thumb {
   margin-left: -16px;
   margin-right: -16px;
   border-left-width: 4px;
-  border-left-color: inherit;
+  border-left-color: #011627;
 }
 
 .highlight-line {
   margin-left: -16px;
   margin-right: -16px;
-  background-color: rgba(206, 225, 255, 0.5);
+  background-color: rgba(255, 255, 255, 0.1);
   border-left-width: 4px;
   border-left-color: rgb(59, 130, 246);
 }

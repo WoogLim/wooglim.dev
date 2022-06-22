@@ -14,12 +14,11 @@ import {
 import { ParsedUrlQuery } from "querystring";
 
 import { TagItem } from "../../components/TagItem";
-import { Bottom } from "../../components/common/Bottom/Bottom";
-import { Header } from "../../components/Snippets/Header";
 import { SnippetLayout } from "../../layouts/SnippetLayout";
 import { MdxLayout } from "../../components/common/Provider/SnippetMdx";
 import { NextSeo } from "next-seo";
 import { meta } from "../../data/metadata";
+import Container from "../../layouts/SnippetsContainer";
 
 import Link from "next/link";
 
@@ -37,7 +36,7 @@ const SnipetPage: React.FC<Props> = ({
   similarSnippets,
 }: Props) => {
   return (
-    <>
+    <Container>
       <NextSeo
         title={frontMatter.title}
         description={frontMatter.description}
@@ -59,7 +58,6 @@ const SnipetPage: React.FC<Props> = ({
           ],
         }}
       />
-      <Header />
       <SnippetLayout>
         <article className="prose max-w-none hover:prose-headings:text-blue-500">
           <MdxLayout
@@ -70,7 +68,7 @@ const SnipetPage: React.FC<Props> = ({
           </MdxLayout>
         </article>
       </SnippetLayout>
-    </>
+    </Container>
   );
 };
 

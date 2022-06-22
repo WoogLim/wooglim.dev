@@ -101,18 +101,18 @@ export const SnippetsListLayout = ({
     <SnippetsConatainer>
       <ListsWrap>
         <MenuWrap>
-          <h3>snippets</h3>
-          <span>짧은 코드 조각 모음</span>
-          <PostNumber>{`${postNumber} Snippets`}</PostNumber>
+          <h3 className="dark:text-zinc-300">snippets</h3>
+          <span className="dark:text-zinc-300">짧은 코드 조각 모음</span>
+          <PostNumber className="dark:text-zinc-300">{`${postNumber} Snippets`}</PostNumber>
         </MenuWrap>
 
-        <FitlerContainer>
+        <FitlerContainer className="dark:border-zinc-300 dark:bg-zinc-900">
           <SelectWrap>
             <FilterWrap>
-              <SelectBox onClick={onClickDropMenu} onBlur={onBlueDropMenu}>
+              <SelectBox className="dark:border-zinc-900 dark:hover:border-zinc-300" onClick={onClickDropMenu} onBlur={onBlueDropMenu}>
                 범주
               </SelectBox>
-              <FilterList className="dropMenu" data-dropdown="false">
+              <FilterList className="dropMenu dark:border-zinc-900" data-dropdown="false">
                 {categories.map((category, idx) => {
                   return (
                     <FilterItem key={idx} onClick={onSelectCategory}>
@@ -122,11 +122,11 @@ export const SnippetsListLayout = ({
                 })}
               </FilterList>
             </FilterWrap>
-            <ClearBtn onClick={onFilterClear}>초기화</ClearBtn>
+            <ClearBtn className="dark:border-zinc-900" onClick={onFilterClear}>초기화</ClearBtn>
           </SelectWrap>
           <SerachWrap>
             <ListFilter className="searchBox">
-              <SnippetsSearchBox>
+              <SnippetsSearchBox className="dark:border-zinc-900 dark:bg-zinc-100">
                 <SnippetsSearch
                   value={searchWord}
                   spellCheck={false}

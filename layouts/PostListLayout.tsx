@@ -52,13 +52,14 @@ export const PostListLayout = ({ posts }: PostIndexProps) => {
         <PostsWrap>
           {/* Posts 헤더 */}
           <PostsHeaderWrap>
-            <h3>post</h3>
-            <PostsSearchBox>
+            <h3 className="dark:text-zinc-300">post</h3>
+            <PostsSearchBox className="dark:border-zinc-700 dark:bg-zinc-100">
               <PostsSearch
                 value={searchWord}
                 spellCheck={false}
                 onChange={onChangeSearch}
                 placeholder="Search"
+                className="dark:bg-zinc-100 dark:text-zinc-900"
               />
               <PostsSearchBtn>
                 <Image
@@ -69,14 +70,14 @@ export const PostListLayout = ({ posts }: PostIndexProps) => {
                 />
               </PostsSearchBtn>
             </PostsSearchBox>
-            <PostNumber>{`${postNumber} Posts`}</PostNumber>
+            <PostNumber className="dark:text-zinc-300">{`${postNumber} Posts`}</PostNumber>
           </PostsHeaderWrap>
 
           {/* Posts 게시글 카드 */}
 
           <PostList>
             {filteredPosts.length < 1 ? (
-              <NotFoundPost>{`
+              <NotFoundPost className="dark:text-zinc-300">{`
               There is no post titled "${searchWord}".`}</NotFoundPost>
             ) : (
               filteredPosts.map((post, idx) => {

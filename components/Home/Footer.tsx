@@ -4,22 +4,23 @@ import {
   Copyright,
   BlogLinks,
   LinkButton,
-} from "./Bottom.style";
+} from "./Footer.style";
 import Image from "next/image";
 
-export const Bottom = () => {
+export const Footer = () => {
   return (
     <BottomContainer>
-      <FooterWrap>
-        <Copyright>© 2022 GeonLim.</Copyright>
+      <FooterWrap className="dark:border-zinc-300">
+        <Copyright className="dark:text-zinc-300">© 2022 Geon Lim. All right reserved</Copyright>
         <BlogLinks>
-          <LinkButton href="https://github.com/WoogLim/woogLim.dev">
+          <LinkButton href="https://github.com/WoogLim/woogLim.dev"  className="dark:bg-zinc-300">
             <Image
               src="/Images/Home/github.svg"
               alt="github"
-              width={28}
-              height={28}
+              width={30}
+              height={30}
               layout="intrinsic"
+              className="dark:bg-zinc-300"
             />
           </LinkButton>
         </BlogLinks>

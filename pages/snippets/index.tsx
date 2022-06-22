@@ -2,11 +2,10 @@ import React from "react";
 import { getAllSnippets } from "../../lib/SnippetsLib";
 import { SnippetI } from "../../types/snippet";
 // Layout
-import { Bottom } from "../../components/common/Bottom/Bottom";
-import { Header } from "../../components/common/Header/Header";
 import { SnippetsListLayout } from "../../layouts/SnippetsListLayout";
 import { NextSeo } from "next-seo";
 import { meta } from "../../data/metadata";
+import Container from "../../layouts/Container";
 
 type SnippetIndexProps = {
   snippets: [SnippetI];
@@ -20,20 +19,18 @@ const Index: React.FC<SnippetIndexProps> = ({
   languages,
 }) => {
   return (
-    <>
+    <Container>
       <NextSeo
         title="Snippets"
         description="짧은 코드 조각 모음"
         canonical={`${meta.url}/snippets`}
       />
-      <Header />
       <SnippetsListLayout
         snippets={snippets}
         categories={categories}
         languages={languages}
       />
-      <Bottom />
-    </>
+    </Container>
   );
 };
 
