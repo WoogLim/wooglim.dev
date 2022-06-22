@@ -43,7 +43,6 @@ export const NavBar = styled.ul`
       font-size: 1.2rem;
       font-weight: 600;
     }
-
   }
 `;
 
@@ -69,6 +68,9 @@ export const HomeButton = styled.button`
   @media screen and (max-width: 580px) {
     margin-right: 0;
     order: 2;
+    flex: 1;
+    justify-content: flex-end;
+    margin-right: 1rem;
   }
 `;
 
@@ -106,6 +108,11 @@ export const LogoImage = styled.img`
   object-fit: contain;
   overflow: hidden;
   box-sizing: border-box;
+
+  @media screen and (max-width: 580px) {
+    width: 42px;
+    height: 42px;
+  }
 `;
 
 export const DropDownMenu = styled.div`

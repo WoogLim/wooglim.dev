@@ -7,21 +7,17 @@ const TextStyle = css`
 `;
 
 export const SectionContainer = styled.div`
-  max-width: calc(100% - calc((100% - 802px)));
+  max-width: calc(100% - calc(100% - 802px));
   width: 100%;
   margin: 0 auto;
   padding: 0 17px;
   margin-top: 20px;
   caret-color: rgba(0, 0, 0, 0);
+  display:flex;
+  flex:1;
 `;
 
 export const SectionWrap = styled.div`
-  display: flex;
-  flex-direction: row;
-  gap: 20px;
-`;
-
-export const PostWrap = styled.div`
   display: flex;
   flex: 1;
   flex-direction: column;

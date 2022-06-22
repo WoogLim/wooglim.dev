@@ -64,7 +64,7 @@ export const ItemList = styled.div`
   grid-template-columns: repeat(4, 1fr);
   grid-gap: 1rem;
   caret-color: rgba(0, 0, 0, 0);
-  padding: 12px 1px 1px 1px;
+  padding-top: 12px;
 
   @media screen and (max-width: 864px) {
     grid-template-columns: repeat(3, 1fr);

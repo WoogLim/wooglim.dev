@@ -3,7 +3,6 @@ import { PostI } from "../types/post";
 import {
   SectionContainer,
   SectionWrap,
-  PostWrap,
   StatusWrap,
   SectionTitle,
   PostArticle,
@@ -17,14 +16,12 @@ export const HomeSection = ({ posts }: Props) => {
   return (
     <SectionContainer>
       <SectionWrap>
-        <PostWrap>
           <SectionTitle className="dark:text-yellow-300 dark:border-zinc-300">RECENT POST</SectionTitle>
           <PostArticle>
             {posts.slice(0,5).map((post) => (
               <PostItem post={post} key={post.slug} />
             ))}
           </PostArticle>
-        </PostWrap>
         {/* <StatusWrap>
           <SectionTitle>POST STATUS</SectionTitle>
         </StatusWrap> */}
