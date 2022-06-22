@@ -9,8 +9,8 @@ import Image from "next/image";
 
 export const Footer = () => {
   return (
-    <BottomContainer className="dark:border-zinc-200">
-      <FooterWrap>
+    <BottomContainer>
+      <FooterWrap className="dark:border-zinc-200">
         <Copyright className="dark:text-zinc-100">© 2022 GeonLim.</Copyright>
         <BlogLinks>
           <LinkButton href="https://github.com/WoogLim/woogLim.dev" className="dark:bg-zinc-200">

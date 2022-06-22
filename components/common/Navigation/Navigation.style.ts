@@ -3,15 +3,13 @@ import { css } from "@emotion/react";
 
 export const NavBar = styled.ul`
   max-width: 1036px;
-  height: 62x;
-
   caret-color: rgba(0, 0, 0, 0);
+  height:59px;
 
   display: flex;
   width: 100%;
   flex-direction: row;
   justify-content: flex-start;
-  padding: 0px;
   box-sizing: border-box;
   margin: 0 auto;
   background: inherit;

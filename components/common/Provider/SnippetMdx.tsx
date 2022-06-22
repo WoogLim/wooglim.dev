@@ -19,6 +19,7 @@ import {
   IndexH6,
   TopicTitle,
   TopicSummary,
+  IndexViewBtn,
 } from "./SnippetMdx.style";
 import { Footer } from "../../Snippets/Footer";
 
@@ -39,7 +40,10 @@ const moveScrollTarget = (e: React.BaseSyntheticEvent) => {
 const CustomH1 = ({ ...props }) => {
   return (
     <a href={`#${props.id}`} onClick={moveScrollTarget}>
-      <h1 className="dark:text-zinc-300 dark:hover:text-yellow-400" {...props} />
+      <h1
+        className="dark:text-zinc-300 dark:hover:text-yellow-400"
+        {...props}
+      />
     </a>
   );
 };
@@ -47,7 +51,10 @@ const CustomH1 = ({ ...props }) => {
 const CustomH2 = ({ ...props }) => {
   return (
     <a href={`#${props.id}`} onClick={moveScrollTarget}>
-      <h2 className="dark:text-zinc-300 dark:hover:text-yellow-400" {...props} />
+      <h2
+        className="dark:text-zinc-300 dark:hover:text-yellow-400"
+        {...props}
+      />
     </a>
   );
 };
@@ -55,7 +62,10 @@ const CustomH2 = ({ ...props }) => {
 const CustomH3 = ({ ...props }) => {
   return (
     <a href={`#${props.id}`} onClick={moveScrollTarget}>
-      <h3 className="dark:text-zinc-300 dark:hover:text-yellow-400" {...props} />
+      <h3
+        className="dark:text-zinc-300 dark:hover:text-yellow-400"
+        {...props}
+      />
     </a>
   );
 };
@@ -140,7 +150,11 @@ export const MdxLayout = ({
                     return (
                       <TopicItem key={idx}>
                         <Link href={`/snippets/${item.slug}`}>
-                          {item.title === frontMatter.title ? <p className="subTopic view">{item.title}</p> : <p className="subTopic">{item.title}</p> }
+                          {item.title === frontMatter.title ? (
+                            <p className="subTopic view">{item.title}</p>
+                          ) : (
+                            <p className="subTopic">{item.title}</p>
+                          )}
                         </Link>
 
                         {headings!.length > 0 &&
@@ -148,27 +162,45 @@ export const MdxLayout = ({
                           ? headings?.map((heading, index) => (
                               <IndexList key={index}>
                                 {heading.type === "h1" ? (
-                                  <IndexH1 className="dark:text-zinc-100 dark:hover:text-yellow-400" onClick={moveScrollTarget}>
+                                  <IndexH1
+                                    className="dark:text-zinc-100 dark:hover:text-yellow-400"
+                                    onClick={moveScrollTarget}
+                                  >
                                     {heading.text}
                                   </IndexH1>
                                 ) : heading.type === "h2" ? (
-                                  <IndexH2 className="dark:text-yellow-400 dark:hover:text-yellow-200" onClick={moveScrollTarget}>
+                                  <IndexH2
+                                    className="dark:text-yellow-400 dark:hover:text-yellow-200"
+                                    onClick={moveScrollTarget}
+                                  >
                                     {heading.text}
                                   </IndexH2>
                                 ) : heading.type === "h3" ? (
-                                  <IndexH3 className="dark:text-zinc-300 dark:hover:text-yellow-400" onClick={moveScrollTarget}>
+                                  <IndexH3
+                                    className="dark:text-zinc-300 dark:hover:text-yellow-400"
+                                    onClick={moveScrollTarget}
+                                  >
                                     {heading.text}
                                   </IndexH3>
                                 ) : heading.type === "h4" ? (
-                                  <IndexH4 className="dark:text-zinc-300 dark:hover:text-yellow-400" onClick={moveScrollTarget}>
+                                  <IndexH4
+                                    className="dark:text-zinc-300 dark:hover:text-yellow-400"
+                                    onClick={moveScrollTarget}
+                                  >
                                     {heading.text}
                                   </IndexH4>
                                 ) : heading.type === "h5" ? (
-                                  <IndexH5 className="dark:text-zinc-300 dark:hover:text-yellow-400" onClick={moveScrollTarget}>
+                                  <IndexH5
+                                    className="dark:text-zinc-300 dark:hover:text-yellow-400"
+                                    onClick={moveScrollTarget}
+                                  >
                                     {heading.text}
                                   </IndexH5>
                                 ) : heading.type === "h6" ? (
-                                  <IndexH6 className="dark:text-zinc-300 dark:hover:text-yellow-400" onClick={moveScrollTarget}>
+                                  <IndexH6
+                                    className="dark:text-zinc-300 dark:hover:text-yellow-400"
+                                    onClick={moveScrollTarget}
+                                  >
                                     {heading.text}
                                   </IndexH6>
                                 ) : (
@@ -185,11 +217,15 @@ export const MdxLayout = ({
             })}
           </ListContainer>
 
+          {/* <IndexViewBtn className="dark:bg-yellow-400">하이</IndexViewBtn> */}
+
           <PostBox className="dark:text-zinc-200">
-            <TopicTitle className="dark:text-zinc-100">{frontMatter.title}</TopicTitle>
+            <TopicTitle className="dark:text-zinc-100">
+              {frontMatter.title}
+            </TopicTitle>
             <TopicSummary>{frontMatter.description}</TopicSummary>
             {childrenArray}
-            <Footer/>
+            <Footer />
           </PostBox>
         </MdxContainer>
       </MDXProvider>

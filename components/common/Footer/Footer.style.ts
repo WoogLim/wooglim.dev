@@ -11,8 +11,11 @@ export const BottomContainer = styled.footer`
   width: 100%;
   margin: 40px auto 0;
   box-sizing: border-box;
-  border-top: 3px solid #000000;
   caret-color: rgba(0, 0, 0, 0);
+
+  @media screen and (max-width: 1048px) {
+    padding: 0px 17px;
+  }
 `;
 
 export const FooterWrap = styled.div`
@@ -21,6 +24,7 @@ export const FooterWrap = styled.div`
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
+  border-top: 3px solid #000000;
 `;
 
 export const Copyright = styled.p`

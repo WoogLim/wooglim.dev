@@ -3,7 +3,7 @@ import { css } from "@emotion/react";
 
 export const NavBar = styled.ul`
   max-width: 100%;
-  height: 64px;
+  height: 100%;
 
   caret-color: rgba(0, 0, 0, 0);
 
@@ -13,6 +13,7 @@ export const NavBar = styled.ul`
   justify-content: flex-start;
   box-sizing: border-box;
   margin: 0 auto;
+  background: inherit;
 
   position: sticky;
   top: 0;
@@ -32,7 +33,7 @@ export const NavBar = styled.ul`
     bottom: 0;
     border-bottom: 3px solid #333333;
     padding: 28px 0 0 24px;
-    background: #6c5ce7;
+    background: inherit;
     flex-direction: column;
     align-items: flex-start;
     gap: 12px;
@@ -72,6 +73,9 @@ export const HomeButton = styled.button`
   @media screen and (max-width: 580px) {
     margin-right: 0;
     order: 2;
+    flex: 1;
+    justify-content: flex-end;
+    margin-right: 1rem;
   }
 `;
 
@@ -109,6 +113,11 @@ export const LogoImage = styled.img`
   object-fit: contain;
   overflow: hidden;
   box-sizing: border-box;
+
+@media screen and (max-width: 580px) {
+  width: 42px;
+  height: 42px;
+}
 `;
 
 export const DropDownMenu = styled.div`

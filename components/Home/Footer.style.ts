@@ -9,7 +9,7 @@ const textStyle = css`
 export const BottomContainer = styled.footer`
   max-width: calc(100% - calc((100% - 802px)));
   width: 100%;
-  padding: 0 17px;
+  padding: 0px 17px;
   margin-top: 20px;
   caret-color: rgba(0, 0, 0, 0);
 `;

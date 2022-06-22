@@ -1,11 +1,7 @@
 import { HeaderContainer, HeaderWrap } from "./Header.style";
 import { Navigation } from "../Navigation/Navigation";
 
-type Props = {
-  scrollY?: number
-};
-
-const Header = ({ scrollY }: Props) => {
+const Header = () => {
   return (
     <HeaderContainer>
       <HeaderWrap className="dark:bg-slate-800 dark:border-slate-900">

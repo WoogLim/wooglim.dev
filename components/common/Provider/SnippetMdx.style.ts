@@ -49,7 +49,7 @@ export const PostBox = styled.div`
   h3 {
     font-size: 1.2rem;
     color: #515151;
-    margin-bottom:1rem;
+    margin-bottom: 1rem;
   }
   h4 {
     font-size: 1rem;
@@ -149,14 +149,14 @@ export const TopicItem = styled.ul`
     height: 32px;
 
     :hover {
-    color: #6C5CE7;
+      color: #6c5ce7;
     }
   }
 
   .view {
     position: relative;
     height: 32px;
-    color: #6C5CE7;
+    color: #6c5ce7;
     font-weight: 700;
 
     ::after {
@@ -165,7 +165,7 @@ export const TopicItem = styled.ul`
       content: "";
       height: 100%;
       width: 4px;
-      background: #6C5CE7;
+      background: #6c5ce7;
     }
   }
 `;
@@ -189,6 +189,21 @@ export const IndexList = styled.li`
   }
 `;
 
+export const IndexViewBtn = styled.button`
+  all: unset;
+  width: 3rem;
+  height: 3rem;
+  cursor: pointer;
+  position: fixed;
+  z-index: 3;
+  bottom: 4rem;
+  left: 1.4rem;
+  border-radius: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+`;
+
 export const IndexH1 = styled.h1`
   color: #000000;
   padding-left: 0.8rem;
@@ -204,25 +219,25 @@ export const IndexH2 = styled.h2`
 export const IndexH3 = styled.h3`
   color: #808080;
   padding-left: 1.2rem;
-  font-size: 0.90rem;
+  font-size: 0.9rem;
 `;
 
 export const IndexH4 = styled.h4`
   padding-left: 0.8rem;
   padding-left: 1.4rem;
-  font-size: 0.90rem;
+  font-size: 0.9rem;
 `;
 
 export const IndexH5 = styled.h5`
   padding-left: 0.8rem;
   padding-left: 1.6rem;
-  font-size: 0.90rem;
+  font-size: 0.9rem;
 `;
 
 export const IndexH6 = styled.h6`
   padding-left: 0.8rem;
   padding-left: 1.8rem;
-  font-size: 0.90rem;
+  font-size: 0.9rem;
 `;
 
 export const TopicTitle = styled.span`
