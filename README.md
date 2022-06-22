@@ -3,8 +3,9 @@
 [WoogLim dev Blog](https://wooglim.dev)
 
 ```text
-✅ If you are looking at this repository for creating a blog, please refer to it.
-  If you use it, it will be appreciated. 
+✅ If you are looking at this repository for creating a blog, please refer to it. 
+
+✅ If you use it, it will be appreciated. 
 
 ✅ There is something to note. The code is not clean and there may be a better way to blog. 😅
 ```
