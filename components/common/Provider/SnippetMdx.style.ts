@@ -120,9 +120,9 @@ export const ListContainer = styled.aside`
   }
 
   @media screen and (max-width: 1152px) {
-    all:unset;
+    all: unset;
     display: none;
-    height:100%;
+    height: 100%;
     position: fixed;
     top: 62px;
     padding-top: 1.6rem;
@@ -130,6 +130,20 @@ export const ListContainer = styled.aside`
     background: #fefefe;
     box-shadow: -4px 0px 10px rgba(0, 0, 0, 0.1);
     z-index: 1;
+
+    ::-webkit-scrollbar {
+      width: 8px;
+      background-color: rgb(243, 243, 243);
+    }
+
+    ::-webkit-scrollbar-track {
+      background-color: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background-color: rgb(71, 70, 82);
+      border: 2px solid rgb(71, 70, 82);
+    }
   }
 `;
 
