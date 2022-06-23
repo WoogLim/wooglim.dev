@@ -156,6 +156,10 @@ export const MdxLayout = ({
             <a className="text-blue-600 dark:text-pink-600"
             {...props}/>
           ),
+          strong : ({ ...props }) => (
+            <strong className="text-blue-600 dark:text-pink-600"
+            {...props}/>
+          ),
           hr: () => (
             <hr
               style={{ marginTop: "1rem", marginBottom: "0", opacity: "0" }}
