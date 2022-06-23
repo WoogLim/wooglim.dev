@@ -362,3 +362,11 @@ pre[class*="language-"] {
 .dropMenu[data-dropdown="false"]{
   display:none;
 }
+
+.showMenu-f{
+  display: flex;
+}
+
+.showMenu-b{
+  display: block;
+}

@@ -2,7 +2,7 @@ import { renderToString } from "react-dom/server";
 import { MDXProvider } from "@mdx-js/react";
 import { SnippetI } from "../../../types/snippet";
 import Link from "next/link";
-import React from "react";
+import React, {useState} from "react";
 
 import {
   MdxContainer,
@@ -94,6 +94,13 @@ export const MdxLayout = ({
 }: Props) => {
   const childrenArray = React.Children.toArray(children);
   const contentString = renderToString(children);
+  const [tocOpen, setTocOpen] = useState(false);
+
+  const tocToggleHandle = () => {
+    const tocMenu = document.getElementsByClassName('tocMenu');
+    tocMenu[0].classList.toggle('showMenu');
+    tocOpen === false ? setTocOpen(true) : setTocOpen(false);
+  }
 
   const getHeadings = (source: string) => {
     const regex = /<h[1-6]{1} id="(.*)">(.*?)<\/h[1-6]{1}>/g;
@@ -141,7 +148,7 @@ export const MdxLayout = ({
         }}
       >
         <MdxContainer>
-          <ListContainer className="dark:bg-zinc-900">
+          <ListContainer className="dark:bg-zinc-900 tocMenu">
             {listItem.map((list, idx) => {
               return (
                 <TopicCategory className="dark:text-zinc-200" key={idx}>
@@ -217,7 +224,9 @@ export const MdxLayout = ({
             })}
           </ListContainer>
 
-          {/* <IndexViewBtn className="dark:bg-yellow-400">하이</IndexViewBtn> */}
+          <IndexViewBtn className="dark:bg-pink-600 dark:text-zinc-200 dark:border-slate-900" onClick={tocToggleHandle}>
+            { tocOpen ? "toc" : "close"}
+          </IndexViewBtn>
 
           <PostBox className="dark:text-zinc-200">
             <TopicTitle className="dark:text-zinc-100">

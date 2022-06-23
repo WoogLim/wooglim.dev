@@ -13,6 +13,10 @@ export const MdxContainer = styled.div`
     margin: 0 auto;
     padding: 0;
   }
+
+  .showMenu {
+    display: block;
+  }
 `;
 
 export const PostBox = styled.div`
@@ -77,6 +81,7 @@ export const PostBox = styled.div`
 
 export const ListContainer = styled.aside`
   position: fixed;
+  display: block;
   top: 62px;
   left: 0;
   height: 100%;
@@ -84,6 +89,7 @@ export const ListContainer = styled.aside`
   width: 20rem;
   padding: 1.4rem 0;
   overflow-y: scroll;
+  z-index: 1;
 
   ::-webkit-scrollbar {
     width: 8px;
@@ -114,7 +120,16 @@ export const ListContainer = styled.aside`
   }
 
   @media screen and (max-width: 1152px) {
+    all:unset;
     display: none;
+    height:100%;
+    position: fixed;
+    top: 62px;
+    padding-top: 1.6rem;
+    right: 0px;
+    background: #fefefe;
+    box-shadow: -4px 0px 10px rgba(0, 0, 0, 0.1);
+    z-index: 1;
   }
 `;
 
@@ -191,17 +206,27 @@ export const IndexList = styled.li`
 
 export const IndexViewBtn = styled.button`
   all: unset;
-  width: 3rem;
-  height: 3rem;
+  font-family: "IBM Plex Sans";
+  font-weight: 600;
+  padding: 0px 1rem;
+  height: 1.6rem;
   cursor: pointer;
   position: fixed;
   z-index: 3;
-  bottom: 4rem;
-  left: 1.4rem;
-  border-radius: 100%;
-  display: flex;
+  top: 62px;
+  right: 0;
+  border-radius: 0 0 0 8px;
   justify-content: center;
   align-items: center;
+  background: #f3ce49;
+  display: none;
+  border-left: 3px solid #333333;
+  border-bottom: 3px solid #333333;
+  text-transform: uppercase;
+
+  @media screen and (max-width: 1152px) {
+    display: flex;
+  }
 `;
 
 export const IndexH1 = styled.h1`
