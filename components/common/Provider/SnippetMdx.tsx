@@ -70,6 +70,17 @@ const CustomH3 = ({ ...props }) => {
   );
 };
 
+const CustomH4 = ({ ...props }) => {
+  return (
+    <a href={`#${props.id}`} onClick={moveScrollTarget}>
+      <h4
+        className="dark:text-zinc-300 dark:hover:text-yellow-400"
+        {...props}
+      />
+    </a>
+  );
+};
+
 const CustomCodeBlock = ({ ...props }) => {
   return (
     <div className="codeBox dark:text-zinc-900">
@@ -139,7 +150,12 @@ export const MdxLayout = ({
           h1: CustomH1,
           h2: CustomH2,
           h3: CustomH3,
+          h4: CustomH4,
           pre: CustomCodeBlock,
+          a : ({ ...props }) => (
+            <a className="text-blue-600 dark:text-pink-600"
+            {...props}/>
+          ),
           hr: () => (
             <hr
               style={{ marginTop: "1rem", marginBottom: "0", opacity: "0" }}
@@ -170,42 +186,42 @@ export const MdxLayout = ({
                               <IndexList key={index}>
                                 {heading.type === "h1" ? (
                                   <IndexH1
-                                    className="dark:text-zinc-100 dark:hover:text-yellow-400"
+                                    className="text-zinc-900 dark:text-zinc-100 dark:hover:text-yellow-400"
                                     onClick={moveScrollTarget}
                                   >
                                     {heading.text}
                                   </IndexH1>
                                 ) : heading.type === "h2" ? (
                                   <IndexH2
-                                    className="dark:text-yellow-400 dark:hover:text-yellow-200"
+                                    className="text-zinc-900 dark:text-yellow-400 dark:hover:text-yellow-200"
                                     onClick={moveScrollTarget}
                                   >
                                     {heading.text}
                                   </IndexH2>
                                 ) : heading.type === "h3" ? (
                                   <IndexH3
-                                    className="dark:text-zinc-300 dark:hover:text-yellow-400"
+                                    className="text-zinc-700 dark:text-zinc-300 dark:hover:text-yellow-400"
                                     onClick={moveScrollTarget}
                                   >
                                     {heading.text}
                                   </IndexH3>
                                 ) : heading.type === "h4" ? (
                                   <IndexH4
-                                    className="dark:text-zinc-300 dark:hover:text-yellow-400"
+                                    className="text-zinc-600 dark:text-zinc-300 dark:hover:text-yellow-400"
                                     onClick={moveScrollTarget}
                                   >
                                     {heading.text}
                                   </IndexH4>
                                 ) : heading.type === "h5" ? (
                                   <IndexH5
-                                    className="dark:text-zinc-300 dark:hover:text-yellow-400"
+                                    className="text-zinc-700 dark:text-zinc-300 dark:hover:text-yellow-400"
                                     onClick={moveScrollTarget}
                                   >
                                     {heading.text}
                                   </IndexH5>
                                 ) : heading.type === "h6" ? (
                                   <IndexH6
-                                    className="dark:text-zinc-300 dark:hover:text-yellow-400"
+                                    className="text-zinc-700 dark:text-zinc-300 dark:hover:text-yellow-400"
                                     onClick={moveScrollTarget}
                                   >
                                     {heading.text}

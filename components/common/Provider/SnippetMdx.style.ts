@@ -44,20 +44,16 @@ export const PostBox = styled.div`
   }
   h1 {
     font-size: 2rem;
-    color: #000000;
   }
   h2 {
     font-size: 1.8rem;
-    color: #333333;
   }
   h3 {
     font-size: 1.2rem;
-    color: #515151;
     margin-bottom: 1rem;
   }
   h4 {
     font-size: 1rem;
-    color: #808080;
   }
 
   display: flex;
@@ -200,9 +196,11 @@ export const TopicItem = styled.ul`
 `;
 
 export const IndexList = styled.li`
-  all: unset;
   display: block;
   cursor: pointer;
+  padding:0;
+  margin:0;
+
   :hover {
     color: #665ddf;
   }
@@ -213,8 +211,8 @@ export const IndexList = styled.li`
   h4,
   h5,
   h6 {
+    display: block;
     margin: 0;
-    font-weight: 600;
   }
 `;
 
@@ -244,37 +242,31 @@ export const IndexViewBtn = styled.button`
 `;
 
 export const IndexH1 = styled.h1`
-  color: #000000;
   padding-left: 0.8rem;
   font-size: 1rem;
 `;
 
 export const IndexH2 = styled.h2`
-  color: #333333;
   padding-left: 0.8rem;
   font-size: 0.95rem;
 `;
 
 export const IndexH3 = styled.h3`
-  color: #808080;
   padding-left: 1.2rem;
   font-size: 0.9rem;
 `;
 
 export const IndexH4 = styled.h4`
-  padding-left: 0.8rem;
-  padding-left: 1.4rem;
+  padding-left: 1.6rem;
   font-size: 0.9rem;
 `;
 
 export const IndexH5 = styled.h5`
-  padding-left: 0.8rem;
   padding-left: 1.6rem;
   font-size: 0.9rem;
 `;
 
 export const IndexH6 = styled.h6`
-  padding-left: 0.8rem;
   padding-left: 1.8rem;
   font-size: 0.9rem;
 `;
