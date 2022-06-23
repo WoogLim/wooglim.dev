@@ -10,7 +10,7 @@ serisenumber: "2"
 ---
 - [Colt Steele 강사님의 알고리즘 강의를 듣고 TIL 방식으로 정리한 글입니다.](https://www.udemy.com/course/js-algorithms-and-data-structures-masterclass/)
 
-## Array
+## I. Array
 ---
 
 ~~~js
@@ -20,19 +20,19 @@ let names = ["Kim", "Lim", "Jang"];
 // 0    1   2
 ~~~
 
-### 특징
+### I. 특징
 - 정렬되어 있는 데이터를 저장하고 싶을때 배열을 사용한다.
 - 특정한 순서로 정렬이 가능하다.
 - 배열안의 인덱스 탐색은 빠르나 입력 / 제거시 시간이 소요된다.
 - 배열내 앞의 인덱스를 추가하거나 제거하면 O(n) 시간이 걸린다.
 
-### Big O
+### I. Big O
 - 입력: 앞/뒤 입력 방식에 다름
 - 제거: 앞/뒤 제거 방식에 다름
 - 탐색: O(N)
 - 접근: O(1)
 
-### 입력 메소드의 Big O
+### I. 입력 메소드의 Big O
 ~~~js
 names.push("Lee")
 // O(1) : push 메소드의 경우 맨 뒤 인덱스에 값을 추가하므로 객체와 다를바 없다.
@@ -43,7 +43,7 @@ names.unshift("Lee")
 // O(n) : 앞에 추가하면 뒤에 요소들의 인덱스는 뒤로 밀려 요소 하나하나 변경한다.
 ~~~
 
-### 제거 메소드의 Big O
+### I. 제거 메소드의 Big O
 ~~~js
 names.shift()
 // O(n) : 앞에서 제거하면 뒤에 요소들의 인덱스가 앞으로 밀려 요소 하나하나 변경한다.
@@ -52,14 +52,14 @@ names.pop()
 // O(1) : 맨 뒤 요소만 제거한다.
 ~~~
 
-### 이외에 메소드 Big O
+### I. 이외에 메소드 Big O
 - <b>concat</b>- O(n) : 결합할 배열이 많을 수록 O(n)
 - <b>slice</b>- O(n)
 - <b>splice</b>- O(n)
 - <b>sort</b>- O(N * log N)
 - <b>forEach/map/filter/reduce</b>- O(n)
 
-## Object
+## II. Object
 ---
 
 ~~~js
@@ -70,19 +70,19 @@ let instructor = {
 }
 ~~~
 
-### 특징
+### II. 특징
 - key와 value로 구분되어 있으며 순서가 정해져있지않다.
 - 빠른 접근, 입력, 제거에 유리 상수 시간 O(1)이 요구된다.
 - 모든 연산, 입력, 접근, 수정, 제거가 상수 시간 O(1)이다.
 - 안의 속성들이 N일 수록 탐색도 N시간으로 늘어난다.
 
-### Big O 
+### II. Big O 
 - 입력: O(1)
 - 제거: O(1)
 - 탐색: O(n)
 - 접근: O(1)
 
-### Object 탐색 메소드의 Big O
+### II. Object 탐색 메소드의 Big O
 ~~~js
 Object.keys(instructor)
 // O(n)
