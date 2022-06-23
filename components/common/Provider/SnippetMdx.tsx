@@ -225,7 +225,7 @@ export const MdxLayout = ({
           </ListContainer>
 
           <IndexViewBtn className="dark:bg-pink-600 dark:text-zinc-200 dark:border-slate-900" onClick={tocToggleHandle}>
-            { tocOpen ? "toc" : "close"}
+            { tocOpen ? "close" : "toc"}
           </IndexViewBtn>
 
           <PostBox className="dark:text-zinc-200">
