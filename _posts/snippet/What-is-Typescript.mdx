@@ -1,0 +1,103 @@
+---
+title: "타입스크립트란 무엇인가"
+description: "타입스크립트 개념 알아가기"
+language: "Typescript"
+category: "Typescript Tutorial"
+update: "2022-06-24"
+serisenumber: "1"
+---
+
+## Intro
+
+---
+
+- [Maximilian Schwarzmüller 강사님의 Typescript 강의를 듣고 TIL 방식으로 정리한 글입니다.](https://www.udemy.com/course/understanding-typescript/)
+
+## 타입스크립트란
+
+---
+- 타입스크립트는 자바스크립트의 슈퍼셋인 오픈소스 프로그래밍 언어이다. 엄격한 문법을 지원하여 안정성 있는 앱개발에 도움을 준다.
+- 브라우저는 타입스크립트를 인지하지 못한다. 코드를 실행해 자바스크립트로 컴파일한다.
+- 개발과정에 에러를 제거할 수 있도록 돕는다.
+
+### 자바스크립트와 차이
+
+---
+
+#### Javascript
+```js
+function add(num1, num2){
+    return num1 + num2;
+}
+
+// 자바스크립트는 타입을 지정하지 않으므로 원치않는 결과를 초래할 수 있다.
+// 이를 막으려면 typeof 체크를 해야한다.
+console.log(add('2','3'));
+>> 23
+```
+
+#### Typescript
+타입 구문을 지원하여 원하는 결과를 도출할 수 있다.
+```ts
+function add(num1 : number, num2 : number){
+    return num1 + num2;
+}
+
+console.log(add(2, 3));
+>> 5
+```
+
+## 개발 환경 구성하기
+
+### I. Node.js 설치
+---
+- [Node js Download](https://nodejs.org/)
+
+### II. Typescript 설치
+
+- Typescript 컴파일러를 설치한다. 터미널을 열어 다음 커맨드를 입력하여 전역으로 설치한다.
+
+```sh
+npm install -g typescript
+```
+
+### III. 타입스크립트 적용 과정
+--- 
+- 브라우저는 타입스크립트를 인지하지 못한다. 때문에 컴파일러를 이용해 일반 바닐라 자바스크립트로 변환하게된다.
+- 컴파일 과정에서 타입스크립트 작성시 컴파일 이전까지 타입을 체크하고 컴파일 후 바닐라 자바스크립트로 변환되어 브라우저에 적용된다.
+
+#### I. 타입스크립트 작성
+- 초기에 타입 체크를 통해 작동 방식에 대해 명시적인 구현을 요구한다.
+- 자동 완성 기능을 통해 보다 나은 코드를 제시한다.
+```ts
+// using-ts.ts
+const button = document.querySelector("button")! as HTMLButtonElement;
+const input1 = document.getElementById("num1")! as HTMLInputElement;
+const input2 = document.getElementById("num2")! as HTMLInputElement;
+
+function add(num1: number, num2: number) {
+  return num1 + num2;
+}
+
+button.addEventListener("click", function() {
+  console.log(add(+input1.value, +input2.value));
+});
+```
+#### II. 컴파일
+- 일반 바닐라 자바스크립트로 변환되어 브라우저에 적용된다.
+```bash
+tsc using-ts.ts
+```
+#### III. 변환된 바닐라 자바스크립트
+- 아래와 같이 일반적인 바닐라 자바스크립트로 변환된다.
+```js
+var button = document.querySelector("button");
+var input1 = document.getElementById("num1");
+var input2 = document.getElementById("num2");
+function add(num1, num2) {
+    return num1 + num2;
+}
+button.addEventListener("click", function () {
+    console.log(add(+input1.value, +input2.value));
+});
+```
