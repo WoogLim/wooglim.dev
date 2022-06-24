@@ -12,7 +12,7 @@ const meta = {
   description: "A web developer who dreams of escaping the SI/SM industry",
   name: "Geon Lim",
 
-  imageUrl: "/Images/Logo.svg",
+  imageUrl: "https://www.wooglim.dev/Images/Logo.svg",
 }
 
 const social = {
