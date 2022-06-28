@@ -30,7 +30,7 @@ num = 10
 
 ### string
 ---
-- 일반적인 문자 및 문자열 타입이다.
+일반적인 문자 및 문자열 타입이다.
 ```ts
 let str : string = '';
 
@@ -41,10 +41,115 @@ str = `Hi`
 
 ### Boolean
 ---
-- 일반적인 Boolean 타입이다.
+일반적인 Boolean 타입이다.
 ```ts
 let check : booelan = false;
 
 check = true
 check = false
 ```
+
+## 타입 할당과 추론
+---
+### 타입 할당
+---
+아래 코드의 **`add`**함수의 경우 매개변수마다 타입이 명시적으로 지정되어있다. 이를 타입 할당이라고 한다.
+```ts
+// app.ts
+function add(n1: number, n2: number, showResult: boolean, phrase: string) {
+    const result = n1 + n2;
+    if(!showResult) {
+        console.log(phrase + result);
+    } else {
+        return result;
+    }
+}
+```
+
+### 타입 추론
+---
+명시적으로 타입이 배정되지 않은 경우 초기화된 값으로 타입을 추론해 할당한다.
+`number1, number2`의 경우 **`number`**타입 값으로 초기화 했디 때문에 `number`타입이다.
+let 변수 방식으로 초기화 한 변수의 타입을 보면 number인 것을 볼 수 있다.<br/>
+
+만일 매개변수 타입이 고정되지 않는 경우 타입을 지정하지 않는 방식으로 사용한다.
+이때 타입은 **`any`**타입이다.
+추론된 타입이라도 해당 타입을 어기면 에러가 발생한다.<br/>
+```ts
+// app.ts
+let number1 = 5; // let nubmer1 : number = 5;
+const number2 = 2.8
+const printResult = true;
+let resultPhrase = 'Result is: '; // string
+
+resultPhrase = 0; // Type '0' is not assinable to type 'string'.
+```
+
+## 객체 형태에서의 타입
+---
+객체 형태의 키 또한 타입 할당/추론을 통해 타입이 매겨진다.
+### 객체 형태의 타입 추론
+---
+객체 형태의 타입 추론의 경우 타입을 명시하지 않으면 초기화된 값으로 타입이 매겨진다.
+```ts
+// basic.ts
+
+const person = {
+    name: 'Lim', // string
+    age: 27 // number
+};
+
+console.log(person);
+>> {name: "Lim", age: 27}
+
+console.log(person.name);
+>> Lim
+```
+### 객체 형태의 타입 할당
+---
+객체에 타입을 지정하는 경우 키와 값의 타입을 할당해야한다.
+`object`로 타입을 정의한 경우 키와 값의 타입 지정이 안되어 있기 때문에 값을 조회하는 경우 에러가 발생한다.<br/>
+때문에 키와 타입의 값이 만들어진 **`{}`** 타입을 할당한다.
+```ts
+const persontest: object = {
+    name: 'Lim'
+    age: 27
+}
+
+console.log(persontest.name)
+>> Property 'name' does not exist on type 'object';
+
+const person: {
+    name: string;
+    age: number;
+} = {
+    name: 'Lim',
+    age: 30
+};
+
+console.log(person.name)
+>> Lim
+```
+### 객체 안에 객체 타입을 지정하는 경우
+---
+객체 안에 객체가 있는 경우의 타입도 할당/추론을 통해 타입이 매겨진다.
+```ts
+const person: {
+    name: string;
+    age: number;
+    address: {
+        zip: number;
+        datail: string;
+    }
+} = {
+    name: 'Lim',
+    age: 27,
+    address: {
+        zip: 41242
+        detail: '서울특별시 중랑구'
+    }
+}
+
+```
+
+## 배열 타입
