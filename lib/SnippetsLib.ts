@@ -80,7 +80,7 @@ export function getAllSnippets(fields: string[]): FilterItems {
   // 위 filePaths의 포스트를 날짜별로 sort하여 가져오기
   const snippets = filePaths
     .map((filePath) => getSnippetItems(filePath, fields))
-    .sort((post1, post2) => (post1.date > post2.date ? 1 : -1));
+    .sort((post1, post2) => (post1.update < post2.update ? 1 : -1));
   const categories = [...new Set(snippets.map((snippet) => snippet.category))];
   const languages = [...new Set(snippets.map((snippet) => snippet.language))];
 
