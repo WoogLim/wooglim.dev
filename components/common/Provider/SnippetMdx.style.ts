@@ -92,7 +92,7 @@ export const ListContainer = styled.aside`
   top: 62px;
   left: 0;
   display: block;
-  max-height: calc(100vh - 62px);
+  height: calc(100vh - 62px);
   background: #fefefe;
   width: 20rem;
   padding: 1.4rem 0;
@@ -128,7 +128,7 @@ export const ListContainer = styled.aside`
     right: 0px;
     background: #fefefe;
     box-shadow: -4px 0px 10px rgba(0, 0, 0, 0.1);
-    max-height: calc(100vh - 130px);
+    height: calc(100vh - 130px);
     padding-bottom: 2rem;
     overflow-y: scroll;
     z-index: 1;
