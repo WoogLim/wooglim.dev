@@ -17,6 +17,18 @@ export const MdxContainer = styled.div`
   .showMenu {
     display: block;
   }
+
+  .codeText {
+    padding: 0.2rem;
+    border-radius: 0.25rem;
+    margin-right: 0.3rem;
+    ::before{
+      content: "";
+    }
+    ::after{
+      content: "";
+    }
+  }
 `;
 
 export const PostBox = styled.div`
@@ -77,15 +89,17 @@ export const PostBox = styled.div`
 
 export const ListContainer = styled.aside`
   position: fixed;
-  display: block;
   top: 62px;
   left: 0;
-  height: 100%;
+  display: block;
+  max-height: calc(100vh - 62px);
   background: #fefefe;
   width: 20rem;
   padding: 1.4rem 0;
   overflow-y: scroll;
   z-index: 1;
+  font-size: 17.4px;
+  font-family: "IBM Plex Sans";
 
   ::-webkit-scrollbar {
     width: 8px;
@@ -97,35 +111,28 @@ export const ListContainer = styled.aside`
   }
 
   ::-webkit-scrollbar-thumb {
-    background-color: rgb(71, 70, 82);
-    border: 2px solid rgb(71, 70, 82);
+    background-color: rgb(181, 182, 189);
+    border: 2px solid rgb(181, 182, 189);
   }
 
   a {
     display: block;
   }
 
-  h1,
-  h2,
-  h3,
-  h4,
-  h5,
-  h6 {
-    font-family: "Noto Sans CKR";
-    font-weight: 600;
-  }
-
   @media screen and (max-width: 1152px) {
     all: unset;
     display: none;
-    height: 100%;
     position: fixed;
     top: 62px;
     padding-top: 1.6rem;
     right: 0px;
     background: #fefefe;
     box-shadow: -4px 0px 10px rgba(0, 0, 0, 0.1);
+    max-height: calc(100vh - 130px);
+    padding-bottom: 2rem;
+    overflow-y: scroll;
     z-index: 1;
+    font-size: 17px;
 
     ::-webkit-scrollbar {
       width: 8px;
@@ -137,8 +144,8 @@ export const ListContainer = styled.aside`
     }
 
     ::-webkit-scrollbar-thumb {
-      background-color: rgb(71, 70, 82);
-      border: 2px solid rgb(71, 70, 82);
+      background-color: #8E8E8E;
+      border: 2px solid #8E8E8E;
     }
   }
 `;
@@ -146,14 +153,14 @@ export const ListContainer = styled.aside`
 export const TopicCategory = styled.nav`
   padding: 0;
   position: relative;
+  font-size: 1em;
   p {
     all: unset;
     display: block;
   }
 
   .topicTitle {
-    font-size: 1.2rem;
-    font-weight: 700;
+    font-weight: 600;
     margin: 0 1.6rem 0.2rem 1.6rem;
   }
 `;
@@ -165,13 +172,14 @@ export const TopicItem = styled.ul`
   flex-direction: column;
   gap: 0.4rem;
   padding: 0 1.6rem;
+  font-size: 1em;
 
   .subTopic {
     padding-left: 0.4rem;
-    font-size: 1.15rem;
-    font-weight: 600;
+    font-size: 1.1rem;
     cursor: pointer;
     height: 32px;
+    font-weight: 500;
 
     :hover {
       color: #6c5ce7;
@@ -198,8 +206,9 @@ export const TopicItem = styled.ul`
 export const IndexList = styled.li`
   display: block;
   cursor: pointer;
-  padding:0;
-  margin:0;
+  padding: 0;
+  margin: 0;
+  font-size: 1em;
 
   :hover {
     color: #665ddf;
@@ -212,7 +221,7 @@ export const IndexList = styled.li`
   h5,
   h6 {
     display: block;
-    margin: 0;
+    margin: 0.2em 0;
   }
 `;
 
@@ -243,32 +252,37 @@ export const IndexViewBtn = styled.button`
 
 export const IndexH1 = styled.h1`
   padding-left: 0.8rem;
-  font-size: 1rem;
+  font-size: 0.9em;
 `;
 
 export const IndexH2 = styled.h2`
   padding-left: 0.8rem;
-  font-size: 0.95rem;
+  font-size: 0.9em;
+  font-weight: 600;
 `;
 
 export const IndexH3 = styled.h3`
   padding-left: 1.2rem;
-  font-size: 0.9rem;
+  font-size: 0.85em;
+  font-weight: 500;
 `;
 
 export const IndexH4 = styled.h4`
   padding-left: 1.6rem;
-  font-size: 0.9rem;
+  font-size: 0.8em;
+  font-weight: 500;
 `;
 
 export const IndexH5 = styled.h5`
   padding-left: 1.6rem;
-  font-size: 0.9rem;
+  font-size: 0.8em;
+  font-weight: 500;
 `;
 
 export const IndexH6 = styled.h6`
   padding-left: 1.8rem;
-  font-size: 0.9rem;
+  font-size: 0.8em;
+  font-weight: 500;
 `;
 
 export const TopicTitle = styled.span`

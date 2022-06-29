@@ -157,7 +157,7 @@ export const MdxLayout = ({
             {...props}/>
           ),
           strong : ({ ...props }) => (
-            <strong className="text-blue-600 dark:text-pink-600"
+            <strong className="text-black dark:text-slate-200"
             {...props}/>
           ),
           hr: () => (
@@ -165,6 +165,9 @@ export const MdxLayout = ({
               style={{ marginTop: "1rem", marginBottom: "0", opacity: "0" }}
             />
           ),
+          code: ({...props}) => (
+            <code className="codeText bg-slate-100 text-black dark:bg-slate-900 dark:text-white" {...props}/>
+          )
         }}
       >
         <MdxContainer>
