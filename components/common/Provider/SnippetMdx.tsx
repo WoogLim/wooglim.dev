@@ -2,7 +2,7 @@ import { renderToString } from "react-dom/server";
 import { MDXProvider } from "@mdx-js/react";
 import { SnippetI } from "../../../types/snippet";
 import Link from "next/link";
-import React, {useState} from "react";
+import React, { useState } from "react";
 
 import {
   MdxContainer,
@@ -20,8 +20,10 @@ import {
   TopicTitle,
   TopicSummary,
   IndexViewBtn,
+  SnipptesNav,
+  PrevSnippets,
+  NextSnippets,
 } from "./SnippetMdx.style";
-import { Footer } from "../../Snippets/Footer";
 
 const moveScrollTarget = (e: React.BaseSyntheticEvent) => {
   e.preventDefault();
@@ -108,10 +110,10 @@ export const MdxLayout = ({
   const [tocOpen, setTocOpen] = useState(false);
 
   const tocToggleHandle = () => {
-    const tocMenu = document.getElementsByClassName('tocMenu');
-    tocMenu[0].classList.toggle('showMenu');
+    const tocMenu = document.getElementsByClassName("tocMenu");
+    tocMenu[0].classList.toggle("showMenu");
     tocOpen === false ? setTocOpen(true) : setTocOpen(false);
-  }
+  };
 
   const getHeadings = (source: string) => {
     const regex = /<h[1-6]{1} id="(.*)">(.*?)<\/h[1-6]{1}>/g;
@@ -141,6 +143,20 @@ export const MdxLayout = ({
     similarSnippets.filter((snippet) => snippet.category === item)
   );
 
+  const prevItem = listItem.map(
+    (item) =>
+      item.filter(
+        (snippet) => snippet.serisenumber === frontMatter.serisenumber - 1
+      )[0]
+  )[0];
+
+  const nextItem = listItem.map(
+    (item) =>
+      item.filter(
+        (snippet) => snippet.serisenumber === frontMatter.serisenumber + 1
+      )[0]
+  )[0];
+
   const headings = getHeadings(contentString);
   return (
     <>
@@ -152,22 +168,23 @@ export const MdxLayout = ({
           h3: CustomH3,
           h4: CustomH4,
           pre: CustomCodeBlock,
-          a : ({ ...props }) => (
-            <a className="text-blue-600 dark:text-pink-600"
-            {...props}/>
+          a: ({ ...props }) => (
+            <a className="text-blue-600 dark:text-pink-600" {...props} />
           ),
-          strong : ({ ...props }) => (
-            <strong className="text-black dark:text-slate-200"
-            {...props}/>
+          strong: ({ ...props }) => (
+            <strong className="text-black dark:text-slate-200" {...props} />
           ),
           hr: () => (
             <hr
               style={{ marginTop: "1rem", marginBottom: "0", opacity: "0" }}
             />
           ),
-          code: ({...props}) => (
-            <code className="codeText bg-slate-100 text-black dark:bg-slate-900 dark:text-white" {...props}/>
-          )
+          code: ({ ...props }) => (
+            <code
+              className="codeText bg-slate-100 text-black dark:bg-slate-900 dark:text-white"
+              {...props}
+            />
+          ),
         }}
       >
         <MdxContainer>
@@ -247,8 +264,11 @@ export const MdxLayout = ({
             })}
           </ListContainer>
 
-          <IndexViewBtn className="dark:bg-pink-600 dark:text-zinc-200 dark:border-slate-900" onClick={tocToggleHandle}>
-            { tocOpen ? "close" : "toc"}
+          <IndexViewBtn
+            className="dark:bg-pink-600 dark:text-zinc-200 dark:border-slate-900"
+            onClick={tocToggleHandle}
+          >
+            {tocOpen ? "close" : "toc"}
           </IndexViewBtn>
 
           <PostBox className="dark:text-zinc-200">
@@ -257,7 +277,30 @@ export const MdxLayout = ({
             </TopicTitle>
             <TopicSummary>{frontMatter.description}</TopicSummary>
             {childrenArray}
-            <Footer />
+            <SnipptesNav>
+              <PrevSnippets>
+                {prevItem ? (
+                  <Link href={`/snippets/${prevItem.slug}`}>
+                    <a className="text-slate-900 hover:text-blue-600 dark:text-slate-200 dark:hover:text-yellow-400 ">
+                      {`← ${prevItem.title}`}
+                    </a>
+                  </Link>
+                ) : (
+                  ""
+                )}
+              </PrevSnippets>
+              <NextSnippets>
+                {nextItem ? (
+                  <Link href={`/snippets/${nextItem.slug}`}>
+                    <a className="text-slate-900 hover:text-blue-600 dark:text-slate-200 dark:hover:text-yellow-400">
+                      {`${nextItem.title} →`}
+                    </a>
+                  </Link>
+                ) : (
+                  ""
+                )}
+              </NextSnippets>
+            </SnipptesNav>
           </PostBox>
         </MdxContainer>
       </MDXProvider>

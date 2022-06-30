@@ -22,10 +22,10 @@ export const MdxContainer = styled.div`
     padding: 0.2rem;
     border-radius: 0.25rem;
     margin-right: 0.3rem;
-    ::before{
+    ::before {
       content: "";
     }
-    ::after{
+    ::after {
       content: "";
     }
   }
@@ -144,8 +144,8 @@ export const ListContainer = styled.aside`
     }
 
     ::-webkit-scrollbar-thumb {
-      background-color: #8E8E8E;
-      border: 2px solid #8E8E8E;
+      background-color: #8e8e8e;
+      border: 2px solid #8e8e8e;
     }
   }
 `;
@@ -313,4 +313,39 @@ export const TopicSummary = styled.p`
   padding-top: 0.5rem;
   display: block;
   margin-bottom: 2rem;
+`;
+
+export const SnipptesNav = styled.div`
+  display: flex;
+  width: 100%;
+  margin-top: 20px;
+  box-sizing: border-box;
+  caret-color: rgba(0, 0, 0, 0);
+  justify-content: space-between;
+  font-family: "IBM Plex Sans";
+  flex-wrap: nowrap;
+  padding: 17px 0 48px 0;
+  border-top: 3px solid;
+  font-size: 16px;
+
+  @media screen and (max-width: 1152px) {
+    font-size: 15.6px;
+  }
+
+  a {
+    font-weight: 700;
+    font-size: 1em;
+  }
+`;
+
+export const PrevSnippets = styled.nav`
+  display: flex;
+  flex: 1;
+  justify-content: flex-start;
+`;
+
+export const NextSnippets = styled.nav`
+  display: flex;
+  flex: 1;
+  justify-content: flex-end;
 `;
