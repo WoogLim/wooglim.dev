@@ -1,0 +1,226 @@
+---
+title: "타입스크립트 프로젝트 설정"
+description: "타입스크립트 프로젝트 옵션 설정하기"
+language: "Typescript"
+category: "Typescript Tutorial"
+update: "2022-07-01 17:54:52"
+serisenumber: 3
+---
+
+## Intro
+
+---
+
+- [Maximilian Schwarzmüller 강사님의 Typescript 강의를 듣고 TIL 방식으로 정리한 글입니다.](https://www.udemy.com/course/understanding-typescript/)
+
+## 타입스크립트 컴파일러
+
+- 보다 큰 프로젝트를 사용하기 위해 편의성 개선을 위한 컴파일러 설정하기
+
+### 시계 모드 사용
+
+---
+
+현재 개발 환경에서 변경사항이 있는 경우 이를 자바스크립트로 컴파일해 런타임 환경에서 작동하도록 아래와 같은 명령을 수동으로 입력하고 있다.
+
+```bash
+tsc app.ts
+```
+
+위 과정을 파일이 변경될 때마다 컴파일되도록 반영하고 싶다면 **관찰**모드를 이용한다. 아래 명령을 입력하면 해당 파일에 변경사항이 있는 경우 컴파일이 진행된다.
+
+```
+tsc app.ts -w
+```
+
+### 다수의 파일 자동 컴파일하기
+
+---
+
+아래와 같이 html 파일에서 다수의 스크립트를 사용하는 경우 다수의 파일을 컴파일할 수 있도록 해보자.
+
+```html
+<script src="app.js" defer></script>
+<script src="app2.js" defer></script>
+```
+
+아래와 같이 파일명을 지정하지 않은채 컴파일 명령을 입력한다.
+
+```bash
+tsc
+```
+
+혹은 프로젝트를 타입스크립트 프로젝트로 지정한다. 이 커맨드가 실행되는 폴더의 모든 파일을 인식하게 된다.
+
+```bash
+tsc --init
+```
+
+이후 프로젝트내 `tsconfig.json` 파일이 생성된다. 이 파일은 타입스크립트가 관리해야할 파일이 포함된 프로젝트, 모든 하위 폴더를 참고하기 위한 파일이다.  
+이후에 컴파일 명령 혹은 관찰 모드 커맨드를 입력하면 프로젝트내 모든 `.ts` 파일을 감지해 변경사항이 있는 경우 컴파일을 진행한다.
+
+## tsconfig 설정하기
+---
+
+프로젝트내 생성된 `tsconfig.json` 파일은 프로젝트내 파일 제외/추가 혹은 컴파일 대상을 설정하는 타입스크립트 설정 파일이다.
+
+## 파일 포함 및 제외하기
+---
+
+### exclude
+---
+
+`tsconfig.json`를 열고 `exclude`옵션을 이용할 수 있다. 와일드 카드(_)를 이용할 수 있는데 , `_.dev.ts`라는 확장자로 `exclude`옵션에 포함시킨 경우 `.dev.ts`로 끝나는 모든 파일을 제외한다. 모든 폴더에서 적용할 경우`\*_/_.dev.ts`를 입력한다.
+
+```json
+// tsconfig.json
+"exclude": [
+  "node_modules" // would be the default
+]
+```
+
+기본적으로 라이브러리 폴더인 `node_modules`는 설정상 자동으로 제외된다.
+
+### include
+---
+
+```json
+// tsconfig.json
+"include": [
+  "app.ts"
+]
+```
+
+만일 위와 같이 `include` 옵션에 app.ts만 정의한 경우 app.ts 변경사항이 발견된 경우에만 컴파일되며 다른 `*.ts` 파일을 컴파일되지 않는다.  
+필요한 파일만 지정해 컴파일할 수 있다. 이와 같이 `exclude`와 `include`를 함께 사용하면 `include`가 필터링된다.  
+기본적으로 `exclude` 옵션만 이용한다.
+
+### files
+---
+
+`include`와 다소 비슷한 `files` 옵션도 있는데, `include`는 제외하고자 하는 항목을 전체 폴더를 지정하지만 `files`는 컴파일하고자 하는 개별 파일만을 지정할 수 있다.
+
+```json
+// tsconfig.json
+"files": [
+  "app.ts"
+]
+```
+
+## 컴파일 대상 설정하기
+---
+
+`compilerOptions`옵션은 타입스크립트 코드가 컴파일되는 방식을 관리한다.
+
+### target
+---
+
+```json
+// tsconfig.json
+"compilerOptions": {
+  "target": "es5"
+}
+```
+
+해당 옵션은 기본적으로 설정되어 있고 어떤 **자바스크립트 버전**으로 컴파일할 것인지 설정한다.  
+`es5` 의 경우 `let`, `const`가 포함되지 않으므로 컴파일 후 `var`로 대체될 것이다.  
+이와 같은 점으로 타입스크립트는 이전 브라우저에서도 작동하는 코드를 생성할 수 있다. `target`을 지정하지 않으면 타입스크립트는 번호가 없는 es만 컴파일하므로 이전 버전도 지원할 수 있다.
+
+### lib
+---
+
+`lib`옵션을 사용 이전에 이해할 사항이 있다. 아래와 같이 타입스크립트에서도 `dom`에 접근하여 이벤트를 생성할 수 있다.
+
+```ts
+// app.ts
+const button = document.querySelector('button')!;
+// 타입스크립트는 런타임 상황에서 작동하지 않으므로. 위와 같은 dom이 존재하는지 확인할 수 없다. 
+// ! 는 기본적으로 버튼 이라는 개체가 존재하니 값이 반환될 것이라고 타입스크립트에게 알려준다
+
+button.addEventListener('click', () => {
+  console.log('클릭!');
+})
+```
+
+다시말하지만 타입스크립트는 컴파일 이후 자바스크립로 변경되어 브라우저에서 작동하게 된다. 
+즉 타입스크립트는 브라우저를 위해 작성하지 않는다.  
+
+위와 같이 작성 후 컴파일을 해보면 정상적으로 컴파일된것을 확인할 수 있다. 어떻게 타입스크립트가 `document`, `const` 변수가 존재하는것을 타입스크립트가 알 수 있을까?  
+또한 `querySelector` 메소드가 존재하는 객체를 포함하는것을 어떻게 알 수 있을까, 이는 `lib` 옵션때문이다.
+
+```json
+// tsconfig.json
+"compilerOptions": {
+  // "lib": [],
+}
+```
+
+`lib` 설정이 안 되어 있다면 기본 설정은 `target` 옵션에 의지한다. `es6`로 설정한 경우 `es6`에서 사용가능한 옵션이 전역으로 타입스크립트에 적용된다.  
+즉 dom과 같은 **자바스크립트 API**를 사용할 수 있다. 기본으로 `lib`옵션은 **주석**처리 되어 있다.
+
+```json
+// tsconfig.json
+"compilerOptions": {
+  "lib": [
+    "dom",
+    "es6",
+    "dom.iterable",
+    "scripthost"
+  ],
+}
+```
+
+위와 같이 `target` 옵션에 의지하지 않고 선택적으로 API를 선택해 타입스크립트 프로젝트에 적용할 수 있다.
+위 옵션 4가지는 주석 처리된 경우 `target` 옵션에 의지할 때 적용되는 API와 동일하다.
+
+### allow
+---
+
+`allowJS`옵션과 `checkJS`옵션은 주로 같이 사용되며 타입스크립트가 자바스크립트 파일을 컴파일할 수 있도록 도와준다.  
+`.ts`로 끝나지 않는 파일도 컴파일할 수 있게된다.  
+  
+`checkJS`옵션을 사용하면 타입스크립트는 컴파일을 수행하지 않고 구문 검사를 진행하고 잠재적 에러를 보고한다.
+`.ts`파일에서 변환된 `.js` 파일에 대해 컴파일을 두 번 수행할 필요가 없으므로 기본적으로 주석처리되어있다.  
+  
+보통 타입스크립트를 사용하지 않는 프로젝트 환경에서 사용한다.
+```json
+// tsconfig.json
+"compilerOptions": {
+  "allowJs": true,
+  "checkJs": true,
+}
+```
+
+### sourceMap
+--- 
+
+`sourceMap`옵션은 디버깅 작업과 개발에 유용하다.
+
+
+```json
+// tsconfig.json
+"compilerOptions": {
+  "sourceMap": true
+}
+```
+
+`sourceMap`옵션을 `true`로 설정한 후 컴파일하게되면 `.js`파일과 함께 `js.map`파일도 생성된다.
+
+```js
+// app.js.map
+{"version":3,"file":"app.js","sourceRoot":"","sources":["app.ts"],"names":[],"mappings":";AAAA,IAAM,QAAQ,GAAG,YAAY,CAAC;AAE9B,OAAO,CAAC,GAAG,CAAC,QAAQ,CAAC,CAAC"}
+```
+
+`map` 파일은 다리 역할을 하며 입력 파일에 자바스크립트 파일을 연결하는 브라우저와 개발자도구 간의 다리 역할을 한다.
+`sourceMap`옵션을 활성화하면 개발자 도구탭에 `Sources`탭에서도 타입스크립트 파일을 확인할 수 있다. 사용하지 않는다면 `.js`파일만 포함된다.  
+  
+장점은 개발자도구에서 자바스크립트 파일처럼 타입스크립트 파일도 개발자도구 디버그 모드 사용이 가능하다는 것이다. 종단점을 선택할 수 있고 일반 자바스크립트처럼
+디버깅 모드 이용이 가능하다.
+
+### outDir
+---
+
+`outDir` 옵션은 프로젝트 규모가 확장됨에 따라 파일을 제대로 관리해야하는데 기본적으로 파일 저장시 루트에는 저장하지 않으며 하위 폴더인 `src`폴더와 `dist`폴더를 더 자주 사용한다.
+`dist` 폴더는 보통 모든 출력값을 보관하며 `src` 폴더는 보통 소스 파일이 보관된다.  
+  
+ 
