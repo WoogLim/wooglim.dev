@@ -349,3 +349,16 @@ export const NextSnippets = styled.nav`
   flex: 1;
   justify-content: flex-end;
 `;
+
+export const ImgBox = styled.div`
+  width:100%;
+  & > span {
+    position: unset !important;
+    & .autoImage {
+      object-fit: contain !important;
+      position: relative !important;
+      height: auto !important;
+      border-radius:4px;
+    }
+  }
+`

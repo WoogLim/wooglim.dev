@@ -3,6 +3,7 @@ import { MDXProvider } from "@mdx-js/react";
 import { SnippetI } from "../../../types/snippet";
 import Link from "next/link";
 import React, { useState } from "react";
+import Image from "next/image";
 
 import {
   MdxContainer,
@@ -23,6 +24,7 @@ import {
   SnipptesNav,
   PrevSnippets,
   NextSnippets,
+  ImgBox,
 } from "./SnippetMdx.style";
 
 const moveScrollTarget = (e: React.BaseSyntheticEvent) => {
@@ -93,6 +95,19 @@ const CustomCodeBlock = ({ ...props }) => {
     </div>
   );
 };
+
+const CustomImg = ({ ...props}) => {
+  return (
+    <ImgBox>
+      <Image
+        src={props.src}
+        alt={props.alt}
+        layout="fill"
+        className="dark:bg-zinc-300 autoImage"
+      />
+    </ImgBox>
+  )
+}
 
 type Props = {
   children: React.ReactElement;
@@ -167,6 +182,7 @@ export const MdxLayout = ({
           h2: CustomH2,
           h3: CustomH3,
           h4: CustomH4,
+          img: CustomImg,
           pre: CustomCodeBlock,
           a: ({ ...props }) => (
             <a className="text-blue-600 dark:text-pink-600" {...props} />

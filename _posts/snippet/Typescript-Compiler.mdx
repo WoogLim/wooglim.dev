@@ -217,10 +217,83 @@ button.addEventListener('click', () => {
 장점은 개발자도구에서 자바스크립트 파일처럼 타입스크립트 파일도 개발자도구 디버그 모드 사용이 가능하다는 것이다. 종단점을 선택할 수 있고 일반 자바스크립트처럼
 디버깅 모드 이용이 가능하다.
 
+## rootDir 및 outDir
+---
+
+`rootDir`, `outDir` 옵션으로 컴파일 대상 경로를 설정할 수 있다.
+
 ### outDir
 ---
 
-`outDir` 옵션은 프로젝트 규모가 확장됨에 따라 파일을 제대로 관리해야하는데 기본적으로 파일 저장시 루트에는 저장하지 않으며 하위 폴더인 `src`폴더와 `dist`폴더를 더 자주 사용한다.
-`dist` 폴더는 보통 모든 출력값을 보관하며 `src` 폴더는 보통 소스 파일이 보관된다.  
-  
- 
+프로젝트 규모가 확장됨에 따라 소스 파일을 관리해야하는데 기본적으로 파일 저장시 루트에는 저장하지 않으며 하위 폴더인 `src`폴더와 `dist`폴더를 더 자주 사용한다.
+`dist` 폴더는 보통 컴파일이 완료된 파일을 보관하며 `src` 폴더는 개발중인 소스 파일이 보관된다.  
+
+다음과 같이 `outDir`옵션을 이용해 컴파일이 완료된 파일의 위치를 설정할 수 있다. 아래와 같이 설정했다면 컴파일된 소스 파일을 `dist`폴더내 저장된다.
+```json
+// tsconfig.json
+"compilerOptions": {
+  "outDir": "./dist"
+}
+```
+
+컴파일 후`dist`폴더내 저장된다. 이때 폴더 경로또한 그대로 복사되어 생성된다.
+![image](https://user-images.githubusercontent.com/51357635/177089315-c65a23e9-afae-4e80-8c88-3b2e57251646.png)
+
+### rootDir
+
+---
+
+`rootDir`옵션으로 루트 디렉토리를 설정하여 컴파일이되는 경로를 설정할 수 있다. 아래의 `rootDir`옵션과 같이 설정한 경우 컴파일을 하되, `src`내 타입스크립트 파일만 `dist`폴더에 저장된다.
+
+```json
+// tsconfig.json
+"compilerOptions": {
+  "rootDir": "./src"
+}
+```
+
+다음과 같이 컴파일 후 `src`폴더내 존재하던 파일만 `dist`폴더에 저장된다.
+![image](https://user-images.githubusercontent.com/51357635/177110142-a496ad52-93dd-47b1-8828-8bb3e101afdf.png)
+
+### removeComments
+
+---
+
+`removeComments` 옵션을 `true`로 설정한 경우 컴파일과정에서 소스 코드내 주석은 제외된채로 생성된다.
+
+```json
+// tsconfig.json
+"compilerOptions": {
+  "removeComments": true
+}
+```
+
+### downlevelIteration
+
+---
+
+코드를 이전 버전의 자바스크립트로 컴파일하고 for 루프로 작업해 컴파일 과정에서 보다 정확하게 수행할 수 있다.
+
+```json
+// tsconfig.json
+"compilerOptions": {
+  "downlevelIteration": true
+}
+```
+
+## 컴파일 오류 시 파일(js) 생성 중단하기
+
+---
+
+기존 타입스크립트 파일은 컴파일시 에러 유무의 상관없이 js 파일로 생성되었다. 이렇게 생성된 js파일은 브라우저에서 런타임시 오류가 발생한다.
+
+### noEmitOnError
+
+`noEmitOnError`옵션의 기본값은 `false`다. 즉 에러 유무의 상관없이 컴파일 후 `js`파일을 생성한다.  
+만일 `true`로 설정하는 경우 타입스크립트 소스 에러 발생 후 컴파일시 `js`파일이 생성되지 않는다.
+```json
+// tsconfig.json
+"compilerOptions": {
+  "noEmitOnError": true
+}
+```
