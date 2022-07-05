@@ -297,3 +297,210 @@ button.addEventListener('click', () => {
   "noEmitOnError": true
 }
 ```
+
+## Strict 컴파일
+
+---
+
+`strict`옵션은 아래 주석 처리된 7가지 모든 `strict` 관련 옵션을 관리한다.  
+`strict`옵션을 `true`로 설정한 경우 모든 아래 7개의 `strict`검사 옵션을 모두 사용할 수 있다. 개별적으로 옵션을 설정할 경우
+`strict`관련 옵션을 개별적으로 `true 혹은 false`설정하여 검사 옵션을 지정할 수 있다.
+
+```json
+//tsconfig.josn
+"compilerOptions": {
+   "strict": true,
+    // "noImplicitAny": true,
+    // "strictNullChecks": true,
+    // "strictFunctionTypes": true,
+    // "strictBindCallApply": true,
+    // "strictPropertyInitialization": true,
+    // "noImplicitThis": true,
+    // "alwaysStrict": true,
+}
+```
+
+### noImplicitAny
+
+---
+
+`noImplicitAny`는 더 나은 코드를 작성하는데 도움을 준다. `noImplicitAny`옵션을 `true`로 사용한 경우 컴파일시 함수의 매개변수 타입이 `any` 타입인 경우
+에러를 발생시킨다. 함수 생성시점에서 해당 값으로 어떤 결과가 나타날지 추론할 수 없기 때문이다.
+  
+  
+단 변수의 경우는 타입을 명시적으로 지정하지 않더라고 생성 시점의 타입을 추적하기 때문에 이러한 에러가 발생하지 않는다.
+```ts
+// analytics.ts
+let logged; // any 타입.
+
+function sendAnalytics(data: string){
+    // 함수의 매개변수 타입을 지정하지 않고 후에 함수 호출시 값을 저장하는 경우
+    // 호출 시점 보다 함수가 생성되는 시점이 먼저 발생한다. 함수 생성 시점에는 어떤 결과가 나타날지 알 수 없다.
+    // 때문에 함수의 경우 매개변수 타입을 명확히 지정해야한다.
+    console.log(data);
+    logged = true; // 단 변수의 경우 타입을 명시적으로 지정하지 않더라도 생성단계에서 any로 지정되어 에러가 발생하지 않는다.
+}
+
+sendAnalytics('The Data');
+```
+
+`noImplicitAny`옵션을 `true`로 설정한 경우에 함수의 매개변수 타입을 지정하지 않는다면 아래와 같이 에러를 발생시킨다. `false`로 설정한 경우 에러를 발생시키지 않는다.
+![strict 옵션만 true](https://user-images.githubusercontent.com/51357635/177231380-d7d08cb2-7321-47f7-90a8-22d4449857b8.PNG)
+
+### strictNullChecks
+
+---
+
+`strictNullChecks`는 아래와 같은 `dom`과 같은 경우를 예로 들 수 있다. 만일 아래 코드와 같이 작성 후 컴파일 한다면 에러를 발생시킨다. 버튼의 유무를 확인할 수 없기 때문이다.  
+`null`값을 잠재적으로 가질 수 있는 값을 컴파일시 알려준다. 타입스크립트는 html 페이지를 알지 못하므로 존재 유무를 알 수 없다.
+
+```ts
+// app.ts
+const button = document.querySelector('button');
+
+button.addEventListener('click', () =>{
+    console.log('Clicked!');
+})
+```
+
+`strictNullChecks`옵션을 `false`로 설정하면 아래와 같은 에러가 발생하지 않는다.
+![dom 에러](https://user-images.githubusercontent.com/51357635/177231706-c03b407f-69e0-44f7-90a3-3b376e6b6442.PNG)
+  
+에러를 발생시키지 않도록 아래와 같이 코드를 수정할 수 있다.
+```ts
+// app.ts
+// [1] !로 해당 값은 잠재적 null을 가지지 않는다고 명시해주어야한다.
+const button = document.querySelector('button')!; 
+
+// [2] if 문으로 존재 유무를 파악한다.
+if(button){
+  button.addEventListener('click', () =>{
+      console.log('Clicked!');
+  })
+}
+```
+
+### strictBindCallApply
+
+---
+
+`strictBindCallApply`옵션은 호출 함수가`bind`,`call`,`apply` 중 무엇에 해당하는지 확인 후 함수에 적용되었는지 검사한다.  
+만일 아래와 같이 매개변수를 정확히 전달하지 않은 경우 에러가 발생한다. 실수를 방지해준다.
+```ts
+// app.ts
+const button = document.querySelector('button')!;
+
+function clickHandler(message: string) {
+    console.log("Clicked!" + message);
+}
+
+if(button) {
+    button.addEventListener('click', clickHandler.bind(null, "You're welcome!");
+    button.addEventListener('click', clickHandler.bind(null));
+}
+```
+
+### alwaysStrict
+
+---
+
+컴파일 시 `strict` 모드를 사용한 자바스크립트 파일을 생성한다.
+```js
+// app.js
+"use strict";
+const button = document.querySelector('button');
+function clickHandler(message) {
+    console.log("Clicked!" + message);
+}
+if (button) {
+    button.addEventListener('click', clickHandler.bind(null));
+}
+```
+
+### 그외
+
+--- 
+
+`strictPropertyInitialization`, `strictFunctionTypes`옵션은 클래스 부분과 이어지므로 후에 설명한다.
+
+## 코드 품질 옵션
+
+---
+
+잘못된 변수 사용에 대한 에러를 아래와 같은 옵션으로 검사한다. 선언되었지만 사용되지 않거나 
+
+```json
+//tsconfig.josn
+"compilerOptions": {
+ /* Additional Checks */
+    // "noUnusedLocals": true,
+    // "noUnusedParameters": true,
+    // "noImplicitReturns": true,
+    // "noFallthroughCasesInSwitch": true,
+}
+```
+
+### noUnusedLocals
+
+--- 
+
+`noUnusedLocals` 옵션은 코드 내에서 지역 변수로 생성된 변수가 사용되지 않는 경우 에러를 발생시킨다. 단 전역으로 선언된 변수는 에러를 발생시키지 않는다.
+
+```ts
+// app.ts
+let appId = 'abc' // 에러를 발생시키지 않음.
+
+function clickHandler(message: string) {
+  let name = 'Lim' // 선언 후 사용하지않는다면 에러 발생
+  console.log('Clicked!' + message);
+}
+```
+
+### noUnusedParameters
+
+---
+
+`noUnusedParameters` 옵션은 선언된 매개변수가 사용되지 않는 경우 에러를 발생시킨다.
+
+```ts
+// app.ts
+function clickHandler(message: string, age: number) {
+  // age 매개변수가 사용되지 않아 에러 발생
+  console.log('Clicked!' + message);
+}
+```
+
+### noImplicitReturns
+
+---
+
+`noImplicitReturns`옵션 사용시 아래와 같이 반환하지 않을 수 있는 함수 사용시 에러가 발생한다.
+
+```ts
+function add(n1: number, n2: number){
+  if(n1 + n2 > 0){
+    return n1 + n2;
+  }
+}
+```
+
+## Visual Code 로 디버깅하기.
+
+--- 
+
+마켓플레이스에서 아래와 같은 확장 프로그램을 사용하는것을 추천한다.
+1. `ESLint` 코드 품질 향상.
+2. `Prettier` 코드 형식 정돈.
+3. `JavaScript Debugger` VS에서도 크롬의 개발자도구와 같이 디버깅이 가능하다.
+ - 단 `sourceMap`옵션을 `true`로 지정한 상태여야만한다. 이후에는 `ts`코드에 종단점을 지정해주면 된다. 컴파일 이후 Run > Start Debugging 을 실행하면 아래와 같이 화면이 바뀐다.
+  
+![디버그 화면](https://user-images.githubusercontent.com/51357635/177237644-2c50670b-417a-4f35-9279-9a02d53b621b.PNG)
+- `VARIABLES`는 종단점 기준으로 변수를 추적한다. 
+- `WATCH`는 현재 종단점의 변수 값의 변경이 가능하다. message + "!!!"를 입력해 You're welcome!!!! 와 같이 변수의 값을 변경할 수 있다.
+- `CALL STACK`은 호출된 함수 목록을 확인할 수 있다.
+
+## 추가 정보
+---
+- [tsconfig.json 문서](https://www.typescriptlang.org/docs/handbook/tsconfig-json.html)
+- [컴파일러 구성 문서](https://www.typescriptlang.org/docs/handbook/compiler-options.html)
+- [VScode로 TS 디버깅](https://code.visualstudio.com/docs/typescript/typescript-debugging)
