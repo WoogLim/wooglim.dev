@@ -96,6 +96,6 @@ export function getSimilarSnippets(fields: string[], category: string): Items[] 
   const snippets = filePaths
     .map((filePath) => getSnippetItems(filePath, fields))
     .sort((snippet1, snippet2) => (snippet2.serisenumber > snippet1.serisenumber ? -1 : 1))
-    .filter((post) => post.category === category).slice(0, 3)
+    .filter((post) => post.category === category)
   return snippets;
 }
