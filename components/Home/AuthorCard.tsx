@@ -9,9 +9,12 @@ import {
   AuthroName,
   AuthroJob,
   AuthorLinkWrap,
-  AuthorLinkImage,
+  LinkButton,
   AuthorResumeBtn,
 } from "./AuthorCard.style";
+
+import Image from "next/image";
+import { social } from "../../data/metadata";
 
 export const AuthorCard = () => {
   return (
@@ -29,8 +32,24 @@ export const AuthorCard = () => {
             <AuthorResumeBtn className="dark:text-neutral-50 dark:bg-slate-800">View Resume</AuthorResumeBtn>
           </AuthorInfoWrap>
           <AuthorLinkWrap>
-            <a><AuthorLinkImage src="/Images/Home/linkedin.svg"/></a>
-            <a><AuthorLinkImage src="/Images/Home/github.svg"/></a>
+            <LinkButton href={social.github}  className="dark:bg-zinc-300">
+              <Image
+                src="/Images/Home/github.svg"
+                alt="github"
+                width={28}
+                height={28}
+                layout="intrinsic"
+              />
+            </LinkButton>
+            <LinkButton href={social.linkedin}  className="dark:bg-zinc-300">
+              <Image
+                src="/Images/Home/linkedin.svg"
+                alt="github"
+                width={28}
+                height={28}
+                layout="intrinsic"
+              />
+            </LinkButton>
           </AuthorLinkWrap>
         </AuthorLink>
       </Card>

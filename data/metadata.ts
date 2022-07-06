@@ -17,7 +17,7 @@ const meta = {
 
 const social = {
   github: "https://github.com/WoogLim",
-  linkedin: "",
+  linkedin: "https://www.linkedin.com/in/geon-lim-45216623a/",
   rss: ""
 };
 
@@ -25,4 +25,5 @@ export {
   reposityory,
   giscus,
   meta,
+  social,
 }

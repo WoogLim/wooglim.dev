@@ -17,6 +17,7 @@ export const AuthorCardWrap = styled.div`
   justify-content: flex-end;
   align-items: flex-end;
   z-index: 2;
+  caret-color: rgba(0, 0, 0, 0);
   @media screen and (max-width: 580px) {
     display: none;
   }
@@ -121,7 +122,6 @@ export const AuthorLinkWrap = styled.div`
   justify-content: center;
   align-items: center;
   gap: 0.5rem;
-  cursor: pointer;
   height: 60px;
 
   @media screen and (max-width: 656px) {
@@ -129,14 +129,25 @@ export const AuthorLinkWrap = styled.div`
   }
 `;
 
-export const AuthorLinkImage = styled.img`
-  box-sizing: border-box;
+export const LinkButton = styled.a`
+  display: flex;
+  justify-content: center;
+  align-items: center;
 
-  width: 28px;
-  height: 28px;
-  object-fit: cover;
-  overflow: hidden;
+  text-style: none;
   border-radius: 100%;
+  width: 34px;
+  height: 34px;
+
+  img {
+    box-sizing: border-box;
+  
+    width: 28px;
+    height: 28px;
+    object-fit: cover;
+    overflow: hidden;
+    border-radius: 100%;
+  }
 `;
 
 export const AuthorResumeBtn = styled.button`
