@@ -1,0 +1,263 @@
+---
+title: "ES6 이후의 자바스크립트와 타입스크립트"
+description: "타입스크립트로 ES6 자바스크립트 사용하기"
+language: "Typescript"
+category: "Typescript Tutorial"
+update: "2022-07-06 16:18:24"
+serisenumber: 4
+---
+
+## Intro
+
+---
+
+- [Maximilian Schwarzmüller 강사님의 Typescript 강의를 듣고 TIL 방식으로 정리한 글입니다.](https://www.udemy.com/course/understanding-typescript/)
+
+## 최신 자바스크립트 문법과 타입스크립트
+
+- 최신의 자바스크립트 문법을 타입스크립트에서 어떻게 사용되는지 알아보자. 우선 이 [사이트](https://kangax.github.io/compat-table/es6/#typescript4_6corejs3)에서
+타입스크립트과 같은 자바스크립트 확장 언어에서 사용할 수 있는 자바스크립트의 기능을 조회할 수 있다. 또한 브라우저별 호환성도 알아볼 수 있다.
+
+## let과 const
+---
+
+### let과 const
+
+`const`는 ES6 이후 추가되었으며 상수나 변수를 정의할 수 있으며, 한번 초기화한 값은 다른 값으로 초기화가 불가능하다.  
+  
+`let` 은 변경 가능한 변수로 `var`과 흡사하다. 
+
+```js
+const userNmae = 'Max';
+userNmae = 'Lim' // Cannot assign to 'userName' because it is a constant.
+let age = 30;
+
+age = 29;
+```
+
+### let과 var의 차이
+---
+
+`var`의 경우 함수 외에서 정의한 경우 어떤 함수에서도 사용 가능하지만 함수내 정의한 경우 해당 함수내에서만 사용 가능하다.  
+
+아래와 같은 구문의 경우 타입스크립테에서는 에러가 발생하지만 자바스크립트에서는 에러가 발생하지 않는다. 실제로 개발자 도구 콘솔에서 아래와 같이 입력한 경우
+`true`를 반환하는것을 볼 수 있다.   
+```ts
+
+let age = 30;
+
+age = 29;
+
+function add(a: number, b:number){
+    let result;
+    result = a + b;
+    return result;
+}
+
+if(age > 20) {
+    var isOld = true;
+}
+
+console.log(isOld); // 타입스크립트는 에러를 발생시키지만 동작에는 이상이 없다.
+                    // 잘못
+```
+
+var를 사용하면 자바스크립트는 함수의 유효 범위, 전역 유효 범위 이외 다른 유효 범위를 알지 못한다. 단 `let`을 사용하면 다르다.
+  
+1. `var`를 사용한 경우  
+![1  var](https://user-images.githubusercontent.com/51357635/177478274-86bedb9b-0ddf-4680-9afd-93fcff95f0b9.PNG)  
+2. `let`을 사용한 경우  
+![2  let](https://user-images.githubusercontent.com/51357635/177478281-c4b4a3d4-cd8d-4a8a-8b15-6a2bc20a6b24.PNG)  
+
+`let`의 경우 정의된 위치가 블록이나 하위 블록에서는 항상 유효하다.
+
+## 화살표 함수
+
+---
+
+기존의 변수에 함수를 할당하는 경우 구문은 다음과 같다.
+
+```ts
+const add = function(a: number, b: number) {
+    return a + b;
+}
+```
+
+화살표 함수로 다음과 같이 사용할 수 있다.
+
+```ts
+const add = (a: number, b: number) => {
+    return a + b;
+}
+```
+
+구문은 짧아진것을 확인할 수 있다. 또한 표현식이 하나인 경우 위에서 표현 블록과 반환문을 제거하여 값을 바로 반환할 수 있다.
+
+```ts
+const add = (a: number, b: number) => a + b;
+            // 암묵적으로 return 반환문이 있다. return a + b;
+```
+
+하나의 매개변수만 취하는 경우 아래와 같이 변형이 가능하다.
+
+```ts
+const printOutput = (output: string | number) => {
+    console.log(output);
+}
+
+console.log(printOutput(5, 2));
+>> 7
+```
+
+`dom`설정시 아래와 같이 화살표 함수를 사용할 수 있다.
+
+```ts
+const button = document.querySelector('button');
+
+if(button){
+    button.addEventListener('click', event => console.log(event));
+}
+```
+
+## 매개변수의 기본값
+---
+
+함수의 매개변수가 2개인 경우 1개의 매개변수로 호출하면 에러가 발생한다. 이때 기본값 인수를 활용해 매개변수에 기본값을 적용하여 에러를 방지할 수 있다.
+
+```ts
+const add = (a: number, b: number = 1) => a + b;
+console.log(add(5));
+>> 6
+```
+
+다만 순서를 따르므로 아래와 같은 경우는 에러가 발생한다.
+
+```ts
+const add = (a: number = 1, b: number => a + b;
+console.log(add(5)); // 매개변수는 함수의 매개변수 순서에 맞추어 전달된다 
+                     // 즉 a = 5로 전달되지만 b는 값이 전달되지 않아 에러가 발생한다.
+```
+
+## 스프레드 연산자(spread Operator)
+
+---
+
+만일 두 배열이 있는 경우, 하나로 합치려면 다음과 같은 구문을 사용할 것이다.
+
+```ts
+const hobbies = ['Sports', 'Cooking'];
+const activeHobbies = ['Hiking'];
+
+activeHobbies.push(hobbies[0], hobbies[1])
+```
+
+번거로운 작업이므로 이때 `스프레드 연산자(...)`를 이용한다. 배열이나 객체를 지정하거나 지시하도록 한다.  
+아래와 같이 작서한 경우 `hobbies` 배열의 모든 요소를 꺼내 값의 목록으로 추가한다.
+
+```ts
+const hobbies = ['Sports', 'Cooking'];
+const activeHobbies = ['Hiking'];
+
+activeHobbies.push(...hobbies) // (method) Array<string>.push(...items: string[]): number
+>> ['Hiking', 'Sports', 'Cooking']
+```
+
+객체인 경우는
+
+```ts
+const person = {
+    name: 'Lim',
+    age: 27
+};
+
+// 메모리에 있는 Person 객체에 해당하는 포인터를 copiedPerson 상수에 복사한다.
+const copiedPerson = person;
+// 실제 복사본이 아니므로 스프레드 연산자를 이용한다.
+const copiedPerson = { ...person };
+>> { "name": 'Lim', "age": 27}
+
+```
+
+## 나머지 매개변수(spread and rest)
+
+---
+
+`나머지 매개변수`는 스프레드 연산자와 비슷하다. 보다 유연한 매개변수 가짓수를 가지고 구현하기 위해 효율적이다.
+
+```ts
+const add = (...numbers: number[]) => {
+    // 매개변수 타입을 지정하지 않은 경우 다음과 같다.
+    // (parameter) numbers: any[]
+
+    let result = 0;
+    // reduce는 배열의 모든 요소에 대해 작업을 수행하며 결과를 반환해 합을 모두 구한다.
+    // reduce(표현식, 인덱스 시작 위치)
+    return numbers.reduce((curResult, curValue) => {
+        // 표현 함수의 매개변수로 첫 매개변수는 현재 결과, 두 번째 변수는 현재 값이다.
+        return curResult + curValue;
+    }, 0);
+
+};
+
+const addedNumbers = add(5, 10, 2, 3.7);
+console.log(addedNumbers);
+>> 20.7
+```
+
+`튜플`과 병합해 사용할 수 있다. 단, 인수의 수를 알고 있는 경우에 한해서 사용한다.
+
+```ts
+const add = (...numbers: [number, number, number]) => {
+    // 매개변수 타입을 지정하지 않은 경우 다음과 같다.
+    // (parameter) numbers: any[]
+
+    let result = 0;
+    // reduce는 배열의 모든 요소에 대해 작업을 수행하며 결과를 반환해 합을 모두 구한다.
+    // reduce(표현식, 인덱스 시작 위치)
+    return numbers.reduce((curResult, curValue) => {
+        // 표현 함수의 매개변수로 첫 매개변수는 현재 결과, 두 번째 변수는 현재 값이다.
+        return curResult + curValue;
+    }, 0);
+
+};
+
+const addedNumbers = add(5, 10, 2);
+console.log(addedNumbers);
+>> 17
+```
+
+## 배열 및 객체의 비구조화 할당(destructuring)
+---
+
+ES6 이후 자바스크립트, 타입스크립트에서 많이 볼 수 있는 구문은 `배열과 객체의 구조 분해`이다.
+배열내 혹은 객체내 모든 요소 구조를 분해해 변수 및 상수에 해당 인덱스의 요소를 순차적으로 저장할 수 있다.
+
+```ts
+const hobbies = ['Sports', 'Cooking'];
+
+const [hobby1, hobby2, ...remainingHobbies] = hobbies;
+// hobby1 = hobbies[0];
+// hobby2 = hobbies[1];
+// remainingHobbies = 2번째 인덱스 부터의 요소를 모두 저장
+
+// 배열에서 실제로 제거되진않고 구조 분해가 이루어진다.
+console.log(hobbies, hobby1, hobby2);
+>> ["Sports", "Cooking"] "Sports" "Cooking"
+```
+
+`객체 구조 분해`의 경우는 `배열`과 다른데, 배열은 정렬된 목록으로 요소는 순서대로 추출되어 저장되는 변수의 이름은 임의로 지정해도 상관없다.
+`객체`의 경우는 순서가 보장되지 않으므로 키 이름으로 요소를 추출해야한다. 단 이름을 무시하고자 한다면 `:`를 입력한다.
+
+```ts
+const person = {
+    firstName: 'Lim',
+    age: 27
+};
+
+// 중괄호 {} 내 값이나 이름을 임의로 지정하지 않고 할당받아오는 대상의 키를 지정한다.
+// firstName 키 요소를 받는 변수의 이름을 userName으로 변경하려면 : 콜론을 사용한다.
+const {firstName: userName, age} = person;
+
+console.log(userName, age, person);
+>> Lim 27 ▶{firstName: "Lim", age: 27}
+```
