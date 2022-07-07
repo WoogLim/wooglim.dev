@@ -36,7 +36,7 @@ const moveScrollTarget = (e: React.BaseSyntheticEvent) => {
     .toLowerCase();
 
   // 단언. 이미 해당 객체가 만들어져 있는 상태
-  const targetY = document.getElementById(elem)?.offsetTop;
+  const targetY = document.getElementById(elem)!.offsetTop;
 
   window.scrollTo(0, targetY! - 72);
 };
@@ -125,7 +125,7 @@ export const MdxLayout = ({
   const [tocOpen, setTocOpen] = useState(false);
 
   const tocToggleHandle = () => {
-    const tocMenu = document.getElementsByClassName("tocMenu");
+    const tocMenu = document.getElementsByClassName("tocMenu")!;
     tocMenu[0].classList.toggle("showMenu");
     tocOpen === false ? setTocOpen(true) : setTocOpen(false);
   };
