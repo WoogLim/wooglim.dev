@@ -1,6 +1,6 @@
 ---
-title: "클래스와 인터페이스"
-description: "타입스크립트의 클래스와 인터페이스"
+title: "타입스크립트의 클래스"
+description: "타입스크립트에서의 클래스 알아보기"
 language: "Typescript"
 category: "Typescript Tutorial"
 update: "2022-07-06 16:18:24"
@@ -13,4 +13,271 @@ serisenumber: 5
 
 - [Maximilian Schwarzmüller 강사님의 Typescript 강의를 듣고 TIL 방식으로 정리한 글입니다.](https://www.udemy.com/course/understanding-typescript/)
 
-##
+## Class
+---
+
+만일 객체를 활용해 다른 부서의 데이터를 관리하고 각 객체에 메소드를 추가해 해당 부서 정보를 표출하려면 어떤 방법이 좋을까. 이때는 **Class**를 활용하는것이 좋을것이다.
+클래스(부서 설계도)를 인스턴스화(실체화)해 객체(실체화된 부서 객체)로 만들고, 해당 부서 객체의 메소드로 해당 부서의 데이터를 표출할 수 있기 때문이다.
+
+## Class 알아보기
+---
+
+다음과 같이 관례상 클래스임을 명시하기 위해 첫 문자는 대문자로 입력한다. ▶`Department`  
+클래스는 일종의 틀이며 이를 실체화하는 것을 **인스턴스화** 실체를 **객체**라고 이해하면된다.
+
+```ts {2, 4} showLineNumbers
+// app.ts
+
+class Department {
+    name: string; // 필드의 타입을 정의한다. 키-값이 아닌, 키를 정의한다.
+
+    // 인스턴스화가 진행될때 하나의 string타입을 인자로 받아 호출되는 생성자 구문
+    constructor(n: string) {
+        this.name = n;
+    }
+}
+
+const accounting = new Department('Accounting');
+console.log(accounting);
+> ▶ Department {name: "Accounting"} // 키-값 쌍을 가진 객체를 출력한다.
+```
+
+
+위 소스를 처음본다면 **객체네?** 라고 생각할 수 있을것이다. 하지만 객체가 아니며 클래스의 필드의 타입을 명시한다.
+`키-값`쌍이 아닌 `키`이름과 값의 타입을 정의할 뿐이다.
+
+### 컴파일 후 자바스크립트
+---
+
+**Class 알아보기**단계의 컴파일된 `js`코드를 보자. 참고로 컴파일이 진행된 자바스크립트 버전은 `es6`이다.
+
+```js
+// app.js
+
+"use strict";
+class Department {
+    constructor(n) {
+        this.name = n;
+    }
+}
+const accounting = new Department('Accounting');
+console.log(accounting);
+//# sourceMappingURL=app.js.map
+```
+
+코드는 비슷하지만 `Department` 클래스에 `field`가 존재하지 않는다. es6에서는 지원되지 않기 때문이다.
+생성자 로직이 있지만 객체의 속성을 바닐라 자바스크립트로 추가할 뿐이다. es5로 변경한다면 해당 구문이 많이 뒤바뀌게 될 것이다.
+이처럼 타입스크립트는 강력한 컴파일 기능을 갖춘것을 볼 수 있다.
+
+### 생성자(constructor) 및 this 키워드
+---
+
+실체화된 즉, 인스턴스화된 객체에서 호출할 수 있는 몇 가지 함수나 메소드를 추가해보자.
+
+```ts {13} showLineNumbers
+// app.ts
+
+class Department {
+    name: string; // 필드의 타입을 정의한다. 키-값이 아닌, 키를 정의한다.
+
+    // 인스턴스화가 진행될때 하나의 string타입을 인자로 받아 호출되는 생성자 구문
+    constructor(n: string) {
+        this.name = n;
+    }
+
+    // 메소드 이름 다음 쌍점이나 등호 대신 괄호 () 를 입력한다. 괄호에는 매개변수를 넣을 수 있다.
+    describe() {
+        console.log('Department: ' + this.name);
+    }
+}
+
+const accounting = new Department('Accounting');
+accounting.describe();
+>> Department: Accounting
+```
+
+**13번 라인**에서 this는, 보통 클래스의 필드를 가리킨다.  
+  
+만일 다음과 같이 `accountingCopy`객체를 만들고 `describe`키에 `accounting.describe`를 정의하면 어떻게 될까.
+
+```ts
+// app.ts
+
+// 사실상 describe 함수 자체를 전달하기 때문에 this는 가리키지 않는다.
+const accountingCopy = { describe: accounting.describe };
+// 만일 accountingCopy 객체내에 { name: 'Lim' describe: accounting.describe }; 과 같이 입력한다면 정상적으로 출력될 것이다.
+
+// accountingCopy 를 참조하는데, this.name 이라는 필드가 존재하지 않기 때문에 undefined를 출력한다.
+accountingCopy.describe();
+>> Department: undefined
+```
+
+하지만 타입스크립트에서 이는 에러로 판단하지 않는다. 이를 해결하려면 다음과 같이 메소드에 참조할 대상을 정의해야한다.
+
+```ts {12} showLineNumbers
+// app.ts
+
+class Department {
+    name: string;.
+
+    constructor(n: string) {
+        this.name = n;
+    }
+
+    // Department 클래스에 기반한 인스턴스를 참조해야한다.
+    describe(this : Department) {
+        console.log('Department: ' + this.name);
+    }
+}
+
+const accounting = new Department('Accounting');
+
+const accountingCopy = { describe: accounting.describe };
+// Department 클래스에 기반한 인스턴스를 참조하지않으므로 에러가 발생한다.
+accountingCopy.describe();
+```
+
+### 개인 및 공용 엑세스 수정자 
+---
+
+직원필드를 추가해보고 추가할 수 있도록 코드를 수정해보자.
+
+```ts
+// app.ts
+
+class Department {
+    name: string;
+    employees = string[] = [];
+
+    constructor(n: string) {
+        this.name = n;
+    }
+
+    // Department 클래스에 기반한 인스턴스를 참조해야한다.
+    describe(this : Department) {
+        console.log('Department: ' + this.name);
+    }
+
+    // 직원 추가 메서드
+    addEmployee(employee: string){
+        this.employees.push(employee);
+    }
+
+    // 직원 수 및 직원 출력 메서드
+    printEmployeeInformation() {
+        console.log(this.employees.length);
+        console.log(this,employees);
+    }
+}
+
+const accounting = new Department('Accounting');
+
+accounting.addEmployee('Max');
+accounting.addEmployee('Menu');
+
+accounting.printEmployeeInformation();
+>> 2
+>> (2) ["Max", "Manu"]
+```
+
+클래스내 addEmployee() 메서드를 포함하여 나중에 객체로 생성한 경우 해당 메서드로 직원을 추가할 수 있다.
+하지만 다음과 같은 문제도 있다. 필드에 직접 접근하여 값을 변경하는 경우다.
+
+```ts
+accounting.employees[2] = 'Anna';
+
+accounting.printEmployeeInformation();
+>> 3
+>> (2) ["Max", "Manu", "Anna"]
+```
+
+이와 같은 경우는 사용하지 못하도록 변경해야한다. 작업중 다른 동료간 추가하는 방식이 다르다면 문제가 발생할 수 있따.
+클래스 외부에서 필드에 접근하지 못하도록 `private` 키워드를 추가해야 한다. 이와 같은 키워드를 **접근 제어자**라고 한다.
+**JAVA**를 사용해봤다면 익숙할 것이다. 필드 접근 제어자의 기본값은 `public`이다.  
+  
+이는 자바스크립트는 없지만 타입스크립트에서 추가되었다. 컴파일시 구문이 변경될 것이다.
+
+```ts {3-4, 8} showLineNumbers
+class Department {
+    name: string;
+    // employees.  객체 내부에서만 사용가능하다.
+    private employees = string[] = [];
+}
+const accounting = new Department('Accounting');
+
+accounting.employees[2] = 'Anna'; // 에러 발생
+```
+
+### 약식의 초기화
+---
+
+클래스 사용시 인스턴스화 과정에서 보통 생성자에서 모든 필드를 초기화해 사용한다. 이때 아래처럼 필드를 추가하고 생성자에서 초기화하는 방식이 아닌, 
+생성자에서 초기화와 동시에 필드를 생성할 수 있다.
+
+```ts {7} showLineNumbers
+// app.ts
+class Department {
+    // private id: string;
+    // public name: string;
+    private employees: string[] = [];
+
+    constructor(private id: string, public name: string) {
+        // private id = 인스턴스화 과정에서 전달된 매개변수 값;
+        // public name = 인스턴스화 과정에서 전달된 매개변수 값;
+    }
+
+    // Department 클래스에 기반한 인스턴스를 참조해야한다.
+    describe(this : Department) {
+        console.log(`Department (${this.id}): ${this.name}`);
+    }
+}
+
+const accounting = new Department('d1', 'Accounting');
+
+accounting.describe();
+>> Department (d1): Accounting
+```
+
+인스턴스화 과정에서 매개변수를 지정하는데, 이 매개변수 값이 생성된 필드가 저장된다.
+
+### 읽기 전용 속성
+---
+
+private, public 이면 안되고, 초기화 후 변경 되어서도 안 되는 특정 필드의 경우 `접근 제어자`뒤에 `readonly`를 입력한다.  
+private, public, readonly 는 타입스크립트에서 추가된 기능이다.
+
+```ts {7, 16} showLineNumbers
+// app.ts
+class Department {
+    // private readonly id: string;
+    // public name: string;
+    private employees: string[] = [];
+
+    constructor(private readonly id: string, public name: string) {
+
+    }
+
+    // Department 클래스에 기반한 인스턴스를 참조해야한다.
+    describe(this : Department) {
+        console.log(`Department (${this.id}): ${this.name}`);
+    }
+
+    addEmployee(employee: string){
+        this.id = 'd2'; // 에러 발생!
+        this.employees.push(employee);
+    }
+}
+```
+
+더욱 안정적인 협업이 가능하도록 도와준다.
+
+## Class 활용하기
+---
+
+보다 실무적으로 활용할 방법들을 보자.
+
+### 상속
+---
+
+부서 클래스에서 보다 특정 유형 부서에 대한 정의도 필요할 것이다. 이때 상속을 이용하면 효율적으로 정의할 수 있다.  
+**extends**키워드 다음 클래스를 상속받으며 여러 클래스 상속은 불가능하다.
