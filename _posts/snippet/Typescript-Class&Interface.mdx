@@ -3,7 +3,7 @@ title: "타입스크립트의 클래스"
 description: "타입스크립트에서의 클래스 알아보기"
 language: "Typescript"
 category: "Typescript Tutorial"
-update: "2022-07-06 16:18:24"
+update: "2022-07-06"
 serisenumber: 5
 ---
 
@@ -140,7 +140,7 @@ accountingCopy.describe();
 ### 개인 및 공용 엑세스 수정자 
 ---
 
-직원필드를 추가해보고 추가할 수 있도록 코드를 수정해보자.
+직원필드를 정의한 후 직원을 추가할 수 있도록 코드를 수정해보자.
 
 ```ts
 // app.ts
@@ -191,7 +191,7 @@ accounting.printEmployeeInformation();
 >> (2) ["Max", "Manu", "Anna"]
 ```
 
-이와 같은 경우는 사용하지 못하도록 변경해야한다. 작업중 다른 동료간 추가하는 방식이 다르다면 문제가 발생할 수 있따.
+이와 같은 경우는 사용하지 못하도록 변경해야한다. 작업중 다른 동료간 추가하는 방식이 다르다면 문제가 발생할 수 있다.
 클래스 외부에서 필드에 접근하지 못하도록 `private` 키워드를 추가해야 한다. 이와 같은 키워드를 **접근 제어자**라고 한다.
 **JAVA**를 사용해봤다면 익숙할 것이다. 필드 접근 제어자의 기본값은 `public`이다.  
   
@@ -279,5 +279,175 @@ class Department {
 ### 상속
 ---
 
-부서 클래스에서 보다 특정 유형 부서에 대한 정의도 필요할 것이다. 이때 상속을 이용하면 효율적으로 정의할 수 있다.  
-**extends**키워드 다음 클래스를 상속받으며 여러 클래스 상속은 불가능하다.
+부서 클래스에서 보다 특정 유형 부서에 대한 정의도 필요할 것이다. 구문을 보자. 기존의 Department는 바뀐 점이 없다.
+
+```ts
+// app ts
+class Department {
+    private employees: string[] = [];
+
+    constructor(private readonly id: string, public name: string) {
+
+    }
+
+    describe(this : Department) {
+        console.log(`Department (${this.id}): ${this.name}`);
+    }
+
+    addEmployee(employee: string){
+        this.employees.push(employee);
+    }
+}
+```
+
+이때 상속을 이용하면 효율적으로 정의할 수 있다. **extends**키워드 다음 클래스를 상속받으며 여러 클래스 상속은 불가능하다. 
+
+```ts
+// app.ts
+class ITDepartment extends Department {
+    // 기본 생성자가 없는 경우 부모 생성자를 포함한다
+    // 기존의 Department가 가진 모든 것을 상속받는다.
+}
+
+const accounting = new ITDepartment('d1', 'Accounting')
+
+accounting.describe();
+>> Department (d1): Accounting
+```
+
+기본 생성자를 생성하여 ITDepartment 호출시 초기화 하는 블록을 생성해보자. 기존에 `id`와 `부서` 필드의 초기화는 부모 생성자를 호출한다.  
+이때 사용할 수 있는 키워드는 **super**이다. 이 키워드는 부모를 가리키며 `super()`는 부모의 기본생성자를 가리킨다. 또한 ITDepartment만 사용할
+임원 필드를 추가해보도록 하자. 
+
+
+```ts
+// app.ts
+class ITDepartment extends Department {
+    admins: string[];
+
+    constructor(id: string, admins: string[]){
+        super(id, 'IT'); // 부모의 생성자를 호출한다.
+        this.admins = admins; // 하위 클래스에서 this를 사용하려면 super 먼저 호출해야한다.
+    }
+}
+
+const it = new ITDepartment('d1', ['Max'])
+
+it.addEmployee('Max');
+it.addEmployee('Manu');
+
+it.describe();
+it.name = 'NEW NAME';
+it.printEmployeeInformation();
+
+console.log(it);
+
+>> ITDepartment {id: "d1", name: "NEW NAME", employees: Array(2), admins: Array(1)}
+▶ admins: ["MAX"]
+▶ employees: (2) ["MAX", "MANU"]
+   id: "d1"
+   name: "NEW NAME"
+```
+
+아래와 같이 추가 메서드도 생성할 수 있다.
+
+```ts
+// app.ts
+
+class AccountingDepartment extends Department {
+    constructor(id: string, private reports: string[]){
+        super(id, 'Accounting');
+    }
+
+    addReport(text: string){
+        this.reports.push(text);
+    }
+
+    printReports() {
+        console.log(this.reports);
+    }
+}
+```
+
+### 상위 클래스의 속성 및 메서드 재정의
+
+---
+
+상속받은 클래스의 속성 및 메서드를 재정의할 수 있다. 단, `private`로 선언된 필드는 수정할 수 없다.
+상속받은 하위 클래스에서 접근이 가능하도록 변경하려면 `private`가 아닌 `protected`로 선언하여 제어한다.
+
+```ts {4, 13-18} showLineNumbers
+// app.ts
+class Department {
+    // private employees: string[]; Department 클래스에서만 사용 가능
+    protected employees: string[]; // 이를 상속받은 클래스에서 사용 가능
+}
+
+class AccountingDepartment extends Department {
+    constructor(id: string, private reports: string[]){
+        super(id, 'Accounting');
+    }
+
+    // Department 상위 클래스의 메서드 재정의
+    addEmployee(name: string){
+        if(name === 'Max'){
+            return;
+        }
+        this.employees.push(name);
+    }
+
+    addReport(text: string){
+        this.reports.push(text);
+    }
+
+    printReports() {
+        console.log(this.reports);
+    }
+}
+```
+
+### Getter와 Setter
+
+Getter는 필드의 값을 가져오며 `get`키워드를 사용한다.  
+Setter는 필드의 값을 지정하며 `set`키워드를 사용한다. 또한 인자가 필요하다.  
+외부에서 사용시 이 두 기능을 메서드처럼 사용하지 않고 필드와 같이 접근해야한다.
+
+```ts
+// app.ts
+
+class AccountingDepartment extends Department {
+    private lastReport: string;
+
+    get mostRecentReport() {
+        if(this.lastReport){
+            return this.lastReport;
+        }
+        throw Error('No report found');
+    }
+
+    set mostRecentReport(value: string) {
+        if(!value){
+            throw new Error('Please pass in a valid value')
+        }
+        this.addReport(value);
+    }
+
+    addReport(text: string){
+        this.reports.push(text);
+    }
+}
+
+const accounting = new AccountingDepartment('d1', ['Max'])
+// accounting.mostRecentReport('Your End Report'); X
+accounting.mostRecentReport = 'Your End Report';
+
+// 속성을 참조하듯이 ()는 뒤에 입력하지 않는다.
+console.log(accounting.mostRecentReport);
+>> ['Your End Report']
+```
+
+### 정적 메서드와 속성
+---
+
+
+

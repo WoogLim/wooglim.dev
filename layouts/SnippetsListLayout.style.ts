@@ -5,10 +5,6 @@ const TitleFontStyle = css`
   font-family: "Roboto";
 `;
 
-const FilterTextStyle = css`
-  font-family: "IBM Plex Sans";
-`;
-
 export const SnippetsConatainer = styled.main`
   max-width: calc(100% - calc((100% - 1070px)));
   width: 100%;
@@ -103,7 +99,6 @@ export const SelectWrap = styled.div`
   display: flex;
   max-width: 240px;
   order: 1;
-  ${FilterTextStyle}
 
   font-style: normal;
   font-weight: 700;
@@ -186,7 +181,6 @@ export const FilterList = styled.ul`
 export const FilterItem = styled.li`
   display: flex;
   padding: 12px 12px;
-  ${FilterTextStyle}
   font-weight:600;
 
   :hover {
@@ -252,9 +246,8 @@ export const SnippetsSearch = styled.input`
   padding: 6px 20px 6px 0.6rem;
   border-radius: 8px;
 
-  font-family: "Noto Sans";
   font-style: normal;
-  font-weight: 600;
+  font-weight: 700;
   font-size: 1rem;
   line-height: 1.4rem;
 
@@ -297,4 +290,11 @@ export const PostNumber = styled.div`
   @media screen and (max-width: 594px) {
     display: none;
   }
+`;
+
+export const NotFoundPost = styled.div`
+  display: flex;
+  flex-direction: row;
+  align-itesm: center;
+  padding: 0 17px;
 `;

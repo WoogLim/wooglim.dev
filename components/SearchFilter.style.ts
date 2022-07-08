@@ -1,10 +1,6 @@
 import styled from "@emotion/styled";
 import { css } from "@emotion/react";
 
-const TextStyle = css`
-  font-family: "IBM Plex Sans";
-`
-
 export const ListFilter = styled.div`
   display: flex;
   flex-direction: row;
@@ -36,9 +32,8 @@ export const SnippetsSearch = styled.input`
   padding: 6px 20px 6px 0.6rem;
   border-radius: 8px;
 
-  font-family: "Noto Sans";
   font-style: normal;
-  font-weight: 600;
+  font-weight: 500;
   font-size: 1rem;
   line-height: 1.4rem;
 

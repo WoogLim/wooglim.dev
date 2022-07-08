@@ -5,7 +5,6 @@ export const MdxContainer = styled.div`
   display: flex;
   flex-direction: row;
 
-  font-family: "Noto Sans";
   font-weight: 500;
 
   @media screen and (max-width: 1152px) {
@@ -14,10 +13,7 @@ export const MdxContainer = styled.div`
 `;
 
 export const PostBox = styled.div`
-  font-family: "IBM Plex Sans";
-
   p {
-    font-family: "Noto Sans KR";
     font-size: 1rem;
     font-weight: 500;
   }
@@ -28,7 +24,6 @@ export const PostBox = styled.div`
   h4,
   h5,
   h6 {
-    font-family: "IBM Plex Sans";
     font-weight: 800;
     margin: 0;
   }
@@ -38,7 +33,7 @@ export const PostBox = styled.div`
   max-width: 774px;
   padding-right: 0px;
 
-  a:not(:first-child) {
+  a:not(:first-of-type) {
     margin-top: 20px;
   }
 
@@ -79,8 +74,7 @@ export const ContentOfPost = styled.ul`
   h4,
   h5,
   h6 {
-    font-family: "Noto Sans CKR";
-    font-weight: 600;
+    font-weight: 700;
     color: #757075;
     font-size: 16px;
   }
@@ -92,7 +86,7 @@ export const ContentOfPost = styled.ul`
     margin-bottom: 0;
   }
 
-  li:not(:first-child) {
+  li:not(:first-of-type) {
     margin-top: 2px;
   }
 

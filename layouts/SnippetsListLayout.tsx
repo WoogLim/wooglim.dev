@@ -18,6 +18,7 @@ import {
   SnippetsSearch,
   SnippetsSearchBtn,
   PostNumber,
+  NotFoundPost,
 } from "./SnippetsListLayout.style";
 
 import { SnippetI } from "../types/snippet";
@@ -149,7 +150,8 @@ export const SnippetsListLayout = ({
         <ItemListWrap>
           <ItemList>
             {filteredSnippets.length < 1
-              ? `There is no snippet titled "${searchWord}"`
+              ? 
+              <NotFoundPost className="dark:text-zinc-300">{`There is no snippet titled "${searchWord}"`}</NotFoundPost>
               : filteredSnippets.map((snippet, idx) => {
                   return <SnippetItem snippet={snippet} key={idx} />;
                 })}

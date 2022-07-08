@@ -89,7 +89,6 @@ export const SummarySub = styled.p`
   display: block;
   max-height: 48px;
 
-  font-family: "IBM Plex Sans";
   font-weight: 500;
   font-size: 1rem;
   line-height: 1.4rem;

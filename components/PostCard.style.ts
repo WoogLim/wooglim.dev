@@ -65,7 +65,6 @@ export const PostSubtude = styled.p`
   overflow: hidden;
   position: relative;
 
-  font-family: "IBM Plex Sans";
   font-style: normal;
   font-weight: 500;
   font-size: 1rem;

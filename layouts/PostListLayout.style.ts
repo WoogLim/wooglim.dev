@@ -63,7 +63,6 @@ export const PostsSearch = styled.input`
   padding: 6px 20px 6px 0.6rem;
   border-radius: 8px;
 
-  font-family: "Noto Sans";
   font-style: normal;
   font-weight: 700;
   font-size: 1rem;

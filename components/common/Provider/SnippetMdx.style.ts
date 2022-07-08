@@ -5,7 +5,6 @@ export const MdxContainer = styled.div`
   flex-direction: row;
   padding-left: 20rem;
 
-  font-family: "Noto Sans CKR";
   font-weight: 500;
 
   @media screen and (max-width: 1152px) {
@@ -32,12 +31,10 @@ export const MdxContainer = styled.div`
 `;
 
 export const PostBox = styled.div`
-  font-family: "Noto Sans CKR";
   padding-top: 2rem;
   margin: 0 auto;
   width: 100%;
   p {
-    font-family: "Noto Sans CKR";
     font-size: 1rem;
     font-weight: 500;
   }
@@ -48,7 +45,6 @@ export const PostBox = styled.div`
   h4,
   h5,
   h6 {
-    font-family: "IBM Plex Sans";
     font-weight: 800;
     margin: 0;
     padding-bottom: 0.4rem;
@@ -74,7 +70,7 @@ export const PostBox = styled.div`
   max-width: 774px;
   padding-right: 0px;
 
-  a:not(:first-child) {
+  a:not(:first-of-type) {
     margin-top: 20px;
   }
 
@@ -99,7 +95,6 @@ export const ListContainer = styled.aside`
   overflow-y: scroll;
   z-index: 1;
   font-size: 17.4px;
-  font-family: "IBM Plex Sans";
 
   ::-webkit-scrollbar {
     width: 8px;
@@ -227,7 +222,6 @@ export const IndexList = styled.li`
 
 export const IndexViewBtn = styled.button`
   all: unset;
-  font-family: "IBM Plex Sans";
   font-weight: 600;
   padding: 0px 1rem;
   height: 1.6rem;
@@ -300,7 +294,7 @@ export const TopicInfoBox = styled.ul`
   list-style: none;
   line-height: 1rem;
 
-  li:first-child {
+  li:first-of-type {
     ::after {
       content: "ꞏ";
       font-weight: 900;
@@ -322,7 +316,6 @@ export const SnipptesNav = styled.div`
   box-sizing: border-box;
   caret-color: rgba(0, 0, 0, 0);
   justify-content: space-between;
-  font-family: "IBM Plex Sans";
   flex-wrap: nowrap;
   padding: 17px 0 48px 0;
   border-top: 3px solid;

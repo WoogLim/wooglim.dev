@@ -1,10 +1,6 @@
 import styled from "@emotion/styled";
 import { css } from "@emotion/react";
 
-const TextStyle = css`
-  font-family: "IBM Plex Sans";
-`;
-
 export const FitlerContainer = styled.div`
   display: flex;
   padding: 8px;
@@ -29,7 +25,6 @@ export const SelectWrap = styled.div`
   display: flex;
   max-width: 240px;
   order: 1;
-  ${TextStyle}
 
   font-style: normal;
   font-weight: 700;

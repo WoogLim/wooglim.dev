@@ -1,10 +1,6 @@
 import styled from "@emotion/styled";
 import { css } from "@emotion/react";
 
-const FontStyle = css`
-  font-family: "Roboto";
-`;
-
 // 스니펫 아이템
 export const ItemWrap = styled.ul`
   box-sizing: border-box;
@@ -20,7 +16,6 @@ export const ItemWrap = styled.ul`
   li {
     display: flex;
     list-style: none;
-    ${FontStyle}
     font-style: normal;
     font-weight: 500;
     line-height: 1.3rem;
@@ -33,7 +28,6 @@ export const ItemWrap = styled.ul`
 `;
 
 export const ItemName = styled.div`
-  ${FontStyle}
   font-weight: 700;
   font-size: 1.2rem;
   line-height: 1.4rem;
@@ -48,7 +42,6 @@ export const ItemInfo = styled.div`
 
 export const ItemDescription = styled.li`
   margin-top: 6px;
-  ${FontStyle}
   font-size: 0.9rem;
   max-height:90px;
   overflow: hidden;
@@ -71,7 +64,6 @@ export const ItemDescription = styled.li`
 `;
 
 export const ItemLanguage = styled.li`
-  ${FontStyle}
   flex:1;
   display: flex;
   justify-content: flex-start;

@@ -12,6 +12,7 @@
 
 .codeBox pre {
   margin: 0px !important;
+  font-family: "Noto Sans CKR" !important;
 }
 
 pre[class*="language-"] {
