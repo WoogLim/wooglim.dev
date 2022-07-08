@@ -412,7 +412,7 @@ Getter는 필드의 값을 가져오며 `get`키워드를 사용한다.
 Setter는 필드의 값을 지정하며 `set`키워드를 사용한다. 또한 인자가 필요하다.  
 외부에서 사용시 이 두 기능을 메서드처럼 사용하지 않고 필드와 같이 접근해야한다.
 
-```ts
+```ts {6-11, 13-18} showLineNumbers
 // app.ts
 
 class AccountingDepartment extends Department {
@@ -449,5 +449,152 @@ console.log(accounting.mostRecentReport);
 ### 정적 메서드와 속성
 ---
 
+**Math**메서드의 경우 인스턴스화 하지 않고 바로 접근이 가능한데, `static`으로 설정되어있기 때문이다. 같은 곳의 메모리 주소만을 참조하기 때문에  
+인스턴스화 하지 않고 접근할 수 있다.
+
+```ts {6-8} showLineNumbers
+// app.ts
+class Department {
+    // private employees: string[]; Department 클래스에서만 사용 가능
+    protected employees: string[]; // 이를 상속받은 클래스에서 사용 
+    
+    static createEmployee(name: string) {
+        return {name: name}
+    }
+
+}
+
+// 인스턴스화하지 않고 클래스에 있는 정적 메소드에 직접 진입할 수 있다.
+const employee1 = Department.createEmployee('Hex');
+console.log(employee1)
+>> {name: "Max"}
+```
+
+정적 메소드가 아닌 정적인 필드 추가도 가능하다. 단 같은 클래스내에서 접근은 불가능하다.  
+**this**는 클래스를 기반으로, 생성된 인스턴스를 참조하기 때문이다. 정적 속성은 인스턴스에 유효하지 않다. 정적 속성, 메서드는 인스턴스와 분리되어 있다.
 
 
+```ts {3} showLineNumbers
+// app.ts
+class Department {
+    static fiscalYear = 2022;
+    // private employees: string[]; Department 클래스에서만 사용 가능
+    protected employees: string[]; // 이를 상속받은 클래스에서 사용 
+    
+    constructor(private readonly id: string, public name: string){
+        console.log(this.fiscalYear); // Error! Property 'fiscalYear' is a static member of type
+        console.log(Department.fiscalYear); // 2022
+    }
+
+    static createEmployee(name: string) {
+        return {name: name}
+    }
+
+}
+
+// 인스턴스화하지 않고 클래스에 있는 정적 메소드에 직접 진입할 수 있다.
+const employee1 = Department.createEmployee('Hex');
+console.log(employee1, Department.fiscalYear)
+>> {name: "Max"} 2022
+```
+
+### 추상 클래스
+---
+
+클래스를 확장해감에 따라 하위 클래스들이 반드시 재정의하거나 구현해야할 메서드도 필요할것이다. 이러한 행동은 부모클래스에서 지정할 수 있다.
+바로 `abstract`추상 클래스의 사용이다. 다음과 같이 `Department`클래스를 추상 클래스로 변경해보자.  
+하나의 추상 메서드라도 가지고 있는 경우 해당 클래스는 반드시 추상클래스로 정의해야하며. 추상 메서드는 선언한 클래스에서 구현할 수 없고 이 클래스를 상속 받은
+하위 클래스에서 구현해야한다. 만일 하위 클래스에서 이를 구현하지 않은 경우 해당 추상 메서드를 구현하라는 에러가 발생한다.  
+  
+또한 추상 클래스는 인스턴스화가 불가능하다. 기본적으로 상속되어야할 클래스이다.
+
+```ts {2, 5, 17-19} showLineNumbers
+// app.ts
+abstract class Department {
+
+    // 추상 메서드는 반환할 타입, 매개변수의 타입을 지정해야한다.
+    abstract describe(this: Department): void;
+}
+
+// 상속 받은 하위 클래스 
+class ITDepartment extends Department {
+    admins: string[];
+
+    constructor(id: string, admins: string[]){
+        super(id, 'IT');
+        this.admins = admins;
+    }
+
+    describe() {
+        console.log('IT Department - ID: ', + this.id)
+    }
+}
+```
+
+### 싱글톤 및 private 생성자
+---
+
+**private 생성자**는 어떤 용도로 사용할까. 객체 지향 프로그래밍에는 [싱글톤 패턴](https://ko.wikipedia.org/wiki/%EC%8B%B1%EA%B8%80%ED%84%B4_%ED%8C%A8%ED%84%B4)이 있는데, 특정 클래스의 인스턴스를 정확히 하나만 갖는 패턴이다.
+회사에서 회계부서는 하나일 것이다. 이때 **싱글톤 패턴**에 적합할 것이다.  
+  
+우선 회계 부서 클래스 생성자에 `private`키워드를 입력한다. 생성자는 해당 클래스에서만 사용가능하므로 이 클래스는 new 생성자 사용이 즉 인스턴스화가 불가능하다.
+
+```ts {4, 21-24, 26-28, 40-43} showLineNumbers
+// app.ts
+class AccountingDepartment extends Department {
+    private lastReport: string;
+    private static instance: AccountingDepartment;
+
+    get mostRecentReport() {
+        if(this.lastReport){
+            return this.lastReport;
+        }
+        throw Error('No report found');
+    }
+
+    set mostRecentReport(value: string) {
+        if(!value){
+            throw new Error('Please pass in a valid value')
+        }
+        this.addReport(value);
+    }
+
+    // private로 지정됐다면 이 클래스는 new 생성자 사용이 즉 인스턴스화가 불가능하다.
+    private constructor(id: string, private reports: string[]) {
+        super(id, 'Accounting');
+        this.lastReport = reports[0];
+    }
+
+    static getInstance() {
+        if(AccountingDepartment.instance) {
+            return this.instance
+        }
+
+        this.instance = new AccountingDepartment('d2', []);
+        return this.instance;
+    }
+
+    addReport(text: string){
+        this.reports.push(text);
+    }
+}
+
+const accounting = AccountingDepartment.getInstance();
+const accounting2 = AccountingDepartment.getInstance();
+
+consolg.log(accounting, accounting2);
+
+```
+
+- **21-24** 
+우선 회계 부서 클래스 생성자에 `private`키워드를 입력한다. 생성자는 해당 클래스에서만 사용가능하므로 이 클래스는 new 생성자 사용이 즉. 인스턴스화가 불가능하다.
+
+- **4** 
+인스턴스화한 객체를 저장할 정적 필드를 생성한다. 타입은 현재 클래스로 설정한다. 이 클래스 내에서만 접근가능하도록
+`private`접근 제어자를 사용한다.
+
+- **26-33** 
+클래스의 인스턴스화가 불가능하므로 접근을 위해 클래스내에 정적 메소드를 생성한다. 인스턴스가 있다면 반환하고 없다면 생성하여 반환한다.
+
+- **40-43**
+두 변수가 참조하는 인스턴스는 같은 객체를 출력한다. 즉 **싱글턴 패턴**은 클래스를 최초에 한 번만 메모리에 적재하여 사용한다.
