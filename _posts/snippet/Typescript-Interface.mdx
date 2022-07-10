@@ -1,0 +1,84 @@
+---
+title: "타입스크립트의 인터페이스"
+description: "타입스크립트에서의 인터페이스 알아보기"
+language: "Typescript"
+category: "Typescript Tutorial"
+update: "2022-07-10"
+serisenumber: 6
+---
+
+## Intro
+
+---
+
+- [Maximilian Schwarzmüller 강사님의 Typescript 강의를 듣고 TIL 방식으로 정리한 글입니다.](https://www.udemy.com/course/understanding-typescript/)
+
+## 인터페이스
+---
+인터페이스는 객체의 구조를 설명한다. 인터페이스 또한 클래스와 마찬가지로 단어의 첫 글자는 관례상 대문자로한다.
+해당 인터페이스를 타입으로 지정한 경우 구조를 따라 객체를 생성한다.
+
+```ts
+interface Preson {
+    // 필드의 구조 타입 뒤에 ; 을 붙여준다.
+    // 이는 객체 생성시엔 ,로 구분한다.
+    name: string;
+    age: number;
+
+    // 메소드의 구조
+    greet(phrase: string): void;
+}
+
+// 인터페이스를 타입으로 사용 user1은 Person 구조의 객체를 저장한다.
+let user1: Person 
+
+user1 = {
+    name: 'Lim',
+    age: 27,
+    greet(phrase: string){
+        console.log(phrase + ' ' + this.name');
+    }
+}
+
+user1.greet('Hi there - I am');
+>> Hi there - I am Lim
+```
+
+### 왜 사용하는가?
+---
+
+사용자 타입(`type`)과의 차이점이 무엇이 있을까. 실제로 위 코드의 interface 구문을 type 으로 변경해도 동일하게 작동한다.  
+  
+차이점으로 인터페이스는 객체의 구조를 설명하기 위해서만 사용한다. 실제로 인터페이스 구문을 더 많이 사용하며 사용자 정의 타입으로 가능한 작업은 클래스 내 인터페이슬르 구현한다.  
+`객체의 구조`를 설계한데 초점을 맞춘다. 일종의 약속과 같다. 이러한 약속을 지키도록 `-able`로 명시한다. 이를 구현하는 클래스는 인터페이스의 필드 및 메서드를 구현하되 추가로 해당 클래스만의 필드 및 메서드를 추가한다.  
+  
+인터페이스는 여러 클래스에서 사용할 수 있다.
+```ts
+interface Greetable {
+    name: string;
+
+    // 메소드의 구조
+    greet(phrase: string): void;
+}
+
+// Person 클래스는 Greetable 인터페이스의 구조를 설계해야한다.
+// 클래스는 상속(extends)과 달리 복수의 인터페이스를 구현할 수 있다.
+class Person implements Greetable{
+    name: string;
+    age = 30;
+
+    constructor(n: string){
+        this.name = n;
+    }
+
+    greet(phrase: string){
+        console.log(phrase + ' ' + this.name');
+    }
+}
+```
+
+추상클래스와 다소 비슷한데, 인터페이스는 기본 설계도라고 보면 되고 추상 클래스는 미완성 설계도라고 보면 된다. 인터페이스 자체에서 구현된 함수는 없으며 추상 클래스의 경우 구현된 함수도 있지만 구현되지 않은 함수는 `abstract`키워드로 상속받은
+자식에서 구현하도록 한다.
+- 추상클래스는 여러 자식클래스가 있는데, 자식 클래스에서 일부 완벽히 똑같은 기능을 수행하는 경우.
+- 인터페이스는 특정 혹은 같은 기능이 필요한 경우 사용한다.
+- 이 내용에 대해 잘 정리된 것은 마이자몽님 블로그의 [[JAVA] 추상클래스 VS 인터페이스 왜 사용할까? 차이점, 예제로 확인 :: 마이자몽](https://myjamong.tistory.com/150)님의 글을 참고하면 좋을 것 같다.
