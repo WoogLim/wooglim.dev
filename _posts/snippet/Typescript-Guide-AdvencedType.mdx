@@ -1,0 +1,229 @@
+---
+title: "타입스크립트 고급 타입"
+description: "타입스크립트에서 더 알아보기"
+language: "Typescript"
+category: "Typescript Tutorial"
+update: "2022-07-12"
+serisenumber: 7
+---
+
+## Intro
+
+---
+
+- [Maximilian Schwarzmüller 강사님의 Typescript 강의를 듣고 TIL 방식으로 정리한 글입니다.](https://www.udemy.com/course/understanding-typescript/)
+
+## 고급 타입 
+---
+실제 프로젝트에서 유용하게 사용할 수 있도록 기존 개념에서 더 알아가보도록 하자. 설명할 타입들은 실제로 프로젝트에서 자주 사용되므로 숙지하도록하자.
+
+### 인터섹션(교차) 타입
+---
+
+인터섹션 타입은 다른 타입을 결합할 수 있는 타입이다. 이때 사용하는 키워드는 `&`이다. 
+**타입 객체1** **&** **타입 객체2** 
+
+```ts
+// Admin 명으로 사용자 정의 타입을 생성한다.
+type Admin = {
+    name: string;
+    privileges: string[];
+};
+
+type Employee = {
+    name: string;
+    startDate: Date;
+};
+
+// 두 타입을 결합하여 새로운 정의 타입 객체를 생성한다.
+type ElevatedEmployee = Admin & Employee;
+
+// 결합된 두 사용자 타입내 속성을 정의한다.
+const e1: ElevatedEmployee = {
+    name: 'Lim',
+    privileges: ['create-server'],
+    startDate: new Date()
+}
+
+type Combinable = string | number;
+type Numeric = number | boolean;
+
+// 위의 두 유니언 타입을 결합한 유니언 타입을 새로 생성할 수 있다.
+type Universal = Combinable & Numeric;
+```
+
+아래처럼 인터페이스로도 같은 결과를 도출할 수 있다.
+
+```ts
+// Admin 명으로 사용자 정의 타입을 생성한다.
+interface Admin = {
+    name: string;
+    privileges: string[];
+};
+
+interface Employee = {
+    name: string;
+    startDate: Date;
+};
+
+interface ElevatedEmployee extends Employee, Admin {
+    // ...
+}
+```
+
+### 타입 가드
+---
+
+타입 가드는 특히 더 자주 사용된다. 유니언 타입을 예로 유니언 타입은 유연성을 가지지만 런타임시엔 정확히 어떤 타입을 얻게 될지 알아야 하는 경우가 있다.
+
+```ts {8} showLineNumbers
+type Combinable = string | number;
+type Numeric = number | boolean;
+
+type Universal = Combinable & Numeric;
+
+function add(n1: Combinable, b: Combinable) {
+    // return a + b; // Error!
+    if(typeof a === 'string' || typeof b === 'string') {
+        return a.toString() + b.toString();
+    }
+    return a + b;
+}
+```
+
+- **8**번 라인이 바로 **타입 가드**라고 한다. 유니온 타입이 지닌 유연성을 활용하며 런타임시 정확하게 작동하게 해준다.
+
+#### in 타입가드
+---
+
+만일 두 사용자 타입을 유니온 타입으로 사용하는 경우 다른 한쪽에는 없는 속성을 사용하려는 경우 에러가 발생한다. 이때 `in` 타입가드로
+타입스크립트가 감지하여 `typeof`기능을 대신해 코드 에러를 방지할 수 있다.
+
+```ts {15-16, 17-19} showLineNumbers
+type Admin = {
+    name: string;
+    privileges: string[];
+};
+
+type Employee = {
+    name: string;
+    startDate: Date;
+};
+
+type UnKnownEmployee = Employee | Admin;
+
+function printEmployeeInformation(emp: UnKnownEmployee) {
+    console.log('Name: ' + emp.name);
+    // console.log('Previleges: ' + emp.privileges); // Property 'privileges' does not exist on type 'UnknownEmployee'.
+                                                  // Property 'privileges' does not exist on type 'Employee' .
+    if ('previleges' in emp) {
+        console.log('Previleges: ' + emp.privileges);
+    }
+    if ('startDate' in emp) {
+        console.log('StartDate: ' + emp.startDate);
+    }
+};
+
+type ElevatedEmployee = Admin & Employee;
+
+const e1: ElevatedEmployee = {
+    name: 'Lim',
+    privileges: ['create-server'],
+    startDate: new Date()
+}
+    
+printEmployeeInformation(e1);
+>> Name: Lim
+>> Privileges: create-server
+>> StartDate: Wed Sep 25 2019 10:59:02 GMT+0200
+```
+
+- **15~16**번 라인의 경우 타입가드가 없다면 Admin만 privileges를 가지기 때문에 에러를 발생시킨다.
+- 사용자 정의 타입의 경우 `typeof`를 통해 판별할 수 없다. 타입스크립트에만 존재하는 기능으로 자바스크립트에서는 컴파일할 수 없기 때문이다. 이때 `in` 키워드를 이용한다.
+- **17~19**번 라인에서 `in` 키워드를 이용하여 타입스크립트가 감지하고 이를 확인해 if 문 내 속성으로 접근할 수 있게 해준다.
+
+#### instanceof 타입 가드
+---
+instanceof 는 바닐라 JS에 내장된 일반 연산자이다. `in`과 달리 런타임시 실행되는 `typeof`와 같은 자바스크립트의 일부이다.
+
+```ts {1, 7, 24-26} showLineNumbers
+class Car{
+    drive() {
+        console.log('Driving...');
+    }
+}
+
+class Truck {
+    drive() {
+        console.log('Driving a truck...');
+    }
+
+    loadCargo(amount: number){
+        console.log('Loading cargo ...' + amount);
+    }
+}
+
+type Vehicle = Car | Truck;
+
+const v1 = new Car();
+const v2 = new Truck();
+
+function useVehicle(vehicle: Vehicle) {
+    vehicle.drive();
+    if('loadCargo' instanceof Truck){
+        vehicle.loadCargo(1000);
+    }
+}
+
+useVehicle(v1);
+useVehicle(v2);
+```
+
+- 자바스크립트는 `type`객체는 모르지만 `new`생성자 함수는 알고 있으므로 클래스(**1, 7**번 라인)는 생성자 함수로 변환된다
+타입스크립트는 Truck 생성자 함수를 기반으로 Vehicle이 생성되는지 확인할 수 있다.  (interface의 경우 타입스크립트 기능으로 예외.)  
+때문에 자바스크립트가 클래스와 생성자 함수를 지원하므로 **24~26**번 라인 처럼 `instanceof` 연산자를 사용할 수 있다. 런타임시에 사용 가능하기 때문이다. `instanceof`로 비교 대상이 클래스 인지 확인할 수 있고 맞다면 해당 클래스의 메서드를 사용할 수 있다.
+
+#### 요약
+---
+타입가드는 특정 속성이나 메소드 사용 이전에 존재하는지를 확인하거나 타입 사용전 확인하는 개념 또는 방식을 나타내는 용어이다.
+- 객체의 경우 `instanceof`, `in`을 사용하며 다른 타입(`string, number, boolean 등.`)의 경우 `typeof`를 사용할 수 있다.
+
+### 구별된 유니온 타입
+---
+타입가드를 쉽게 구현하기 위해 구별된 유니온을 사용할 수 있다. 아래 구문을 보면 이번엔 클래스가 아닌 인터페이스로 정의되어있고 유니온 타입 지정하였다.  
+인터페이스 이므로 `in`키워드는 사용한다. `instanceof`의 경우 클래스를 비교대상으로 하므로 사용할 수 없다.  
+```ts {2, 7, 16-22} showLineNumbers
+interface Bird {
+    type: 'bird'; // 'bird'값을 가진 리터럴 타입
+    flyingSpeed: number;
+}
+
+interface Horse {
+    type: 'horse'; // 'horse'값을 가진 리터럴 타입
+    runningSpeed: number;
+}
+
+type Animal = Bird | Horse;
+
+functuon moveAnimal(animal: Animal){
+    let speed;
+    // if('flyingSpeed' in animal) // 인터페이스를 사용하므로 in 키워드를 이용한다.
+    switch(animal.type){
+        case 'bird':
+            speed = animal.flyingSpeed;
+            break;
+        case 'horse':
+            speed = animal.runningSpeed;
+    }
+    console.log('Moving with spped ' + speed);
+}
+
+moveAnimal({type: 'bird', flyingSpeed: 10});
+```
+구별된 유니언은 다음과 같이 사용한다.
+- **2, 7**라인과 같이 각 인터페이스에 타입 배정이 아닌 값을 가진 리터럴 타입을 정의한다.
+- **22~27**라인과 같이 switch문을 사용해 객체에 속성을 검사할 수 있다.
+
+#### 요약
+---
+인터페이스와도 동작하기 때문에 인터페이스를 구현하는 객체가 이 타입을 갖는다. 주어진 속성의 존재 여부를 확인하거나 instanceof를 사용하는게 아닌 실제로 존재하는 값을 검사하므로 타입의 안정성을 보장해준다. 또한 자동완성을 지원한다.

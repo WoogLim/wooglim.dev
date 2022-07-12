@@ -539,7 +539,7 @@ class ITDepartment extends Department {
   
 우선 회계 부서 클래스 생성자에 `private`키워드를 입력한다. 생성자는 해당 클래스에서만 사용가능하므로 이 클래스는 new 생성자 사용이 즉 인스턴스화가 불가능하다.
 
-```ts {4, 21-24, 26-28, 40-43} showLineNumbers
+```ts {4, 21-24, 26-33, 40-43} showLineNumbers
 // app.ts
 class AccountingDepartment extends Department {
     private lastReport: string;
