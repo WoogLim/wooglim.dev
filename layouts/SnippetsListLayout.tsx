@@ -103,7 +103,7 @@ export const SnippetsListLayout = ({
       <ListsWrap>
         <MenuWrap>
           <h3 className="dark:text-zinc-300">snippets</h3>
-          <span className="dark:text-zinc-300">짧은 코드 조각 모음</span>
+          <span className="dark:text-zinc-300">개발 관련 내용을 정리해둡니다.</span>
           <PostNumber className="dark:text-zinc-300">{`${postNumber} Snippets`}</PostNumber>
         </MenuWrap>
 
