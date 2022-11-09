@@ -29,7 +29,7 @@ MySQL 서버의 sql_mode라는 시스템 설정에는 여러 값이 설정될 �
 MySQL서버 또한 같은 시스템 설정을 유지하는게 좋다. sql_mode 시스템 변수를 변경해야 하는 경우 MySQL 서버가 자동으로 실행하는 데이터 타입 변환, 기본값 제어 영향을 미치는지 확인 후 적용하는 것이 좋다.
 
 MySQL 8.0 서버 기본값은 다음과 같다.
-```
+```text
 - ONLY_FULL_GROUP_BY
 - STRICT_TRANS_TABLES
 - NO_ZERO_IN_DATE
@@ -37,21 +37,98 @@ MySQL 8.0 서버 기본값은 다음과 같다.
 - ERROR_FOR_DIVISION_BY_ZERO
 - NO_ENGINE_SUBSTITUTION
 ```
-- STRICT_ALL_TABLES & STRICT_TRANS_TABLES: MySQL 서버에서 INSERT, UPDATE 문장으로 데이털르 변경할 경우 칼럼의 타입과 저장되는 타입이 다를 때 자동으로
+‣ **STRICT_ALL_TABLES & STRICT_TRANS_TABLES**: MySQL 서버에서 INSERT, UPDATE 문장으로 데이털르 변경할 경우 칼럼의 타입과 저장되는 타입이 다를 때 자동으로
 타입 변경을 수행한다. 칼럼의 최대길이보다 크거나 적절히 변환되기 어려운 경우 에러를 발생시킬지 결정한다.
 `STRICT_TRANS_TABLES`은 InnoDB 같은 트랜잭션을 지원하는 스토리지 엔진에만 엄격한 모드를 적용힌다. 이 두 옵션은 사용자가 원하지 않는 방향으로 값이 변환될 수 있으므로 MySQL 서버를 서비스에 적용하기 전 반드시 활성화할 것을 권장한다. 서비스 도중 옵션 변경시 INSERT, DELETE 문장을
 검토해 의도치 않은 결과가 발생할 수 있는지 검증해야한다.
 
-- ANSI_QUOTES: MySQL에서는 문자열을 표현하기 위해 홀따옴표(`''`), 쌍따옴표(`""`) 동시에 사용 가능하다. 하지만 오라클의 경우 홀따옴표(`''`)는 문자열 값을 표기할 때 사용하고, 쌍따옴표("")는 컬렴명, 테이블명과 같은 식별자를 구분하는 용도로 사용한다.
+‣ **ANSI_QUOTES**: MySQL에서는 문자열을 표현하기 위해 홀따옴표(`''`), 쌍따옴표(`""`) 동시에 사용 가능하다. 하지만 오라클의 경우 홀따옴표(`''`)는 문자열 값을 표기할 때 사용하고, 쌍따옴표("")는 컬렴명, 테이블명과 같은 식별자를 구분하는 용도로 사용한다.
 두 가지 모두 문자열을 표현하기 때문에 다른 DBMS사용 이후 혼동이 올 수 있다. sql_mode 시스템 변수에 ANSI_QUOTES를 설정하면 홀따옴표만 문자열 표기값으로 사용하고 쌍따옴표는 칼럼명, 테이블명과 같은 식별하를 표기하는 용도로 사용한다.
 
-- ONLY_FULL_GROUP_BY: MySQL 쿼리에서는 GROUP BY절에 포함되지 않은 칼럼이라도 집합 함수 사용 없이 SELECT절, HAVING 절에 사용할 수 있다. 이 부분도 SQL표준이나 다른 DBMS와 다른 동작 방식이다. 8.0부터 이 옵션이 기본값으로 설정되어 있다.
+‣ **ONLY_FULL_GROUP_BY**: MySQL 쿼리에서는 GROUP BY절에 포함되지 않은 칼럼이라도 집합 함수 사용 없이 SELECT절, HAVING 절에 사용할 수 있다. 이 부분도 SQL표준이나 다른 DBMS와 다른 동작 방식이다. 8.0부터 이 옵션이 기본값으로 설정되어 있다.
 옵션 활성화시 GROUP BY절이 사용된 문장의 SELECT절에는 GROUP BY절에 명시된 칼럼과 집계 함수(COUNT, SUM)만 사용할 수 있다. SELECT절에 집계 합수가 사용되는 경우 GROUP BY 절에 명시되지 않은 칼럼도 집계 함수의 인자로 적용할 수 있다.
 
-- PIPE_AS_CONCAT: MySQL에서 `||`는 OR연산자와 같은 의미로 사용된다. sql_mode 시스템 변수에 이 옵션을 설정하면 오라클과 같이 문자열 연결 연산자(CONCAT)으로 사용할 수 있다.
+‣ **PIPE_AS_CONCAT**: MySQL에서 `||`는 OR연산자와 같은 의미로 사용된다. sql_mode 시스템 변수에 이 옵션을 설정하면 오라클과 같이 문자열 연결 연산자(CONCAT)으로 사용할 수 있다.
 
-- PAD_CHAR_TO_FULL_LENGTH: MySQL에서는 CHAR타입이라고 하더라도 VARCHAR와 같이 유효 문자열 뒤 공백 문자가 제거되어 반환된다. CHAR타입에서 칼럼값을 가져올 때 공백도 포함되어야 한다면 이 옵션을 추가하면 된다.
+‣ **PAD_CHAR_TO_FULL_LENGTH**: MySQL에서는 CHAR타입이라고 하더라도 VARCHAR와 같이 유효 문자열 뒤 공백 문자가 제거되어 반환된다. CHAR타입에서 칼럼값을 가져올 때 공백도 포함되어야 한다면 이 옵션을 추가하면 된다.
 
-- NO_BACKSLASH_ESCAPES: MySQL에서도 일반적인 프로그래밍 언어처럼 역슬래시 문자를 이스케이프 문자로 사용할 수 있다. 하지만 이 옵션을 추가하면 역슬래시 문자의 이스케이프 용도로 사용하지 못하며 역슬래시 문자도 다른 문자와 같이 동일하게 취급한다.
+‣ **NO_BACKSLASH_ESCAPES**: MySQL에서도 일반적인 프로그래밍 언어처럼 역슬래시 문자를 이스케이프 문자로 사용할 수 있다. 하지만 이 옵션을 추가하면 역슬래시 문자의 이스케이프 용도로 사용하지 못하며 역슬래시 문자도 다른 문자와 같이 동일하게 취급한다.
 
-- IGNORE_SPCAE: 
+‣ **IGNORE_SPACE**: MySQL에서 스토어드 프로시저 함수 이름 뒤 공백이 있다면 "스토어드 프로시저나 함수가 없습니다" 라는 에러가 출력될 수 있다. MySQL에서는 스토어드 프로시저, 함수명과 괄호 사이에 있는 공백까지도 스토어드 프로시저나 함수의 이름으로 간주한다. sql_mode 시스템 변수에 IGNORE_SPACE를 추가하면 프로시저나 함수명과 괄호 사이 공백은 무시된다. 이 옵션은 MySQL서버 내장 함수에만 적용되며 옵션 활성화시 내장 함수는 모두 예약어로 간주되어 테이블이나 칼럼의 이름으로 사용할 수 없다. 역따옴표를 이용해 예약어, 테이블이나 칼럼의 이름으로 사용할 수 있다.
+
+‣ **REAL_AS_FLOAT**: MySQL 서버에서 부동 소수점 타입은 FLOAT, DOUBLE 타입이 지원된다. REAL타입은 DOUBLE타입의 동의어로 사용된다. 이 옵션이 활성화되면 REAL타입이 FLOAT 타입의 동의어로 바뀐다.
+
+‣ **NO_ZERO_IN_DATE & NO_ZERO_DATE**: 이 두 옵션이 활성화되면 MySQL 서버는 DATE 또는 DATETIME 타입의 칼럼에 "2020-00-00", "0000-00-00"와 같은 날짜를 저장하는 것이 불가능해진다. 실제 존재하지 않는 날짜를 저장하지 못하게 할때, sql_mode에 이 두 옵션을 활성화하면 된다.
+
+‣ **ANSI**: MySQL서버가 최대한 SQL표준에 맞게 동작하게 만들어준다. REAL_AS_FLOAT, PIPES_AS_CONCAT, ANSI_QUOTES, IGNORE_SPACE, ONLY_FULL_GROUP_BY 모드의 조합으로 구성된 모드다.
+
+‣ **TRADITIONAL**: STRICT_TRANS_TABLES, STRICT_ALL_TABLES, NO_ZERO_IN_DATE, NO_ZERO_DATE, ERROR_FOR_DIVISION_BY_ZERO, NO_ENGINE_SUBSTITUTION 모드의 조합으로 구성된 모드로 옵션 활성화시 TRADITIONAL모드가 아닐 때 경고로 처리되던 상황이 모두 에러로 바뀐다.
+
+### 영문 대소문자 구분
+---
+MySQL의 경우 운영체제에 따라 테이블명의 대소문잘를 구분한다. 디스크의 디렉터리 파일로 매핑되기 때문이다. 윈도우에 설치된 MySQL에서는 대소문자를 구분하지 않으나, 유닉스 계열 운영체제는 대소문자를 구분한다. MySQL서버가 운영체제와 관계없이 대소문자 영향을 받지 않게 하려면 서버 설정 파일에 lower_case_table_names 시스템 변수를 설정한다. <br/>**1**로 설정 시 모두 소문자로 저장되고 MySQL서버가 대소문자를 구분하지 않게 해준다. **0**이 기본값이며 DB나 테이블명에 대해 대소문자를 구분한다. 윈도우,macOS의 경우 **2**를 설정할 수 있는데, 저장은 대소문자로 구분하지만 MySQL쿼리에서는 대소문자를 구분하지 않는다.
+
+### MySQL 예약어
+---
+테이블, 칼럼의 이름을 예약어와 같은 키워드로 생성하면 역따옴표(`), 쌍따옴표로 감싸야 한다. 하지만 이후 갖은 에러가 발생할 수 있기 때문에 권장하지 않는다. 테이블 생성시 따옴표를 사용하지 않고 그대로 생성하고 에러가 발생하면 다른 명칭으로 생성하도록 하자.
+
+### 매뉴얼의 SQL문법 표기를 읽는 방법
+---
+아래 예시를 보자.
+```sql
+INSERT [LOW_PRIORITY | DELAYED | HIGH_PRIORITY] [IGNORE]
+    [INTO] tbl_name
+    [PARTITION(partition_name [, partition_name] ...)]
+    [(col_name [, col_name]...)]
+    {VALUES | VALUE} (value_list) [, (value_list)] ...
+    [ON DUPLICATE KEY UPDATE assignment_list]
+
+    value: {expr | DEFAULT}
+
+    value_list:  value [, value] ...
+
+    assignment: col_name = value
+
+    assignment_list: assignment [, assignment] ...
+```
+위 표기법에서 **대문자**로 표현된 단어는 모두 키워드를 의미한다. 키워드는 대소문자를 구분하지 않는다. **이탤릭**체로 표현한 단어는 사용자가 선택하는 토큰을 의미한다. 테이블명, 칼럼명 또는 표현식을 사용한다.
+항목이 SQL키워드나 식별자가 아니라면 MySQL 매뉴얼에서 항목에 대해 하단에 표시한다. value, value_list와 같이 상세한 문법을 설명한다.
+
+**대괄호("[]")**는 해당 키워드나 표현식 자체가 선택 사항임을 의미로
+
+**파이프("|")**는 앞, 뒤 키워드나 표현식 중 단 하마나 선택해서 사용할 수 있음을 의미
+
+**중괄호("{}")**는 괄호 내 아이템 중 하나를 사용해야 하는 경우를 의미.
+
+**"..."**표기는 앞에 명시된 키워드나 표현식이 조합이 반복될 수 있음을 의미.
+
+## MySQL 연산자와 내장 함수
+---
+ANSI표준이 아닌 MySQL에서만 사용되는 연산자나 표기법이 존재한다. 주요 내장 함수의 이름과 기능을 살펴보자 
+
+### 리터럴 표기법 문자열
+---
+#### 문자열
+---
+SQL ANSI 표준에서 문자열은 항상 홀따옴표(')를 사용한다. MySQL의 경우 쌍따옴표(")로도 문자열을 표기할 수 있다.
+```sql
+SELECT * FROM departments WHERE dept_no='d001'
+SELECT * FROM departments WHERE dept_no="d001"
+```
+SQL 표준에서 문자열 값에 홀따옴표 포함된 경우 홀따옴표를 두 번 연속해서 입력한다. 쌍따옴표도 같다. MySQL은 쌍따옴표, 홀따옴표를 혼합해 이 문제를 피할 수 있다.
+```sql
+SELECT * FROM departments WHERE dept_no='d''001';
+SELECT * FROM departments WHERE dept_no='d"001';
+SELECT * FROM departments WHERE dept_no="d'001";
+SELECT * FROM departments WHERE dept_no="d""001";
+```
+SQL에서 사용되는 식별자(테이블명, 칼럼명 등)가 키워드와 충돌할 경우 쌍따옴표나 대괄호로 감싸 충돌을 피한다. MySQL에서는 역따옴표(`)로 감싸 충돌을 피할 수 있다.
+```sql
+CREATE TABLE tab_test(`table` VARCHAR(20) NOT NULL, ...);
+SELECT `column` FROM tab_test;
+```
+MySQL 서버 sql_mode 변수값에 ANSI_QUOTES를 설정하면 쌍따옴표는 문자열 리터럴 표기에 사용할 수 없고 테이블명, 칼럼명과 충돌을 피하려면 역따옴표가 아닌 쌍따옴표를 사용한다.
+전체적으로 MySQL서버 고유 방법은 배제하고 ANSI표준에 맞게 사용하려면 sql_mode 변수값에 **"ANSI"**를 설정하면 된다. 단, 대부분 쿼리 작동 방식에 영향을 미치므로 프로젝트 초기에 설정하여 사용하는 것이 좋다.
+
+#### 숫자
+---
