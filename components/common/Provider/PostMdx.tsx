@@ -1,6 +1,7 @@
 import { renderToString } from "react-dom/server";
 import { MDXProvider } from "@mdx-js/react";
 import React from "react";
+import Image from "next/image";
 
 import {
   MdxContainer,
@@ -12,6 +13,7 @@ import {
   IndexH4,
   IndexH5,
   IndexH6,
+  ImgBox,
 } from "./PostMdx.style";
 
 const moveScrollTarget = (e: React.BaseSyntheticEvent) => {
@@ -63,6 +65,19 @@ const CustomCodeBlock = ({ ...props }) => {
   );
 };
 
+const CustomImg = ({ ...props}) => {
+  return (
+    <ImgBox>
+      <Image
+        src={props.src}
+        alt={props.alt}
+        layout="fill"
+        className="dark:bg-zinc-300 autoImage"
+      />
+    </ImgBox>
+  )
+}
+
 type Props = {
   children: React.ReactElement;
 };
@@ -106,10 +121,23 @@ export const MdxLayout = ({ children }: Props) => {
           h1: CustomH1,
           h2: CustomH2,
           h3: CustomH3,
+          img: CustomImg,
           pre: CustomCodeBlock,
           hr: () => (
             <hr
               style={{ marginTop: "1rem", marginBottom: "0", opacity: "0" }}
+            />
+          ),
+          a: ({ ...props }) => (
+            <a className="text-blue-700 dark:text-pink-600" {...props} />
+          ),
+          strong: ({ ...props }) => (
+            <strong className="text-black dark:text-slate-200" {...props} />
+          ),
+          code: ({ ...props }) => (
+            <code
+              className="codeText bg-slate-100 text-black dark:bg-slate-900 dark:text-white"
+              {...props}
             />
           ),
         }}

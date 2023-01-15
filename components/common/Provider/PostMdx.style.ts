@@ -137,3 +137,17 @@ export const IndexH6 = styled.h6`
   all: unset;
   padding-left: 2.5em;
 `;
+export const ImgBox = styled.div`
+  width:100%;
+  box-shadow: 0px 0px 5px rgba(0,0,0,0.3);
+  border-radius:4px;
+  & > span {
+    position: unset !important;
+    & .autoImage {
+      object-fit: contain !important;
+      position: relative !important;
+      height: auto !important;
+      border-radius:4px;
+    }
+  }
+`;
