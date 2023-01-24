@@ -9,7 +9,7 @@ const giscus = {
 const meta = {
   url: "https://www.wooglim.dev",
   title: "wooglim | web Developer",
-  description: "내 꿈은 포켓몬 트레이너",
+  description: "운동을 열심히 하면 나도 포켓몬 트레이너가 될 수 있을까",
   name: "Geon Lim",
 
   imageUrl: "https://www.wooglim.dev/Images/Logo.png",
