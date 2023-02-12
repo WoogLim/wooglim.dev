@@ -140,6 +140,12 @@ export const MdxLayout = ({ children }: Props) => {
               {...props}
             />
           ),
+          li: ({ ...props }) => (
+            <li className="text-black dark:text-slate-200" {...props} />
+          ),
+          p: ({ ...props }) => (
+            <p className="text-black dark:text-slate-200" {...props} />
+          ),
         }}
       >
         <MdxContainer>
