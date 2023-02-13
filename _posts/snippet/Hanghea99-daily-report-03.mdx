@@ -649,6 +649,32 @@ function solution(sizes) {
 
   return biggerSideMax * smallerSideMax
 }
+
+// 배열을 사용하지 않은 경우 항해의 백승호님의 코드.
+function solution(sizes) {
+  var biggerSideMax = 0;
+  var smallerSideMax = 0;
+
+  for(let i = 0; i < sizes.length ; i++) {
+    if(sizes[i][0] > sizes[i][1]){
+      if(sizes[i][0] >= biggerSideMax){
+        biggerSideMax = sizes[i][0]
+      }
+      if(sizes[i][1] >= smallerSideMax){
+        smallerSideMax = sizes[i][1]
+      }
+    }else{
+      if(sizes[i][1] >= biggerSideMax){
+        biggerSideMax = sizes[i][1]
+      }
+      if(sizes[i][0] >= smallerSideMax){
+        smallerSideMax = sizes[i][0]
+      }
+    }
+  }
+
+  return biggerSideMax * smallerSideMax
+}
 ```
 
 #### 2주차 1일 마무리
