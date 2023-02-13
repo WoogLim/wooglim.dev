@@ -601,6 +601,7 @@ for(let i = 2; i < num; i++){
 각 요소마다 최댓값, 최솟값을 구해 놓고 반환 시 최댓값 중 큰 값, 최솟값 중 큰 값을 곱해 반환하면 될 것 같다.  
 최댓값, 최솟값을 구할 수 있는 내장 함수로 `Math.max`, `Math.min` 함수가 존재한다. 이를 이용해 풀이를 진행해보자.
 ```js
+// MAth 함수를 사용하는 경우
 function solution(sizes) {
   const width = [];
   const height = [];
@@ -614,6 +615,39 @@ function solution(sizes) {
 
   // 80 * 50 = 4000
   return Math.max(...width) * Math.max(...height);
+}
+
+// Math 함수를 사용하지 않는 경우
+function solution(sizes) {
+  var biggerSideMax = 0;
+  var smallerSideMax = 0;
+
+  let max = []
+  let min = []
+
+  for(let i = 0; i < sizes.length ; i++) {
+      if (sizes[i][0] > sizes[i][1]) {
+        max.push(sizes[i][0])
+        min.push(sizes[i][1])
+      }else {
+        max.push(sizes[i][1])
+        min.push(sizes[i][0])
+      }
+  }
+
+  biggerSideMax = max[0]
+  smallerSideMax = min[0]
+
+  for(let i = 1; i < sizes.length ; i++) {
+    if (biggerSideMax < max[i]) {
+      biggerSideMax = max[i];
+    }
+    if (smallerSideMax < min[i]) {
+      smallerSideMax = min[i];
+    }
+  }
+
+  return biggerSideMax * smallerSideMax
 }
 ```
 
