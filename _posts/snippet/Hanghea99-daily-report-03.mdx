@@ -1,10 +1,1311 @@
 ---
-title: "[항해] 항해 2주차 2일"
-description: "자바스크립트 학습"
+title: "[항해] 항해 2주차 2일 - 1"
+description: "함수와 객체"
 language: "daliyreport"
 category: "Hanghae99"
 update: "2023-02-14"
 serisenumber: 3
 ---
-### 함수와 객체 기본문법
+#### 1. 함수
 ---
+[코어 자바스크립트 - 자바스크립트 기본 - 함수](https://ko.javascript.info/function-basics)  
+함수는 프로그램을 구성하는 주요 구성요소입니다. 함수를 이용하면 중복 없이 유사한 동작을 하는 코드를 여러 번 호출할 수 있습니다.
+
+##### 함수 선언
+함수는 `function`키워드, 함수이름, 괄호로 둘러싼 매개변수를 차례로 써주면 함수를 선언할 수 있습니다. 매개변수가 여러 개인 경우 콤마로 구분해 줍니다.
+```js
+function name(parameter1, parameter2, ... parameterN) {
+  // 함수 본문
+}
+
+// name(...파라미터) 함수 실행
+```
+
+##### 지역 변수
+함수 내 선언한 변수 즉, 지역 변수는 함수 내에서만 접근 가능합니다.
+```js
+function showMessage() {
+  let message = "안녕하세요!"; // 지역 변수
+
+  alert( message );
+}
+
+showMessage(); // 안녕하세요!
+
+alert( message ); // ReferenceError: message is not defined (message는 함수 내 지역 변수이기 때문에 에러가 발생합니다.)
+```
+
+##### 외부 변수
+함수 외부에서 선언된 변수는 함수 내에서 접근 및 수정이 가능합니다.
+```js
+let userName = 'John';
+
+function showMessage() {
+  userName = "Bob"; // (1) 외부 변수를 수정함
+
+  let message = 'Hello, ' + userName;
+  alert(message);
+}
+
+alert( userName ); // 함수 호출 전이므로 John 이 출력됨
+
+showMessage();
+
+alert( userName ); // 함수에 의해 Bob 으로 값이 바뀜
+```
+
+만일 아래와 같이 외부, 내부 변수 명이 같은 경우 내부 변수를 가리킵니다.
+```js
+let userName = 'John';
+
+function showMessage() {
+  let userName = "Bob"; // 같은 이름을 가진 지역 변수를 선언합니다.
+
+  let message = 'Hello, ' + userName; // Bob
+  alert(message);
+}
+
+// 함수는 내부 변수인 userName만 사용합니다,
+showMessage();
+
+alert( userName ); // 함수는 외부 변수에 접근하지 않습니다. 따라서 값이 변경되지 않고, John이 출력됩니다.
+```
+함수에 전달되는 `매개변수`, `인수` 용어가 햇갈릴겁니다.
+
+- 매개변수는 함수 선언 방식 괄호 사이에 있는 변수입니다(선언 시 쓰이는 용어).
+- 인수는 함수를 호출할 때 매개변수에 전달되는 값입니다(호출 시 쓰이는 용어).
+
+##### 매개변수의 기본값
+함수 호출 시 매개변수에 인수를 전달하지 않는 경우 매개변수의 기본값을 지정해 `undefined`를 방지할 수 있습니다.
+```js
+function showMessage(from, text = "no text given") {
+  alert( from + ": " + text );
+}
+
+showMessage("Ann"); // Ann: no text given
+```
+아래와 같이 기본값을 함수로 줄 수도 있죠.
+```js
+function showMessage(from, text = anotherFunction()) {
+  // anotherFunction()은 text값이 없을 때만 호출됨
+  // anotherFunction()의 반환 값이 text의 값이 됨
+}
+```
+앞서 배운 논리 연산을 통해 값이 `false, true`인 경우 다음과 같이 기본값을 할당할 수 있죠.
+```js
+function showMessage(from, text) {
+  // text의 값이 falsy면 기본값이 할당됨
+  // 이 방식은 text == ""일 경우, text에 값이 전달되지 않은것과 같다고 간주합니다..
+  text = text || 'no text given';
+  ...
+}
+```
+아래와 같이 함수 내부에서 기본값을 지정할 수 있죠.
+```js
+function showMessage(text) {
+  // ...
+
+  if (text === undefined) { // 매개변수가 생략되었다면
+    text = '빈 문자열';
+  }
+
+  alert(text);
+}
+
+showMessage(); // 빈 문자열
+```
+모던 자바스크립트 엔진이 지원하는 `nullish 병합 연산자 ??`를 사용해 `0`과 같이 false로 평가되는 값을 일반 값처럼 처리할 수 있습니다.
+```js
+// 매개변수 'count'가 `undefined` 또는 `null`이면 'unknown'을 출력해주는 함수
+function showCount(count) {
+  alert(count ?? "unknown");
+}
+
+showCount(0); // 0
+showCount(null); // unknown
+showCount(); // unknown
+```
+
+##### 반환
+함수에서 반환할 값이 있는 경우 `return 반환할 값`과 같이 지정할 수 있습니다. 반환 즉시 해당 함수는 해당 구문에서 즉시 종료됩니다.  
+또한 `return`문이 없거나 `return`지시자만 있는 함수는 undefined를 반환합니다.
+```js
+function doNothing() {
+  return;
+}
+
+alert( doNothing() === undefined ); // true
+```
+반환 표현식을 여러 줄에 걸쳐 작성하고 싶다면 `()`를 사용합니다.
+```js
+return (
+  some + long + expression
+  + or +
+  whatever * f(a) + f(b)
+  )
+```
+
+##### 함수 이름짓기
+함수 이름은 가능한 간결 명확해야 합니다. 함수가 어떤 동작을 하는지 설명할 수 있어야 합니다. 함수명만 보고도 사용자는 힌트를 얻을 수 있어야하죠.
+예로 `"show"`는 무언가를 보여주는 함수입니다.
+
+이 외에 아래와 같은 접두어를 사용할 수 있습니다.
+- "get…" : 값을 반환함
+- "calc…" : 무언가를 계산함
+- "create…" : 무언가를 생성함
+- "check…" : 무언가를 확인하고 불린값을 반환함
+```js
+showMessage(..)     // 메시지를 보여줌
+getAge(..)          // 나이를 나타내는 값을 얻고 그 값을 반환함
+calcSum(..)         // 합계를 계산하고 그 결과를 반환함
+createForm(..)      // form을 생성하고 만들어진 form을 반환함
+checkPermission(..) // 승인 여부를 확인하고 true나 false를 반환함
+```
+함수는 간결하고, 한 가지 기능만 수행할 수 있게 만들어야 합니다. 함수가 길어지면 함수를 잘게 쪼갤 때가 되었다는 신호로 받아들이셔야 합니다. 함수를 쪼개는 건 쉬운 작업은 아닙니다. 하지만 함수를 분리해 작성하면 많은 장점이 있기 때문에 함수가 길어질 경우엔 함수를 분리해 작성할 것을 권유합니다.
+
+다음과 같이 소수를 가져올 경우 `isPrime()` 함수를 별도로 분리할 수 있죠.
+```js
+function showPrimes(n) {
+
+  for (let i = 2; i < n; i++) {
+    if (!isPrime(i)) continue;
+
+    alert(i);  // a prime
+  }
+}
+
+function isPrime(n) {
+  for (let i = 2; i < n; i++) {
+    if ( n % i == 0) return false;
+  }
+  return true;
+}
+```
+
+#### 2. 함수 표현식
+---
+[코어 자바스크립트 - 자바스크립트 기본 - 함수 표현식](https://ko.javascript.info/function-expressions)  
+이전 단계까지는 함수를 선언문방식으로 작성했습니다. 이제 함수 표현식을 보도록 하겠습니다. 아래와 같이 작성할 수 있습니다.
+```js
+function sayHi() {   // (1) 함수 생성
+  alert( "Hello" );
+}
+
+let func = sayHi;    // (2) 함수 복사
+
+func(); // Hello     // (3) 복사한 함수를 실행(정상적으로 실행됩니다)!
+sayHi(); // Hello    //     본래 함수도 정상적으로 실행됩니다.
+```
+다음과 같이 `callback`함수를 인수로 전달할 수 있죠
+```js
+function ask(question, yes, no) {
+  if (confirm(question)) yes()
+  else no();
+}
+
+ask(
+  "동의하십니까?",
+  function() { alert("동의하셨습니다."); },
+  function() { alert("취소 버튼을 누르셨습니다."); }
+);
+```
+
+##### 함수 표현식 vs 함수 선언문
+함수 선언문: 함수는 주요 코드 흐름 중간에 독자적인 구문 형태로 존재합니다.
+```js
+// 함수 선언문
+function sum(a, b) {
+  return a + b;
+}
+```
+함수 표현식: 함수는 표현식이나 구문 구성(syntax construct) 내부에 생성됩니다. 아래 예시에선 함수가 할당 연산자 =를 이용해 만든 “할당 표현식” 우측에 생성되었습니다.
+```js
+// 함수 표현식
+let sum = function(a, b) {
+  return a + b;
+};
+```
+`함수 표현식`은 실제 실행 흐름이 해당 함수에 도달했을 때 함수를 생성합니다. 따라서 실행 흐름이 함수에 도달했을 때부터 해당 함수를 사용할 수 있습니다.
+스크립트가 실행되고, 실행 흐름이 let sum = function…의 우측(함수 표현식)에 도달 했을때 함수가 생성됩니다. 이때 부터 해당 함수를 사용(할당, 호출)할 수 있습니다.
+
+`함수 선언문`은 함수 선언문이 정의되기 전에도 호출할 수 있습니다.
+
+준비단계에서 전역에 선언된 함수 선언문을 찾고, 해당 함수를 생성합니다. 스크립트가 진짜 실행되기 전 "초기화 단계"에서 함수 선언 방식으로 정의한 함수가 생성되는 것이죠.
+
+```js
+sayHi("John"); // Hello, John
+
+function sayHi(name) {
+  alert( `Hello, ${name}` );
+}
+```
+함수 선언문의 경우 스크립트 실행 준비 단계에서 생성되기 때문에, 스크립트 내 어디서든 접근 가능합니다.
+함수 표현식은 이게 불가능 하죠. 표현식으로 정의한 함수는 함수가 정의되기 전 접근이 불가능합니다.
+```js
+sayHi("John"); // error!
+
+let sayHi = function(name) {  // (*) 마술은 일어나지 않습니다.
+  alert( `Hello, ${name}` );
+};
+```
+
+스코프에서도 차이가 있습니다.
+
+엄격 모드에서 함수 선언문이 코드 블록 내에 위치하면 해당 함수는 블록 내 어디서든 접근할 수 있습니다. 하지만 블록 밖에서는 함수에 접근하지 못합니다.
+```js
+let age = prompt("나이를 알려주세요.", 18);
+
+// 조건에 따라 함수를 선언함
+if (age < 18) {
+
+  function welcome() {
+    alert("안녕!");
+  }
+
+} else {
+
+  function welcome() {
+    alert("안녕하세요!");
+  }
+
+}
+
+// 함수를 나중에 호출합니다.
+welcome(); // Error: welcome is not defined
+```
+함수 선언문은 함수가 선언된 코드 블록 안에서만 유효하기 때문에 이런 에러가 발생합니다. 반면 표현식의 경우 다른 블록에서도 접근이 가능합니다.
+```js
+let age = prompt("나이를 알려주세요.", 18);
+
+let welcome = (age < 18) ?
+  function() { alert("안녕!"); } :
+  function() { alert("안녕하세요!"); };
+
+welcome(); // 제대로 동작합니다.
+```
+위와 같이 조건에 따라 함수를 선언해야 하는 경우 함수 표현식을 사용합니다. 그 외의 함수 선언문을 주로 이용합니다. 가독성이 좋기 때문이죠.
+
+요약
+- 함수는 값입니다. 따라서 함수도 값처럼 할당, 복사, 선언할 수 있습니다.
+- “함수 선언(문)” 방식으로 함수를 생성하면, 함수가 독립된 구문 형태로 존재하게 됩니다.
+- “함수 표현식” 방식으로 함수를 생성하면, 함수가 표현식의 일부로 존재하게 됩니다.
+- 함수 선언문은 코드 블록이 실행되기도 전에 처리됩니다. 따라서 블록 내 어디서든 활용 가능합니다.
+- 함수 표현식은 실행 흐름이 표현식에 다다랐을 때 만들어집니다.
+
+#### 3. 화살표 함수
+---
+[코어 자바스크립트 - 자바스크립트 기본 - 화살표 함수](https://ko.javascript.info/arrow-functions-basics)  
+함수 표현식보다 단순하고 간결한 문법으로 함수를 만들 수 있는 방법이 있습니다. 화살표 함수를 이용하는 것이죠.
+```js
+let func = (arg1, arg2, ...argN) => expression
+```
+인자 arg1..argN를 받는 함수 func이 만들어집니다. 함수 func는 화살표(=>) 우측의 표현식(expression)을 평가하고, 평가 결과를 반환합니다.
+
+아래 함수의 축약 버전이라고 볼 수 있습니다.
+```js
+let func = function(arg1, arg2, ...argN) {
+  return expression;
+};
+```
+실제 사용 시 아래와 같이 사용할 수 있죠.
+```js
+let sum = (a, b) => a + b;
+
+/* 위 화살표 함수는 아래 함수의 축약 버전입니다.
+
+let sum = function(a, b) {
+  return a + b;
+};
+*/
+
+alert( sum(1, 2) ); // 3
+```
+인수가 하나인 경우 감싸는 괄호를 생략할 수 있습니다.
+```js
+let double = n => n * 2;
+// let double = function(n) { return n * 2 }과 거의 동일합니다.
+
+alert( double(3) ); // 6
+```
+인수가 하나도 없는 경우 빈 괄호를 놓으면 됩니다.
+```js
+let sayHi = () => alert("안녕하세요!");
+
+sayHi();
+```
+
+함수 표현식과 같이 사용할 수 있습니다.
+```js
+let age = prompt("나이를 알려주세요.", 18);
+
+let welcome = (age < 18) ?
+  () => alert('안녕') :
+  () => alert("안녕하세요!");
+
+welcome();
+
+```
+
+본문이 여러 줄 인 화살표 함수의 경우 중괄호`{}`를 사용합니다.
+```js
+let sum = (a, b) => {  // 중괄호는 본문 여러 줄로 구성되어 있음을 알려줍니다.
+  let result = a + b;
+  return result; // 중괄호를 사용했다면, return 지시자로 결괏값을 반환해주어야 합니다.
+};
+
+alert( sum(1, 2) ); // 3
+```
+
+#### 4. 스프레드 문법으로 나머지 나열하기
+---
+[코어 자바스크립트 - 자바스크립트 기본 - 나머지 매개변수와 스프레드 문법](https://ko.javascript.info/rest-parameters-spread)  
+함수의 매개변수로 임의의 인수를 배열로 받는 방법이 있습니다. 나머지 매개변수를 이용하면 됩니다.
+
+##### 나머지 매개변수 ...
+함수 정의 방법과 상관없이 함수에 넘겨주는 인수의 개수엔 제약이 없습니다.
+```js
+function sumAll(...args) { // args는 배열의 이름입니다.
+  let sum = 0;
+
+  for (let arg of args) sum += arg;
+
+  return sum;
+}
+
+alert( sumAll(1) ); // 1
+alert( sumAll(1, 2) ); // 3
+alert( sumAll(1, 2, 3) ); // 6
+```
+나머지 매개변수와 다른 매개변수가 같이 존재한다면 나머지 매개변수는 맨 끝에 있어야합니다.
+
+##### arguments 객체
+유사 배열 객체(array-like object)인 `arguments`를 이용하면 인덱스를 사용해 인수에 접근할 수 있습니다.  
+이 방법은 나머지 매개변수가 생기기 전까지 주로 이용되었습니다. 이런게 있구나 하고 알아만 둡시다. `arguments`객체는 화살표 함수에서 지원하지 않습니다.
+```js
+function showName() {
+  alert( arguments.length );
+  alert( arguments[0] );
+  alert( arguments[1] );
+
+  // arguments는 이터러블 객체이기 때문에
+  // for(let arg of arguments) alert(arg); 를 사용해 인수를 펼칠 수 있습니다.
+}
+
+// 2, Bora, Lee가 출력됨
+showName("Bora", "Lee");
+
+// 1, Bora, undefined가 출력됨(두 번째 인수는 없음)
+showName("Bora");
+```
+
+##### 스프레드 문법
+배열을 통째로 매개변수에 넘겨주는 방법도 있습니다. 예로 `Math.max()`를 생각해봅시다 이 내장 함수는 인수로 받은 숫자 중 가장 큰 숫자를 반환합니다. 인수는 `(1, 2, 3)`과 같은 방식으로 전달해야 합니다.
+이때 스프레드 문법을 사용하면 배열의 인덱스에 속하는 인자를 집어낼 수 있습니다. 또한 평범한 숫자와 혼합해 사용할 수 있죠.
+```js
+let arr1 = [1, -2, 3, 4];
+let arr2 = [8, 3, -8, 1];
+
+alert( Math.max(1, ...arr1, 2, ...arr2, 25) ); // 25
+```
+배열을 합칠 때도 활용할 수 있습니다.
+```js
+let arr = [3, 5, 1];
+let arr2 = [8, 9, 15];
+
+let merged = [0, ...arr, 2, ...arr2];
+
+alert(merged); // 0,3,5,1,2,8,9,15 (0, arr, 2, arr2 순서로 합쳐집니다.)
+```
+배열이 아니더라도 순회가 가능한 이터러블 객체에도 사용할 수 있습니다.
+```js
+let str = "Hello";
+
+alert( [...str] ); // H,e,l,l,o
+```
+스프레드 문법은 `for..of`와 같은 방식으로 내부에서 이터레이터(iterator, 반복자)를 사용해 요소를 수집합니다.
+`Array.from()`내장 함수도 같은 작동을 합니다.
+```js
+let str = "Hello";
+
+// Array.from은 이터러블을 배열로 바꿔줍니다.
+alert( Array.from(str) ); // H,e,l,l,o
+console.log(Array.from(str)); // (5) ['H', 'e', 'l', 'l', 'o']
+```
+여기서 둘의 차이점은 다음과 같습니다.
+- Array.from은 유사 배열 객체와 이터러블 객체 둘 다에 사용할 수 있습니다.
+- 스프레드 문법은 이터러블 객체에만 사용할 수 있습니다.
+- 이런 이유때문에 무언가를 배열로 바꿀 때는 스프레드 문법보다 Array.from이 보편적으로 사용됩니다.
+
+##### 배열과 객체의 복사본 만들기
+스프레드 문법을 사용해 배열과 객체를 복사할 수 있습니다.
+```js
+let arr = [1, 2, 3];
+let arrCopy = [...arr]; // 배열을 펼쳐서 각 요소를 분리후, 매개변수 목록으로 만든 다음에
+                        // 매개변수 목록을 새로운 배열에 할당함
+// 배열 복사본의 요소가 기존 배열 요소와 진짜 같을까요?
+alert(JSON.stringify(arr) === JSON.stringify(arrCopy)); // true
+// JSON.stringify 는 객체, 배열등을 문자 그대로 반환해줍니다. 반대로 문자에서 객체, 배열로 다시 변환할 때는 JSON.parse 를 사용합니다.
+
+// 두 배열은 같을까요?
+alert(arr === arrCopy); // false (참조가 다름)
+
+// 참조가 다르므로 기존 배열을 수정해도 복사본은 영향을 받지 않습니다.
+arr.push(4);
+alert(arr); // 1, 2, 3, 4
+alert(arrCopy); // 1, 2, 3
+```
+객체를 복사할 수도 있습니다.
+```js
+let obj = { a: 1, b: 2, c: 3 };
+let objCopy = { ...obj }; // 객체를 펼쳐서 각 요소를 분리후, 매개변수 목록으로 만든 다음에
+                          // 매개변수 목록을 새로운 객체에 할당함
+
+// 객체 복사본의 프로퍼티들이 기존 객체의 프로퍼티들과 진짜 같을까요?
+alert(JSON.stringify(obj) === JSON.stringify(objCopy)); // true
+
+// 두 객체는 같을까요?
+alert(obj === objCopy); // false (참조가 다름)
+
+// 참조가 다르므로 기존 객체를 수정해도 복사본은 영향을 받지 않습니다.
+obj.d = 4;
+alert(JSON.stringify(obj)); // {"a":1,"b":2,"c":3,"d":4}
+alert(JSON.stringify(objCopy)); // {"a":1,"b":2,"c":3}
+```
+이와 같이 유사한 방법으로 `Object.assign`내장 함수가 존재합니다. 다음과 같이 배열과 객체를 저장할 수 있죠. 다만 스프레드 문법을 사용하면 보다 더 짧은 코드로 작성가능해 이를 더 선호하는 편입니다.
+```js
+let objCopy = Object.assign({}, obj);
+let arrCopy = Object.assign([], arr);
+```
+
+##### 마무리
+`"..."`은 나머지 매개변수나 스프레드 문법으로 사용할 수 있습니다.
+나머지 매개변수와 스프레드 문법은 아래의 방법으로 구분할 수 있습니다.
+
+- `...`이 함수 매개변수의 끝에 있으면 인수 목록의 나머지를 배열로 모아주는 '나머지 매개변수’입니다.
+- `...`이 함수 호출 시 사용되거나 기타 경우엔 배열을 목록으로 확장해주는 '스프레드 문법’입니다.
+
+사용 패턴:
+
+- 인수 개수에 제한이 없는 함수를 만들 때 나머지 매개변수를 사용합니다.
+- 다수의 인수를 받는 함수에 배열을 전달할 때 스프레드 문법을 사용합니다.
+
+조금 오래된 방법이긴 하지만 arguments라는 반복 가능한(이터러블) 유사 배열 객체를 사용해도 인수 모두를 사용할 수 있습니다.
+
+#### 5. 객체
+---
+[코어 자바스크립트 - 자바스크립트 기본 - 객체](https://ko.javascript.info/object)  
+객체 또한 자바스크립트의 8개의 `자료형`중 하나에 속합니다. 단 객체 외 7개의 자료형은 오직 하나의 데이터(문자열, 숫자 등)만 담을 수 있어 `원시형`이라 부릅니다.
+객체는 키로 구분된 데이터의 집합, 복잡한 객체를 저장할 수 잇습니다.  
+객체는 중괄호 `{...}`를 이용해 만들 수 있습니다. 중괄호 내부에는 `키(key):값:(value)`쌍으로 구성된 `프로퍼티(property)`를 여러 개 넣을 수 있는데, `키`는 문자, `값`에는 모든 자료형이 속할 수 있습니다. 프로퍼티 키는 `프로퍼티 이름`이라고도 부릅니다.
+
+객체는 다음과 같이 생성할 수 있습니다.
+```js
+let user = new Object(); // '객체 생성자' 문법
+let user = {};  // '객체 리터럴' 문법
+```
+중괄호 `{...}`를 이용해 객체를 선언하는 것을 객체 리터럴(object literal) 이라고 부릅니다. 객체를 선언할 땐 주로 이 방법을 사용합니다.
+
+##### 리터럴과 프로퍼티
+중괄호 `{...}`안에는 `키: 값` 쌍으로 구성된 프로퍼티가 들어갑니다.
+```js
+let user = {     // 객체
+  name: "John",  // 첫 번째 프로퍼티. 키: "name",  값: "John"
+  age: 30,        // 두 번째 프로퍼티. 키: "age", 값: 30
+  isAdmin: true
+};
+```
+객체의 값에 접근할 때는 `점 표기법(dot notation)`을 이용합니다.
+```js
+// 프로퍼티 값 얻기
+alert( user.name ); // John
+alert( user.age ); // 30
+```
+`delete` 연산자를 이용해 객체 내 프로퍼티를 삭제할 수 있습니다.
+```js
+delete user.age;
+```
+여러 단어를 조합해 프로퍼티 이름을 만든 경우 프로퍼티 이름을 `""`로 묶어줘야 합니다.
+```js
+let user = {
+  name: "John",
+  age: 30,
+  "likes birds": true  // 복수의 단어는 따옴표로 묶어야 합니다.
+};
+```
+마지막 프로퍼티 끝은 쉼표로 끝날 수 있습니다.
+```js
+let user = {
+  name: "John",
+  age: 30,
+}
+```
+이렇게 끝에 쉼표를 붙이면 모든 프로퍼티가 유사한 형태를 보이기 때문에 프로퍼티의 추가, 삭제, 이동이 쉬워집니다.
+
+> 🚧 상수 객체도 수정될 수 있습니다.  
+`const` 로 선언된 객체도 수정될 수 있습니다.
+```js
+const user = {
+  name: "John"
+};
+
+user.name = "Pete"; // const는 user의 값을 고정하지만, 내용(프로퍼티)는 고정하지 않습니다.
+
+alert(user.name); // Pete
+```
+
+##### 대괄호 표기법
+여러 단어를 조합해 프로퍼티 키를 만든 경우 점 표기법을 사용해 프로퍼티 값을 읽을 수 없습니다.
+```js
+// 문법 에러가 발생합니다.
+user.likes birds = true
+```
+`점 표기법`은 키가 `유효한 변수 식별자`이니 경우 사용 가능합니다. 공백이 없어야 하며 `$`와 `_`를 제외한 특수 문자가 존재해선 안됩니다.
+이 경우 대괄호 표기법으로 값을 불러올 수 있습니다.
+```js
+let user = {};
+
+// set
+user["likes birds"] = true;
+
+// get
+alert(user["likes birds"]); // true
+
+// delete
+delete user["likes birds"];
+```
+
+아래와 같이 입력받은 값을 프로퍼티내 키로 지정할 수 있습니다. `[fruit]`는 프로퍼티 이름을 변수 `fruit`에서 가져오겠다는 것을 의미합니다.
+```js
+let fruit = prompt("어떤 과일을 구매하시겠습니까?", "apple");
+let bag = {};
+
+// 변수 fruit을 사용해 프로퍼티 이름을 만들었습니다.
+bag[fruit] = 5;
+```
+
+아래와 같은 경우도 가능합니다. 사용할 일은 없긴 해도요.
+```js
+let fruit = 'apple';
+let bag = {
+  [fruit + 'Computers']: 5 // bag.appleComputers = 5
+};
+```
+
+##### 단축 프로퍼티
+실무에서 프로퍼티 값을 기존 변수에 가져와 사용하는 경우가 종종 있다고 합니다.
+```js
+function makeUser(name, age) {
+  return {
+    name: name,
+    age: age,
+    // ...등등
+  };
+}
+
+let user = makeUser("John", 30);
+alert(user.name); // John
+```
+위 예시를 보면 프로퍼티 내 키와 값 명칭이 같습니다. 이 경우 아래와 같이 `단축 구문`을 사용할 수 있습니다.
+```js
+function makeUser(name, age) {
+  return {
+    name, // name: name 과 같음
+    age,  // age: age 와 같음
+    // ...
+  };
+}
+```
+두 가지를 혼용해 일반 프로퍼티, 단축 프로퍼티를 같이 사용할 수 있습니다.
+```js
+let user = {
+  name,  // name: name 과 같음
+  age: 30
+};
+```
+
+##### 프로퍼티 이름의 제약사항
+변수 이름에 `for, let, return`과 같은 예약어를 사용해선 안되죠. 하지만 객체 프로퍼티엔 이런 제약이 없습니다.
+```js
+// 예약어를 키로 사용해도 괜찮습니다.
+let obj = {
+  for: 1,
+  let: 2,
+  return: 3
+};
+
+alert( obj.for + obj.let + obj.return );  // 6
+```
+어떤 문자형, 심볼형 값도 프로퍼티 키가 될 수 있습니다.
+
+아래와 같이 키에 숫자 `0`을 넣으면 문자열 "0"으로 자동 변환됩니다.
+```js
+let obj = {
+  0: "test" // "0": "test"와 동일합니다.
+};
+
+// 숫자 0은 문자열 "0"으로 변환되기 때문에 두 얼럿 창은 같은 프로퍼티에 접근합니다,
+alert( obj["0"] ); // test
+alert( obj[0] ); // test (동일한 프로퍼티)
+```
+
+##### in 연산자로 프로퍼티 존재 여부 확인하기
+자바스크립트 객체 중요 특징 중 하나로 존재하지 않는 프로퍼티에 접근하려 해도 에러가 발생하지 않고 `undefined`를 반환한다는 점입니다. 이 특징을 이용해 프로퍼티 존재 여부를 확인할 수 있죠.
+```js
+let user = {};
+
+alert( user.noSuchProperty === undefined ); // true는 '프로퍼티가 존재하지 않음'을 의미합니다.
+```
+이를 이용한 연산자 `in`을 사용해 프로퍼티 존재 여부 확인도 가능합니다. 사용방법은 `탐색하려는 프로퍼티 이름 in 객체`입니다.
+```js
+let user = { name: "John", age: 30 };
+
+alert( "age" in user ); // user.age가 존재하므로 true가 출력됩니다.
+alert( "blabla" in user ); // user.blabla는 존재하지 않기 때문에 false가 출력됩니다.
+```
+`undefined`를 직접 검증하는 방법, `in`연산자를 이용한 방법은 다음과 같은 차이가 존재합니다.
+`in`연산자는 프로퍼티를 더 명확히 탐색할 수 있습니다.
+```js
+let obj = {
+  test: undefined
+};
+
+alert( obj.test ); // 값이 `undefined`이므로, 얼럿 창엔 undefined가 출력됩니다. 그런데 프로퍼티 test는 존재합니다.
+
+alert( "test" in obj ); // `in`을 사용하면 프로퍼티 유무를 제대로 확인할 수 있습니다(true가 출력됨).
+```
+
+##### for in 반복문
+`for..in`반복문을 사용하면 객체의 모든 키를 순회할 수 있습니다.
+```js
+for (key in object) {
+  // 각 프로퍼티 키(key)를 이용하여 본문(body)을 실행합니다.
+}
+```
+아래 예시와 같이 `user`의 모든 프로퍼티를 출력할 수 있습니다.
+```js
+let user = {
+  name: "John",
+  age: 30,
+  isAdmin: true
+};
+
+for (let key in user) {
+  // 키
+  alert( key );  // name, age, isAdmin
+  // 키에 해당하는 값
+  alert( user[key] ); // John, 30, true
+}
+```
+
+##### 프로퍼티의 정렬
+객체는 `정수 프로퍼티`의 경우 자동으로 정렬, 그 외 프로퍼티는 객체에 추가한 순으로 정렬됩니다.
+```js
+let codes = {
+  "49": "독일",
+  "41": "스위스",
+  "44": "영국",
+  // ..,
+  "1": "미국"
+};
+
+for (let code in codes) {
+  alert(code); // 1, 41, 44, 49
+}
+```
+아래와 같이 객체에 프로퍼티를 추가하면 순서대로 정렬됩니다.
+```js
+let user = {
+  name: "John",
+  surname: "Smith"
+};
+user.age = 25; // 프로퍼티를 하나 추가합니다.
+
+// 정수 프로퍼티가 아닌 프로퍼티는 추가된 순서대로 나열됩니다.
+for (let prop in user) {
+  alert( prop ); // name, surname, age
+}
+```
+##### 마무리
+객체는 프로퍼티(`키-값 쌍`)를 저장합니다.
+- 프로퍼티 키는 문자열이나 심볼이어야 합니다. 보통은 문자열입니다.
+- 값은 어떤 자료형도 가능합니다. 객체도 가능하죠.
+
+아래와 같이 객체의 프로퍼티 접근 방법이 있습니다.
+- 점 표기법: `obj.property`
+- 대괄호 표기법 `obj["property"]`
+
+객체엔 다음과 같은 추가 연산자를 사용할 수 있습니다.
+- 프로퍼티의 삭제 `delete obj.prop`
+- 해당 key를 가진 프로퍼티가 객체 내 있는지 확인 `"key" in obj`
+- 프로퍼티를 나열할 때: `for(let key in obj)`
+
+자바스크립트에서는 일반 객체 이외에도 다양한 종류의 객체가 존재합니다. `Array, Date, Error`등이 있죠.
+
+##### 객체 문제풀이
+
+- 객체가 비어있는지 확인하기
+객체에 프로퍼티가 하나도 없는 경우 true, 그렇지 않은 경우 false를 반환해주는 함수 isEmpty(obj)를 만들어 보세요.
+```js
+let schedule = {};
+
+console.log( isEmpty(schedule) ); // true
+
+schedule["8:30"] = "get up";
+
+console.log( isEmpty(schedule) ); // false
+
+function isEmpty(obj){
+  for(let key in obj){
+    // 순회할 객체가 존재
+    return false;
+  }
+  return true;
+}
+```
+
+- 프로퍼티 합계 구하기
+```js
+let salaries = {
+  John: 100,
+  Ann: 160,
+  Pete: 130
+}
+
+console.log(sum(salaries))
+
+function sum(obj){
+  let sum = 0
+
+  for(args in obj) sum += (obj[args] || 0)
+
+  return sum;
+}
+```
+
+- 프로퍼티 값 두 배로 부풀리기
+```js
+let menu = {
+  width: 200,
+  height: 300,
+  title: "My menu"
+};
+
+multiplyNumeric(menu);
+
+function multiplyNumeric(obj){
+  // obj 는 인자로 넘어로온 객체를 참조
+  for(let key in obj){
+    if(typeof(obj[key]) === 'number'){
+      obj[key] = obj[key] * 2;
+    }else{
+      continue;
+    }
+  }
+}
+```
+
+#### 6. 참조에 의한 객체 복사
+[코어 자바스크립트 - 자바스크립트 기본 - 참조에 의한 객체 복사](https://ko.javascript.info/object-copy)  
+객체와 원시 타입 자료형의 근본적 차이는 `참조에 의해 저장되고 복사`된다는 것입니다. 원시값(`문자열, 숫자, boolean값`)은 `값 그대로` 저장·할당되고 복사됩니다.
+```js
+let message = "Hello!";
+let phrase = message;
+```
+객체의 경우 변수에 객체가 그대로 저장되는 것이 아닌, 객체가 저장되어있는 `메모리 주소`인 객체에 대한 `참조 값`이 저장됩니다.  
+객체`user`는 선언 시 메모리 어딘가 저장됩니다. `user`엔 객체를 `참조`할 수 있는 값이 저장되죠. 객체가 할당한 변수를 복사할 때 객체의 참조 값이 복사되고 객체 자체는 복사되지 않습니다. 메모리에 저장된 객체를 참조 값으로 찾는거죠.
+```js
+let user = { name: "John" };
+
+let admin = user; // 참조값을 복사함
+```
+객체에 접근하거나 조작할 때 여러 변수를 사용할 수 있습니다.
+```js
+let user = { name: 'John' };
+
+let admin = user;
+
+admin.name = 'Pete'; // 'admin' 참조 값에 의해 변경됨
+
+alert(user.name); // 'Pete'가 출력됨. 'user' 참조 값을 이용해 변경사항을 확인함
+```
+
+##### 참조에 의한 비교
+객체 비교 시 동등 연산자 `==`와 일치 연산자 `===`는 동일하게 동작합니다.
+
+비교 시 피연산자인 두 객체가 동일한 객체인 경우 참을 반환합니다.
+```js
+let a = {}; // 객체는 메모리에 저장됩니다. a는 해당 객체를 참조하죠.
+let b = a; // 참조에 의한 복사 b도 a의 참조값을 가집니다. 메모리에 저장된 객체를 참조하죠.
+
+alert( a == b ); // true, 두 변수는 같은 객체를 참조합니다.
+alert( a === b ); // true
+
+let c = {};
+let d = {}; // 독립된 두 객체
+
+alert( c == d ); // false
+```
+`obj1 > obj2`같은 대소 비교 `obj == 5`와 같은 원시값과 비교에선 객체가 원시형으로 변환됩니다. 하지만 이런 경우는 매우 드뭅니다. 만약 있다면 코딩 실수일겁니다.
+
+##### 객체 복사 병합과 Object.assign
+스프레드 연산자로 객체를 복사하시던걸 기억하시나요? `Object.assign`도 객체 혹은 배열을 복사해주는 내장 함수 입니다. 객체를 복제 할 일은 거의 없지만 정말 복제가 필요한 상황인 경우 새로운 객체를 만든 다음 기존 객체 프로퍼티를 순회해 원시 수준까지 프로퍼티를 복사하면 되죠.
+```js
+let user = {
+  name: "John",
+  age: 30
+};
+
+let clone = {}; // 새로운 빈 객체
+
+// 빈 객체에 user 프로퍼티 전부를 복사해 넣습니다.
+for (let key in user) {
+  clone[key] = user[key];
+}
+
+// 이제 clone은 완전히 독립적인 복제본이 되었습니다.
+clone.name = "Pete"; // clone의 데이터를 변경합니다.
+
+alert( user.name ); // 기존 객체에는 여전히 John이 있습니다.
+```
+`Object.assign`를 사용해 복제하는 방법도 있습니다. 구문은 다음과 같습니다. `dest`는 목표로 하는 객체 뒤의 인자는 복사할 객체 프로퍼티들 입니다.
+```js
+Object.assign(dest, [src1, src2, src3...])
+```
+아래와 같이 사용하면 됩니다.
+```js
+let user = { name: "John" };
+
+let permissions1 = { canView: true };
+let permissions2 = { canEdit: true };
+
+// permissions1과 permissions2의 프로퍼티를 user로 복사합니다.
+Object.assign(user, permissions1, permissions2);
+```
+반복문 없이 객체를 복사할 수 있습니다.
+```js
+let user = {
+  name: "John",
+  age: 30
+};
+
+let clone = Object.assign({}, user);
+```
+물론 스프레드 연산자로 복사할 수 있습니다.
+```js
+let user = {
+  name: "John",
+  age: 30
+};
+
+let clone = {...user}
+```
+##### 중첩 객체 복사
+지금까지는 객체 내 프로퍼티 값이 원시값인 경우의 예시를 봐왔습니다. 그런데 만일 값이 객체에 대한 참조라면 어떻게 할까요?
+
+만일 아래와 같이 복사가 이루어진다면 `clone`과 `user`는 같은 객체를 참조하게 됩니다.
+```js
+let user = {
+  name: "John",
+  sizes: {
+    height: 182,
+    width: 50
+  }
+};
+
+let clone = Object.assign({}, user);
+
+alert( user.sizes === clone.sizes ); // true, 같은 객체입니다.
+
+// user와 clone는 sizes를 공유합니다.
+user.sizes.width++;       // 한 객체에서 프로퍼티를 변경합니다.
+alert(clone.sizes.width); // 51, 다른 객체에서 변경 사항을 확인할 수 있습니다.
+```
+이 문제를 해결하려면 `user[key]`의 각 값을 검사해서 값이 객체인 경우 객체의 구조도 복사해주는 알고리즘이 필요합니다. 이 방식을 `깊은 복사(deep cloning)`라고 합니다.  
+표준 깊은 복사 알고리즘 [Structured cloning algorithm](https://html.spec.whatwg.org/multipage/structured-data.html#safe-passing-of-structured-data)을 사용해 해결할 수 있지만 자바스크립트 라이브러리인 [lodash](https://lodash.com/)의 메서드 `_.cloneDeep(obj)`을 사용하면 이 알고리즘을 직접 구현하지 않고 깊은 복사를 할 수 있습니다.
+
+##### 마무리
+객체의 복사는 메모리에 저장된 객체를 참조하는 값을 복사한다는 것을 알아야 합니다. 완전한 복사를 위해선 메모리에 저장된 객체의 값을 끄집어내야하죠.
+
+#### 7. 메서드와 this
+---
+[코어 자바스크립트 - 자바스크립트 기본 - 메서드와 this](https://ko.javascript.info/object-copy)  
+객체는 `사용자(user)`, `주문(order)`등 실제 존재하는 개체를 표현하고자 할 때 생성합니다. 객체에 프로퍼티에 함수를 할당해 객체에게 행동할 수 있는 능력을 부여해줄 수도 있죠.
+
+##### 메서드 만들기
+객체 `user`에게 인사할 수 있는 메소드를 부여합니다.
+```js
+let user = {
+  name: "John",
+  age: 30
+};
+
+user.sayHi = function() {
+  alert("안녕하세요!");
+};
+
+user.sayHi(); // 안녕하세요!
+```
+이러한 방법은 일종의 개발 패러다임 `객체 지향 프로그래밍`과 같습니다. 
+
+##### 메서드 단축 구문
+객체 리터럴에 메서드를 선언 시 단축 문법을 사용할 수 있습니다.
+```js
+// 아래 두 객체는 동일하게 동작합니다.
+
+user = {
+  sayHi: function() {
+    alert("Hello");
+  }
+};
+
+// 단축 구문을 사용하니 더 깔끔해 보이네요.
+user = {
+  sayHi() { // "sayHi: function()"과 동일합니다.
+    alert("Hello");
+  }
+};
+```
+##### 메서드와 this
+객체내 모든 메서드가 그런 건 아니지만, 대부분의 메서드는 객체 프로퍼티 값을 활용합니다.  
+메서드 내부에서 `this`키워드를 사용하면 객체에 접근할 수 있습니다. 이때 `this`는 객체를 나타냅니다. 메서드를 호출할 때 사용된 객체를 나타내죠.
+```js
+let user = {
+  name: "John",
+  age: 30,
+
+  sayHi() {
+    // 'this'는 '현재 객체'를 나타냅니다.
+    alert(this.name);
+  }
+
+};
+
+user.sayHi(); // John
+```
+외부 변수를 사용하는 방법도 있지만 예상치 오류를 범할 수 있으므로 현재 객체내 값을 사용하는 것을 권장합니다.
+```js
+let user = {
+  name: "John",
+  age: 30,
+
+  sayHi() {
+    alert( user.name ); // Error: Cannot read property 'name' of null
+  }
+
+};
+
+
+let admin = user;
+user = null; // user를 null로 덮어씁니다.
+
+admin.sayHi(); // sayHi()가 엉뚱한 객체를 참고하면서 에러가 발생했습니다.
+               // 단 alert 함수가 user.name 대신 this.name을 인수로 받았다면 에러가 발생하지 않았을 겁니다.
+```
+
+##### 자유로운 this
+자바스크립트의 `this`는 타 언어의 동작방식과 다릅니다. 자바스크립트에선 모든 함수에 `this`를 사용할 수 있습니다.
+```js
+let user = { name: "John" };
+let admin = { name: "Admin" };
+
+function sayHi() {
+  alert( this.name );
+}
+
+// 별개의 객체에서 동일한 함수를 사용함
+user.f = sayHi;
+admin.f = sayHi;
+
+// 'this'는 '점(.) 앞의' 객체를 참조하기 때문에
+// this 값이 달라짐
+user.f(); // John  (this == user)
+admin.f(); // Admin  (this == admin)
+
+admin['f'](); // Admin (점과 대괄호는 동일하게 동작함)
+```
+`user.f()`를 호출하면 `this`는 `f`를 호출한 동안의 `obj` 즉 `user`를 가리킵니다.
+
+다만 다음과 같이 참조할 대상이 없다면 전역 객체를 참조하게 됩니다 브라우저 환경이라면 브라우저의 전역객체 `window`를 참조하게 됩니다. 엄격모드 `use strict`를 사용하면 이를 막을 수 있죠. 
+```js
+function sayHi() {
+  alert(this);
+}
+
+sayHi(); // undefined
+```
+받드시 알고 넘어가야 할 것은 `this`는 `점 앞의` 객체가 무엇인가에 따라 자유롭게 결정되는 것입니다.
+
+##### this가 없는 화살표 함수
+화살표 함수는 일반 함수와 달리 고유 `this`를 가지지 않습니다. 화살표 함수로 `this` 참조 시, 화살표 함수가 아닌 `평범한 함수`의 `this`를 가져옵니다.
+```js
+let user = {
+  firstName: "보라",
+  sayHi() {
+    let arrow = () => alert(this.firstName);
+    arrow();
+  }
+};
+
+user.sayHi(); // 보라
+```
+위 코드에서 함수 `arrow()`의 `this`는 `외부 함수 user.sayHi()`의 `this`가 됩니다.
+
+##### 마무리
+- 객체 프로퍼티에 저장된 함수를 `메서드`라고 부릅니다.
+- `object.f()`은 객체를 '행동’할 수 있게 해줍니다.
+- 메서드는 `this`로 객체를 참조합니다.
+
+`this`는 런타임에 의해 결정됩니다.
+- 함수를 선언할 때 this를 사용할 수 있습니다. 다만, 함수가 호출되기 전까지 this엔 값이 할당되지 않습니다.
+- 함수를 복사해 객체 간 전달할 수 있습니다.
+- 함수를 객체 프로퍼티에 저장해 `object.method()`같이 ‘메서드’ 형태로 호출하면 `this`는 `object`를 참조합니다.
+
+화살표 함수는 자신만의 this를 가지지 않습니다. 화살표 함수 안에서 this를 사용하면 외부의 this를 가져옵니다.
+
+##### 문제 풀이
+`계산기 만들기`
+```js
+let calculator = {
+  sum() {
+    return this.a + this.b
+  },
+  mul() {
+    return this.a * this.b
+  },
+  read() {
+    this.a = Math.floor(Math.random() * 100)
+    this.b = Math.floor(Math.random() * 100)
+  }
+};
+
+calculator.read()
+console.log( calculator.sum() );
+console.log( calculator.mul() );
+```
+`체이닝`
+```js
+let ladder = {
+  step: 0,
+  up() {
+    this.step++;
+    // 객체 자신을 리턴하면 뒤에 . 으로 접근이 가능하다.
+    return this;
+  },
+  down() {
+    this.step--;
+    return this;
+  },
+  showStep: function() { // 사다리에서 몇 번째 단에 올라와 있는지 보여줌
+    console.log( this.step );
+    return this;
+  }
+};
+
+ladder.up().up().down().showStep();
+```
+
+#### 8. new 연산자와 생성자 함수
+---
+[코어 자바스크립트 - 자바스크립트 기본 - new 연산자와 생성자 함수](https://ko.javascript.info/constructor-new)  
+객체 리터럴 `{...}`을 사용하면 객체를 만들 수 있습니다. 이와 같은 유사 객체를 여러 개 만들어야 할 때가 생기곤 합니다.
+`new`연산자와 생성자 함수를 사용하면 유사한 객체 여러 개를 쉽게 만들 수 있죠.
+
+##### new 생성자 함수
+생성자 함수는 일반 함수와 기술적 차이는 없지만 다음과 같은 관례가 존재합니다.
+- 함수 이름 첫 글자는 대문자로 시작
+- 반드시 `new`연산자를 붙여 실행
+
+```js
+function User(name) {
+  this.name = name;
+  this.isAdmin = false;
+}
+
+let user = new User("보라");
+
+alert(user.name); // 보라
+alert(user.isAdmin); // false
+```
+`new User(...)`는 다음과 같은 알고리즘으로 생성됩니다.
+
+- 1. 빈 객체를 만들어 `this`에 할당
+- 2. 함수 본문을 실행. `this`에 새로운 프로퍼티를 추가해 `this`를 수정
+- 3. `this`를 반환
+
+```js
+function User(name) {
+  this = {};  (빈 객체가 암시적으로 만들어짐)
+
+  // 새로운 프로퍼티를 this에 추가함
+  this.name = name;
+  this.isAdmin = false;
+
+  return this;  (this가 암시적으로 반환됨)
+}
+```
+이렇듯 모든 함수는 생성자 함수가 될 수 있습니다. 함수명 앞에 `new`를 붙이는 경우 위와 같은 알고리즘이 작동합니다.
+
+##### 익명 함수 생성
+아래와 같이 익명 함수를 생성한다면 어디에도 저장되지 않고 호출의 목적으로만 사용할 수 있습니다. 재사용할 수 없죠. 재사용은 막으면서 코드를 캡슐화 즉 감출 수 있는겁니다.
+```js
+let user = new function() {
+  this.name = "John";
+  this.isAdmin = false;
+
+  // 사용자 객체를 만들기 위한 여러 코드.
+  // 지역 변수, 복잡한 로직, 구문 등의
+  // 다양한 코드가 여기에 들어갑니다.
+};
+```
+
+##### new.target
+`new.target`프로퍼리를 사용해 함수가 `new`와 함께 호출되었는지 아닌지 알 수 있습니다.
+```js
+function User() {
+  alert(new.target);
+}
+
+// 'new' 없이 호출함
+User(); // undefined
+
+// 'new'를 붙여 호출함
+new User(); // function User { ... }
+```
+
+이를 함수 본문에 적용하면 해당 함수가 new와 함께 호출 되었는지 확인할 수 있습니다.
+```js
+function User(name) {
+  if (!new.target) { // new 없이 호출해도
+    return new User(name); // new를 붙여줍니다.
+  }
+
+  this.name = name;
+}
+
+let bora = User("보라"); // 'new User'를 쓴 것처럼 바꿔줍니다.
+alert(bora.name); // 보라
+```
+
+##### 생성자와 return문
+생성자 함수엔 `return`을 잘 사용하지 않습니다. 반환할 것은 `this`에 저장되고 자동으로 반환되기 때문입니다. 만약 `return`이 있는 경우 아래 같은 규칙이 적용됩니다.
+
+- 객체를 `return`한다면 `this`대신 객체가 반환
+- 원시형을 `return`한다면 `return`문이 무시
+
+첫 번째 규칙을 따르면 다음과 같은 예시를 볼 수 있습니다.
+```js
+function BigUser() {
+
+  this.name = "원숭이";
+
+  return { name: "고릴라" };  // <-- this가 아닌 새로운 객체를 반환함
+}
+
+alert( new BigUser().name );  // 고릴라
+```
+
+아무것도 `return`하지 않는 경우 원시형을 반환하는 경우와 마찬가지로 두 번째 규칙이 적용되죠.
+```js
+function SmallUser() {
+
+  this.name = "원숭이";
+
+  return; // <-- this를 반환함
+}
+
+alert( new SmallUser().name );  // 원숭이
+```
+
+생성자 함수에 인수가 필요없는 경우 괄호를 생략할 수 있습니다.
+```js
+let user new User;
+```
+
+##### 생성자 내 메서드
+생성자 함수를 사용하는 경우 매개변수를 이용해 객체 내부를 자유로이 구성할 수 있습니다. 지금까지 `this`에 프로퍼티를 더해주는 예시를 봤지만 메서드를 더해줄 수도 있습니다.  
+아래에서 `new User(name)`은 프로퍼티 `name`, 메서드 `sayHi`를 가진 객체를 만듭니다.
+```js
+function User(name) {
+  this.name = name;
+
+  this.sayHi = function() {
+    alert( "제 이름은 " + this.name + "입니다." );
+  };
+}
+
+let bora = new User("이보라");
+
+bora.sayHi(); // 제 이름은 이보라입니다.
+
+/*
+bora = {
+   name: "이보라",
+   sayHi: function() { ... }
+}
+*/
+```
+
+##### 마무리
+- 생성자 함수(짧게 줄여서 생성자)는 일반 함수입니다. 다만, 일반 함수와 구분하기 위해 함수 이름 첫 글자를 대문자로 씁니다.
+- 생성자 함수는 반드시 new 연산자와 함께 호출해야 합니다. new와 함께 호출하면 내부에서 this가 암시적으로 만들어지고, 마지막엔 this가 반환됩니다.
+
+##### 문제 풀이
+- `함수 두 개로 동일 객체 만들기`
+외부 객체를 `return`한다면 같은 객체를 참조하므로 조건에 부합합니다.
+```js
+let obj = {}
+
+function A() { 
+  return obj
+}
+
+function B() { 
+  return obj
+}
+
+let a = new A;
+let b = new B;
+
+console.log( a == b ); // true
+```
+- `생성자 함수로 계산기 만들기`
+생성자 함수는 this 를 반환한다. object
+```js
+function Calculator(){
+  this.read = function() {
+    this.a = Math.floor(Math.random() * 100)
+    this.b = Math.floor(Math.random() * 100)
+  };
+
+  this.sum = function() {
+    return this.a + this.b;
+  };
+
+  this.mul = function() {
+    return this.a * this.b;
+  };
+}
+
+let calculator = new Calculator();
+calculator.read();
+
+console.log( "Sum=" + calculator.sum() );
+console.log( "Mul=" + calculator.mul() );
+```
+- `누산기 만들기`
+```js
+function Accumulator(startingValue){
+  this.value = startingValue;
+  this.read = value => {
+    console.log(value)
+    this.value +=  value;
+  }
+}
+
+let accumulator = new Accumulator(1); // 최초값: 1
+
+accumulator.read(Math.floor(Math.random() * 100)); // 임의의 값을 더해줌
+accumulator.read(Math.floor(Math.random() * 100)); // 임의의 값을 더해줌
+
+console.log(accumulator.value); // 최초값과 모든 임의값을 더해 출력함
+```
