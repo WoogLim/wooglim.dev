@@ -30,23 +30,23 @@ export const Navigation = () => {
       </HomeButton>
       <MenuList className="blogMenu">
         <MenuButton>
-          <Link href="/post">
-            <a className="dark:hover:text-yellow-300 dark:text-zinc-100">post</a>
+          <Link href="/post" className="dark:hover:text-yellow-300 dark:text-zinc-100">
+            post
           </Link>
         </MenuButton>
         <MenuButton>
-          <Link href="/snippets">
-            <a className="dark:hover:text-yellow-300 dark:text-zinc-100">snippets</a>
+          <Link href="/snippets" className="dark:hover:text-yellow-300 dark:text-zinc-100">
+            snippets
           </Link>
         </MenuButton>
         <MenuButton>
-          <Link href="/project">
-            <a className="dark:hover:text-yellow-300 dark:text-zinc-100">project</a>
+          <Link href="/project" className="dark:hover:text-yellow-300 dark:text-zinc-100">
+            project
           </Link>
         </MenuButton>
         <MenuButton>
-          <Link href="/about">
-            <a className="dark:hover:text-yellow-300 dark:text-zinc-100">about</a>
+          <Link href="/about" className="dark:hover:text-yellow-300 dark:text-zinc-100">
+            about
           </Link>
         </MenuButton>
       </MenuList>

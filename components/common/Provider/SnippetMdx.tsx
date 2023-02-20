@@ -296,10 +296,8 @@ export const MdxLayout = ({
             <SnipptesNav>
               <PrevSnippets>
                 {prevItem ? (
-                  <Link href={`/snippets/${prevItem.slug}`}>
-                    <a className="text-slate-900 hover:text-blue-600 dark:text-slate-200 dark:hover:text-yellow-400 ">
-                      {`← ${prevItem.title}`}
-                    </a>
+                  <Link href={`/snippets/${prevItem.slug}`} className="text-slate-900 hover:text-blue-600 dark:text-slate-200 dark:hover:text-yellow-400 ">
+                    {`${prevItem.title}`}
                   </Link>
                 ) : (
                   ""
@@ -307,10 +305,8 @@ export const MdxLayout = ({
               </PrevSnippets>
               <NextSnippets>
                 {nextItem ? (
-                  <Link href={`/snippets/${nextItem.slug}`}>
-                    <a className="text-slate-900 hover:text-blue-600 dark:text-slate-200 dark:hover:text-yellow-400">
-                      {`${nextItem.title} →`}
-                    </a>
+                  <Link href={`/snippets/${nextItem.slug}`} className="text-slate-900 hover:text-blue-600 dark:text-slate-200 dark:hover:text-yellow-400">
+                    {`${nextItem.title} →`}
                   </Link>
                 ) : (
                   ""
