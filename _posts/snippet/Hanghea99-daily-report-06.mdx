@@ -1,6 +1,6 @@
 ---
-title: "[항해] 항해 2주차 WIL"
-description: "항해 2주차 WIL 기록"
+title: "[항해] 항해 3주차 1일"
+description: "코어자바스크립트 변수"
 language: "daliyreport"
 category: "Hanghae99"
 update: "2023-02-21"
@@ -79,7 +79,7 @@ let nameFieldChecked = true; // 네, name field가 확인되었습니다(checked
 let ageFieldChecked = false; // 아니요, age field를 확인하지 않았습니다(not checked)
 ```
 불린값은 비교 결과를 저장할 때도 사용됩니다.
-```
+```js
 let isGreater = 4 > 1;
 
 alert( isGreater ); // true (비교 결과: "yes")
@@ -240,6 +240,7 @@ foo(); // 30
 ```
 
 ### 최소한의 전역변수 사용
+---
 ```js
 var MYAPP = {};
 
@@ -252,6 +253,7 @@ console.log(MYAPP.student.name);
 ```
 
 ### 즉시 실행 함수를 이용한 전역변수 사용 억제
+---
 전역변수 사용을 억제하기 위해, 즉시 실행 함수(IIFE, Immediately-Invoked Function Expression)를 사용할 수 있다. 이 방법을 사용하면 전역변수를 만들지 않으므로 라이브러리 등에 자주 사용된다. 즉시 실행 함수는 즉시 실행되고 그 후 전역에서 바로 사라진다.
 ```js
 (function () {
