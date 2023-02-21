@@ -1,0 +1,60 @@
+---
+title: "NodeJS 완벽 가이드 겉핥기"
+description: "Node 서버 환경 구성하기"
+language: "NodeJS"
+category: "NodeJS"
+update: "2023-02-21"
+serisenumber: 1
+---
+## Intro
+
+---
+
+- [Maximilian Schwarzmüller 강사님의 Typescript 강의를 듣고 TIL 방식으로 정리한 글입니다.](https://www.udemy.com/course/nodejs-the-complete-guide/)
+
+## 코어 모듈
+---
+Node.js 에는 다음과 같이 기본으로 탑재된 몇 개의 코어 모듈이 존재합니다.
+
+### http
+서버를 생성하거나 http 요칭 및 응답 작업에 유용하다. 또한 Node.js 서버가 다른 서버와 통신할 수 있게 도와준다. Google Maps API 등.
+
+기본적으로 Node.js 에서는 require 키워드를 이용해 모듈을 불러올 수 있습니다. 절대 경로 및 상대 경로로 불러올 수 있으나, 글로벌 모듈로 존재하므로 http만 적어줘도 상관없습니다.
+```js
+const http = require('http');
+
+function rqListener(req, res) {
+
+}
+
+// 서버 생성 메서드로 request, response가 존재
+// request로 요청 데이터를 읽고
+// response로 요청 대상에게 응답을 내보낸다.
+// rqListener를 참조시킨다. ()를 제외한다. 
+// 이제 서버는 rqListener 함수를 통해 들어오는 요청을 실행하게 됩니다.
+http.createServer(rqListener);
+```
+
+화살표 함수로도 콜백 함수를 넘겨줄 수 있다. 다음 코드는 요청시 작동되는 익명 콜백 함수이다. 현재 단계에서는 로컬에서 작동하므로 localhost:3000과 같이 요청을 진행하면 아래 콜백 함수가 실행된다.
+
+```js
+const http = require('http');
+
+// 익명 함수를 이용할 수 있다. 이벤트 드리븐 객체.
+const server =http.createServer((req, res) => {
+  // 요청이 들어오면 실행되는 콜백 함수
+  console.log(req);
+})
+
+// Node.js가 계속 실행되면서 요청을 받음.
+server.listen(3000);
+```
+
+### https
+모든 전송 데이터가 암호화되는 SSL 암호화 서버 생성 시 유용하다.
+
+### fs
+
+### path
+
+### os
