@@ -1,7 +1,7 @@
 ---
 title: "자바스크립트 이론 - this"
 description: "[스파르타코딩 Javascript 심화] - this"
-language: "Javascript"
+language: "Javascript theory"
 category: "Javascript 개념 심화 강의"
 update: "2023-02-22"
 serisenumber: 3
@@ -14,3 +14,389 @@ serisenumber: 3
 this는 실행 컨텍스트가 생성될 때 binding 합니다. 즉 this는 함수를 호출할 때 결정한다고 볼 수 있죠.
 
 ### 전역 공간에서의 this
+전역 공간에서의 this는 전역 객체를 가리킵니다. 브라우저 사이드인 경우 `window` node환경 즉 서버인 경우 `global`
+
+```js
+// 전역에서의 console.log
+console.log(this === window) // true
+```
+
+### 메서드로서 호출할 때 그 메서드 내부에서의 this
+메서드는 객체 내부 함수이죠. 객체.메서드()와 같은 방식입니다. 함수는 그 자체로 독립적 기능을 수행하지만 메서드는 자신을 호출한 대상 객체에 관한 동작을 수행합니다.
+
+#### 함수와 메서드가 호출될 때 this
+```js
+// 주체가 없으므로 window 즉 전역을 가리킴. 주체가 없음.
+var func = function(x) P{
+  console.log(this, x)
+}
+func(1) // Window {...} 1
+
+// obj가 주체이므로 obj를 가리킴.
+var obj = {
+  method: func,
+}
+obj.method(2); // { method: f } 2
+```
+#### 함수로서의 호출과 메서드로서의 호출 구분
+함수로서 호출은 독립적, 메서드는 주체가 존재했죠.
+
+#### 메서드 내부에서의 this
+주체 내부에 또 다른 주체가 있다면 this는 마지막 호출된 주체를 가리킵니다.
+```js
+var obj = {
+  methodA: function(){console.log(this)},
+  inner: {
+    methodB: function(){console.log(this)}
+  },
+}
+
+obj.methodA(); // this === obj
+obj['methodA'](); // this === obj
+
+obj.inner.methodB(); // this === obj.inner
+obj.inner['methodB'](); // this === obj.inner
+obj['inner'].methodB(); // this === obj.inner
+obj['inner']['methodB'](); // this === obj.inner
+```
+
+### 함수로서 호출할 때 함수 내부에서의 this
+이번엔 함수를 보도록 합시다.
+
+#### 함수 내부에서의 this
+어떤 함수를 함수로 호출할 경우 this는 지정되지 않습니다. 실행컨텍스트를 활성화 하면 this가 지정되지 않는 경우 this는 전역 객체를 바라봅니다. 따라서 함수로서 독립적으로 호출할 때 this는 `전역 객체`를 가리키죠.
+
+#### 메서드 내부함수에서의 this
+메서드의 내부라고 해도, 함수로서 호출한다면 this는 전역 객체입니다.
+```js
+var obj1 = {
+  outer: function() {
+    console.log(this); // this === obj1
+    var innerFunc = function() {
+      console.log(this); // this === '전역'
+    }
+    innerFunc(); // 함수로서의 call입니다. 
+                 // 메서드 내부 함수일지라도 주체가 없으므로 전역 객체를 가리킵니다.
+
+    var obj2 = {
+      innerMethod: innerFunc
+    };
+    obj2.innerMethod
+  }
+}
+obj1.outer();
+```
+즉 this 바인딩에 관해 함수 실행 당시 환경이 중요하지 않고 오직 해당 함수를 호출하는 구문 앞에 점 또는 대괄호 표기가 있는지에 대해 this가 가리키는 대상도 달라지게 됩니다.
+
+#### 메서드 내부 함수에서의 this 우회
+그럼 함수를 사용하면서도 상위 객체를 가리키려면 어떻게 할 수 있을까. 다음과 같은 방법을 통해 객체를 바라볼 수 있도록 구현할 수도 있다.
+```js
+var obj1 = {
+  outer: function() {
+    var self = this;
+    var innerFunc2 = function() {
+      console.log(self); // this === obj1
+    }
+    innerFunc2();
+  }
+}
+obj1.outer();
+```
+또 다른 방법으로 화살표 함수를 사용하는 방법도 있다.  
+화살표 함수는 실행 컨텍스트를 생성할 때 this바인딩 과정 자체가 없기 때문에 this는 이전의 값 즉, 상위값이 유지된다.
+```js
+var obj = {
+  outer: function(){
+    console.log(this); // obj
+    var innerFunc = () => {
+      // 화살표 함수로 선언한 경우 this 가 유실되지 않는다.
+      console.log(this) // obj
+    }
+    innerFunc();
+  }
+}
+```
+
+이벤트 리스너로 콜백 함수 호출 시 그 함수 내부에서 해당 this를 확인할 수 있다.
+```js
+setTimeout(function() {console.log(this)}, 300); // 함수 자체이므로 window
+
+[1, 2, 3, 4, 5].forEach(function(x) {
+  console.log(this, x) // 함수 자체이므로 window
+})
+
+document.body.innerHTML += '<button id="a">클릭</button>';
+document.body.querySelector('#a').addEventListener('click', function(e){
+  console.log(this, e); // button tag
+})
+```
+
+생성자 함수 내부에서의 this
+```js
+var Cat = function(name, age){
+  this.bark = '멍';
+  this.name = name;
+  this.age = age;
+}
+
+var choco = new Cat('초코', 7); // this : choco
+var nabi = new Cat('나비', 5); // this : navi
+```
+인스턴스(객체를 생성 즉, 생성된 객체)가 생성될 때 마다 this는 해당 객체를 가리킨다.
+
+### 명시적 this 바인딩
+명시적 this 바인딩으로 this에 별도 값을 저장하는 방법이 존재한다.
+
+#### call 메서드
+호출 주체인 함수를 즉시 실행하는 명령
+```js
+var func = function (a, b, c){
+  console.log(this, a, b, c);
+}
+
+func(1, 2, 3);
+func.call({x: 1}, 4, 5, 6); // call 메서드로 문자를 주기전 this 바인드 가능한 객체를 인수로 주면
+                            // { x: 1}, 4, 5, 6
+```
+다음과 같이 명시적으로 넘겨준 객체의 프로퍼티 값을 출력할 수 있다.
+```js
+var obj = {
+  a: 1,
+  method: function(x, y){
+    console.log(this.a, x, y)
+  }
+};
+
+obj.method(2, 3);
+obj.method.call({ a: 4 }, 5, 6) // 4 5 6
+```
+
+#### apply 메서드
+call 메서드와 완전 동일하나, 두 번째 인자가 배열인 부분이 다르다.
+```js
+var func = function(a, b, c){
+  console.log(this, a, b, c);
+}
+func.apply({ x: 1 }, [4, 5, 6]); // {x: 1} 4 5 6
+```
+
+#### [번외] call과 apply 메서드 활용
+
+##### 유사배열객체
+유사배열객체(객체이지만 배열처럼 동작)에 배열 메서드를 적용할 수 있다. 단, 조건으로 반드시 `length`가 존재해야하며 없으면 유사배열로 인식하지 않는다. 또한 index 번호가 0부터 시작해 1씩 증가해야한다.
+
+##### slice() 함수
+`slice()` 함수는 배열로 부터 특정 범위를 복사한 값을 담고 있는 새로운 배열을 만드는데 사용된다. 첫번째 인자로 시작 인덱스, 두번째 인자로 종료 인덱스를 받아 값을 복사하여 반환합니다.
+
+```js
+var obj = {
+  0: 'a',
+  1: 'b',
+  2: 'c',
+  length: 3
+};
+// 유사배열 객체의 경우 call 메서드를 활용할 수 있다.
+Array.prototype.push.call(obj, 'd');
+console.log(obj); // {0: 'a', 1: 'b', 2: 'c', 3: 'd', length: 4}
+
+// 유사배열객체를 slice를 통해 배열로 만들 수 있다.
+var arr = Array.prototype.slice.call(obj);
+console.log(arr); // ['a', 'b', 'c', 'd']
+```
+
+##### arguments
+arguments를 통해 유사배열객체를 생성할 수도 있다.
+```js
+function a () {
+  // 넘어온 인자들을 받아(매개변수가 없음에도) 유사배열객체로 만들 수 있다.
+  console.log(arguments); // [Arguments] { '0': 1, '1': 2, '2': 3}
+  var argv = Array.prototype.slice.call(arguments);
+  // [1, 2, 3]
+  argv.forEach(function(arg){
+    console.log(arg);
+  });
+  // 1
+  // 2
+  // 3
+}
+
+a(1, 2, 3);
+```
+
+##### NodeList
+DOM에 접근해 사용할 수 있다.
+```js
+document.body.innerHTML = '<div>a</div><div>b</div><div>c</div>';
+var nodeList = document.querySelector('div');
+console.log(nodeList)
+// NodeList(3) [div, div, div]
+// {0: div
+// 1: div
+// 2: div
+// length:3}
+
+var nodeArr = Array.prototype.slice.call(nodeList);
+nodeArr.forEach(function(node){
+  console.log(node);
+})
+// <div>a</div>
+// <div>b</div>
+// <div>c</div>
+```
+
+#### 생성자 내부에서 다른 생성자 호출
+반복되는 생성자 정보의 경우에도 적용할 수 있다. 
+
+##### 예시1 반복되는 프로퍼티 정보 간소화
+아래와 같이 공통된 Person 생성자 함수를 정의하고 Student, Employee 생성자 함수에서 call, apply하는 방법이다.  
+Person을 call 하되 Student 정보를 같이 넣어주고 나머지 속성은 할당하여 인스턴스를 진행할 수 있다.
+```js
+function Person(name, gender){
+  this.name = name;
+  this.gender = gender;
+}
+
+function Student(name, gender, school){
+  Person.call(this, name, gender); // name, gender과 Student 객체에 세팅되어 생성된다.
+  this.school = school;
+}
+
+function Employee(name, gender, company){
+  Person.apply(this, [name, gender]); // name, gender과 Employee 객체에 세팅되어 생성된다.
+  this.company = company;
+}
+
+var wj = new Student('원장', 'male', '서울대');
+var tj = new Employee('투장', 'female', '삼성');
+```
+
+##### 예시 2 최댓값 최솟값
+```js
+var numbers = [10, 20, 3, 16, 46];
+
+var max = Math.max.apply(null, numbers);
+var min = Math.min.apply(null, numbers);
+console.log(max) // 45
+console.log(min) // 3
+```
+
+### bind 메서드
+call과 비슷하지만, 즉시 호출하지 않고 넘겨받은 this 및 인수들을 바탕으로 새로운 함수를 반환하는 메서드이다.  
+이를 이용해 함수에 this를 미리 적용할 수 있다.
+```js
+var func = function(a, b, c, d){
+  console.log(this, a, b, c, d);
+}
+func(1, 2, 3, 4); // window 객체
+
+// this로 넘겨주고 새로운 func 함수를 반환받는다.
+var bindFunc1 = func.bind{{ x : 1 }};
+bindFunc1(5, 6, 7, 8); // { x : 1 } 5 6 7 8
+
+// this와 첫 번째, 두 번째 매개변수를 세팅했기 때문에 다음에는 나머지 인수들만 전달할 수 있다.
+var bindFunc2 = func.bind{{ x : 1}, 4, 5};
+bindfunc2(6, 7) // { x: 1 } 4 5 6 7
+bindfunc2(8, 9) // { x: 1 } 4 5 8 9
+```
+
+bind 메서드를 적용해 새로 만든 함수는 name 프로퍼티에 'bound'라는 접두어가 붙는다.
+```js
+var func = function(a, b, c, d){
+  console.log(this, a, b, c, d);
+};
+
+var bindFunc = func.bind{{ x : 1}, 4, 5}
+console.log(func.name); // func
+console.log(bindFunc.name); // bound func
+```
+
+또한 상위 컨텍스트 this를 내부함수나 콜백 함수에 전달할 수 있다.
+
+#### 내부함수에 this 전달
+이전에 self에 this를 저장해 호출하는 우회법보다 call, apply, bind를 사용하면 깔끔하게 전달이 가능하다.
+```js
+var obj = {
+  outer: function() {
+    console.log(this); // obj
+    var innerFunc = function() {
+      console.log(this); // obj
+    };
+    innerFunc.call(this); // 함수에 call을 붙여 this를 인자로 넘겨준다.
+  }
+}
+obj.outer();
+```
+
+bind를 이용한 방법
+```js
+var obj = {
+  outer: function() {
+    console.log(this);
+    var innerFunc = function() {
+      console.log(this);
+    }.bind(this); // this를 넘겨주어 새로운 함수 반환 즉 obj 호출
+    innerFunc();
+  }
+}
+obj.outer();
+```
+
+콜백함수를 이용한 방법. 콜백함수도 함수이므로 함수가 인자로 전달될 때 함수 자체로 전달 bind를 사용할 수 있다.
+```js
+var obj = {
+  logThis: function() {
+    console.log(this);
+  },
+  logThisLater1: function() {
+    setTimeout(this.logThis, 500); // window
+  },
+  logThisLater2: function() {
+    setTimeout(this.logThis.bind(this), 1000); // logThis
+  }
+}
+```
+
+단 화살표 함수를 사용한다면 이 과정이 필요없다. 즉 화살표 함수를 쓰면 된다.
+화살표함수는 this가 유실되지 않기 때문이다.
+```js
+var obj = {
+  outer: function() {
+    console.log(this); // obj
+    var innerFunc = () => {
+      console.log(this); // obj 유실되지 않음.
+    };
+    innerFunc();
+  }
+}
+obj.outer();
+```
+
+별도의 인자로 this를 받는 경우 즉, 콜백 함수를 인자로 받는 메서드 중 추가로 this로 지정할 객체를 인자로 지정 할 수 있다. 배열과 관련된 메서드에 많이 존재하며 set, map 등의 메서드에도 일부 존재한다.
+<del>설명이 매우 어렵다 코드를 보자</del>
+```js
+// forEach 예시
+
+var report = {
+  sum: 0,
+  count: 0,
+  add: function() {
+    // 넘겨온 인자(60, 85, 95)를 받아 객체를 배열로 변환하고 함수를 반환
+    var args = Array.prototype.slice.call(arguments);
+    args.forEach(function(entry){
+      this.sum += entry;
+      ++this.count;
+    }, this);
+    // forEach(함수, this) -> this의 경우 forEach에서 활용될 수 있다. 현재 this는 report를 가리킨다.
+  },
+  average: function() {
+    return this.sum / this.count
+  }
+};
+
+report.add(60, 85, 95);
+console.log(report.sum, report.count, report.average());
+
+// 콜백 함수와 함께 thisArg를 인자로 받는 메서드
+// forEach, map, filter, some, every, find, findIndex
+// flatMap, from, forEach(Set, Map)
+```
