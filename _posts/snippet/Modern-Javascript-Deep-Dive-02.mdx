@@ -50,5 +50,61 @@ regexp.test(target); // true
 
 생성자 함수 `RegExp`를 이용해 `RegExp`객체를 생성할 수 있죠.
 ```js
+/**
+ * pattern: 정규 표현식의 패턴
+ * flags: 정규 표현식의 플래그(g, i, m, u, y)
+ */
+
+new RexExp(pattern[, flags])
+```
+
+다음이 예시 코드입니다.
+```js
+const target = 'Is this all there is?';
+
+const regexp = new RexExp(/is/i); // ES6
+// const regexp = new RegExp(/is/, 'i');
+// const regexp = new RegExp('is', 'i');
+
+regexp.test(target); // true
+```
+다음과 같이 변수를 사용해 동적으로 RegExp 객체를 생성할 수 있습니다. 현재로선 동적으로 사용할 수 있다는 것을 이해하고 RegExp 메서드가 무엇인지는 다음에서 설명하겠습니다.
+
+```js
+// str, char 매개변수를 받는 함수를 선언하여 match메서드를 이용한다. 
+const count = (str, char) => (str.match(new RegExp(char, 'gi')) ?? []).length;
+
+count('Is this all there is?', 'is'); // 3
+count('Is this all there is?', 'xx'); // 0
+```
+
+### RegExp 메서드
+---
+정규 표현식을 사용하는 메서드는 아래와 같습니다.
+
+- RegExp.prototype.exec
+- RegExp.prototype.test
+- RegExp.prototype.match
+- RegExp.prototype.replace
+- RegExp.prototype.search
+- RegExp.prototype.split
+
+이중 `exec`, `test`, `match` 메서드에 살펴보겠습니다.
+
+#### exec
+exec 메서드는 인수로 전달받은 문자열에 대해 정규 표현식의 패턴을 검색하고 매칭 결과를 배열로 반환합니다. 매칭 결과가 없는 경우엔 null을 반환합니다.
+
+```js
+const target = 'Is this all there is?';
+const regExp = /is/;
+
+regExp.exec(target);
+// ["is", index: 5, input:"Is this all there is?", groups: undefined]
+```
+단 문자열 내의 모든 패턴을 검색하는 <b>g</b>플래그를 지정하더라도 첫 번째 매칭 결과만 반환합니다.
+
+#### test
+test 메서드는 인수로 전달받은 문자열에 대해 정규 표현식의 패턴을 검색해 매칭 결과를 boolean 값으로 반환합니다.
+```js
 
 ```
