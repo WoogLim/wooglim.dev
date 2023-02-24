@@ -215,4 +215,219 @@ exports.add = add;
 - Request란 클라이언트가 서버에게 전달하려는 정보나 메시지를 담는 객체를 의미.
 - Response란 서버에서 클라이언트로 응답 메시지를 전송시켜주는 객체
 
-Vercel 테스트
+#### request
+- eq.app : req 객체를 통해 app 객체에 접근할 수 있습니다.
+- req.ip: 요청한 Client의 ip 주소가 담겨 있습니다.
+- **req.body**: Request를 호출할 때 body로 전달된 정보가 담긴 객체입니다.
+    - `express.json()` Middleware를 이용하여야 해당 객체를 사용할 수 있습니다.
+- **req.params**: 라우터 매개 변수에 대한 정보가 담긴 객체입니다.
+- **req.query**: Request를 호출할 때 쿼리 스트링으로 전달된 정보가 담긴 객체입니다.
+- req.cookies: Request를 호출할 때 Cookie 정보가 담긴 객체입니다.
+    - cookie-parser Middleware를 이용하여야 해당 객체를 사용할 수 있습니다.
+- req.get(*Header*): 헤더에 저장된 값을 가져오고 싶을 때 사용합니다.
+
+##### query
+```js
+const goodsRouter = require('./routes/goods.js')
+
+// req.body() 사용을 위해 작성
+// bodyParser 미들웨어를 사용하기 위해 선언
+// 모든코드에서(경로를 지정X) bodyparser를 선언해 req.body에 데이터를
+// 정상적으로 보기위해 사용
+app.use(express.json())
+
+app.get('/', (req, res) => {
+  console.log(req.query);
+
+  res.send('정상적으로 변환되었습니다.')
+});
+// [1] localhost:3000?queryKey=valuevalue 요청!
+// [2] { queryKey: 'valuevalue' } 출력
+```
+
+##### param
+```js
+// ":id " -> localhost:3000/[값] -> [값]의 키는 id로 지정해서 받겠다.
+app.get("/:id", (req, res) => {
+  console.log(req.params);
+
+  res.send(":id URI에 정상적으로 반환되었습니다.")
+})
+
+// [1] localhost:3000/helloworld 요청!
+// [2] { id: 'helloworld' } 출력
+```
+
+##### body
+```js
+app.post("/", (req, res) => {
+  console.log(req.body);
+
+  res.send("기본 URI에 POST메서드가 정상적으로 실행되었습니다.")
+})
+
+// [1] localhost:3000 URI로 post 요청. body내 { "id" : "value" } 형식으로 데이터 전송
+// [2] { key1234: '안녕하세요 key1234입니다.' } 출력
+```
+
+#### response
+- res.app : res 객체를 통해 app 객체에 접근할 수 있습니다.
+- **res.status(*코드*)** : Response에 HTTP 상태 코드를 지정합니다.
+- **res.send(*데이터*)** : 데이터를 포함하여 Response를 전달합니다.
+- **res.json(*JSON*)** : JSON 형식으로 Response를 전달합니다.
+- res.end() : 데이터 없이 Response를 전달합니다.
+- res.direct(*주소*) : 리다이렉트할 주소와 함께 Response를 전달합니다.
+- res.cookie(*Key, Value, Option*) : 쿠키를 설정할 때 사용합니다.
+- res.clearCookie(*Key, Value, Option*) : 쿠키를 제거할 때 사용합니다.
+
+##### json
+JSON 형식으로 Response를 전달합니다. 요청한 브라우저는 Response로 Json을 받습니다.
+```js
+app.get('/', (req, res) => {
+  console.log(req.query);
+
+  const obj = {
+    "KeyKey" : "value 입니다.",
+    "이름입니다." : "이름일까요?",
+  }
+
+  res.json(obj);
+});
+
+// 브라우저는 아래와 같은 json을 얻습니다.
+// {
+//   "KeyKey": "value 입니다.",
+//   "이름입니다.": "이름일까요?"
+// }
+```
+
+##### status
+response가 정상적인지 비정상적인지 보낼 수 있습니다.
+```js
+app.get('/', (req, res) => {
+  console.log(req.query);
+
+  const obj = {
+    "KeyKey" : "value 입니다.",
+    "이름입니다." : "이름일까요?",
+  }
+
+  res.status(400).json(obj);
+});
+
+// 브라우저는 Bad Request 400 status를 전달받습니다.
+```
+
+### API와 REST API의 개념
+
+#### API
+- **API**는 애플리케이션끼리 연결해주는 매개체이자 약속이라고 볼 수 있습니다.
+- 키보드로 글자를 입력하면 키보드는 우리가 작성한 글자를 컴퓨터에 전달해주는 역할을 합니다. 우리가 키보드의 키를 누르는것이 API를 호출하는것으로 볼 수 있습니다.
+- 웹 어플리케이션(프론트엔드)에서 원하는 기능을 수행하는 URL과 인터페이스를 제공한다는 의미입니다.
+- 우리가 작성 할 API에서 원하는 데이터를 받아 데이터베이스에 데이터를 저장하고, 저장되어 있는 데이터를 읽어서 웹 어플리케이션(프론트엔드)에 데이터를 제공하는 행위를 통해 사용자가 원하는 목적을 이룰 수 있게 해야 합니다.
+
+#### REST API
+- **REST**(Representational State Transfer)는 [월드 와이드 웹](https://ko.wikipedia.org/wiki/%EC%9B%94%EB%93%9C_%EC%99%80%EC%9D%B4%EB%93%9C_%EC%9B%B9)과 같은 분산 [하이퍼미디어](https://ko.wikipedia.org/wiki/%ED%95%98%EC%9D%B4%ED%8D%BC%EB%AF%B8%EB%94%94%EC%96%B4) 시스템을 위한 [소프트웨어 아키텍처](https://ko.wikipedia.org/wiki/%EC%86%8C%ED%94%84%ED%8A%B8%EC%9B%A8%EC%96%B4_%EC%95%84%ED%82%A4%ED%85%8D%EC%B2%98)의 한 형식입니다.
+- 간단하게 설명하자면 URL, Headers, Method 등 네트워크 표현 수단을 사람이 봐도 이해하기 쉬운 표현으로 정의한다고 보면 됩니다.
+- “REST 아키텍쳐”는 사람이 봐도 쉽게 이해할 수 있도록 “자원”을 정의하고 이 “자원”을 중심으로 표현을 구성하는 원칙을 제시합니다.
+- 클라이언트가 HTTP 메소드를 이용해 REST API를 호출하고, REST API는 데이터베이스에 데이터를 저장/가공하기 위해 데이터베이스에 데이터를 요청해 전달 받고 REST API는 JSON 혹은 XML을 클라이언트에게 전송하죠.
+- REST API는 “REST 아키텍쳐”라는 규칙을 따르는 API라고 생각하시면 됩니다.
+> 자원(Resource) - URL : 우리가 만들 소프트웨어가 관리하는 모든 것을 자원으로 표현할 수 있습니다. 쇼핑몰이라면 상품(Goods)에 대해서 정보를 관리할것이고 또는 장바구니(Carts)에 담긴 상품들도 관리해야겠죠.
+> 행위 - HTTP method : GET 메소드는 해당 자원의 조회, POST 메소드는 해당 자원의 생성 등 목적에 의해 사용된다고 보시면 됩니다. 이렇게 나누어진 것을 보통 CRUD 라고 합니다. 자원에 대한 생성/조회/수정/삭제를 각각의 method 로 나누어놓은 것이죠.
+```text
+Create : 생성(POST)
+Read : 조회(GET)
+Update : 수정(PUT),(PATCH)
+Delete : 삭제(DELETE)
+```
+> 표현 : 해당 자원을 어떻게 표현할지에 대한 설명입니다. 보통 JSON, XML 같은 형식을 이용해서 자원을 표현 HTTP에서는 **Content-Type** 이라는 헤더를 통해 표현 방법을 서술
+
+다음 코드는 `REST API`예시입니다.
+```js
+router.get('/books', (req, res) => {
+	res.json({ success: true, data: getAllBooks() });
+});
+```
+- /books 라는 URL을 통해 전체 책 목록을 불러와 응답해 주는 역할을 하는 API입니다.
+- URL로 리소스를 구분할 수 있고 다른 표현이 없으므로 전체 리스트를 불러오는것을 짐작 할 수 있습니다. CRUD 중 Read를 담당하는 HTTP 메소드로 표현하여 REST한 API라고 볼 수 있습니다.
+
+#### 간단한 REST API 만들어보기 - 굿즈 상품 목록 검색하기
+아래와 같이 `goods.js`모듈에 굿즈 상품 목록을 검색할 수 있는 API를 생성해봅시다.
+```js
+const express = require("express");
+const router = express.Router();
+
+const goods = [
+  {
+    goodsId: 4,
+    name: "상품 4",
+    thumbnailUrl:
+      "https://cdn.pixabay.com/photo/2016/09/07/02/11/frogs-1650657_1280.jpg",
+    category: "drink",
+    price: 0.1,
+  },
+  {
+    goodsId: 3,
+    name: "상품 3",
+    thumbnailUrl:
+      "https://cdn.pixabay.com/photo/2016/09/07/02/12/frogs-1650658_1280.jpg",
+    category: "drink",
+    price: 2.2,
+  },
+  {
+    goodsId: 2,
+    name: "상품 2",
+    thumbnailUrl:
+      "https://cdn.pixabay.com/photo/2014/08/26/19/19/wine-428316_1280.jpg",
+    category: "drink",
+    price: 0.11,
+  },
+  {
+    goodsId: 1,
+    name: "상품 1",
+    thumbnailUrl:
+      "https://cdn.pixabay.com/photo/2016/09/07/19/54/wines-1652455_1280.jpg",
+    category: "drink",
+    price: 6.2,
+  },
+];
+
+//localhost:3000/api/goods
+router.get("/goods", (req, res) => {
+  // goods: goods 키 벨류 동일한 이름으로 goods로 축약
+  res.status(200).json({goods})
+})
+
+router.get("/goods/:goodsId", (req, res) =>{
+  // req.params 는 객체 형태로 전송된다. 객체 분해 할당을 이용하면 값을 바로 가져올 수 있다.
+  const {goodsId} = req.params;
+  console.log(goodsId); // 값만이 표기된다.
+
+  // let result = null;
+  // for(const good of goods){
+  //   // 배열 요소를 순회해서 Id 값이 같은 경우의 객체만 result에 할당
+  //   if( Number(goodsId) === good.goodsId){
+  //     result = good;
+  //   }
+  // }
+
+  // 배열내 객체 순회
+  const [result] = goods.filter((good) => Number(goodsId) === good.goodsId)
+
+  res.status(200).json({ detail: result });
+})
+
+module.exports = router;
+```
+브라우저는 `localhost:3000/api/goods/1`과 같은 URL을 GET메서드 요청한다면 특정 굿즈를 검색할 수 있게됩니다. 아래와 같이 Response탭에 상품의 정보가 담겨오는거죠.
+```js
+{
+  "detail": {
+    "goodsId": 1,
+    "name": "상품 1",
+    "thumbnailUrl": "https://cdn.pixabay.com/photo/2016/09/07/19/54/wines-1652455_1280.jpg",
+    "category": "drink",
+    "price": 6.2
+  }
+}
+```
