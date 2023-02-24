@@ -1,5 +1,5 @@
 ---
-title: "[항해] 항해 3주차 5일 - 1"
+title: "[항해] 항해 3주차 5일 - 2"
 description: "Node.js 입문 1주차 - express"
 language: "daliyreport"
 category: "Hanghae99"
@@ -191,7 +191,7 @@ console.log(add(10, 30));
 // 40
 ```
 
-#### 모듈을 호출했을 때 키 값에 함수 할당
+#### 모듈을 호출했을 때 키 값에 함수 할당해 외부 사용
 ```js
 // math.js
 function add (a, b) {
@@ -202,7 +202,7 @@ function add (a, b) {
 module.exports = {add: add};
 ```
 
-#### 함수표현식으로 할당
+#### 함수표현식으로 할당해 외부 사용
 ```js
 const add = (a, b) => {
   return a + b;
@@ -210,3 +210,7 @@ const add = (a, b) => {
 
 exports.add = add;
 ```
+
+### Request와 Response
+- Request란 클라이언트가 서버에게 전달하려는 정보나 메시지를 담는 객체를 의미.
+- Response란 서버에서 클라이언트로 응답 메시지를 전송시켜주는 객체
