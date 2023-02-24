@@ -8,6 +8,7 @@ serisenumber: 1
 ---
 ## 시작
 코드 작성을 하면서 런타임 시점이 다가왔을때, 내가 작성한 코드가 과연 직렬로 작동하는지, 아니면 병렬로 작동하는지 한번 생각해본적이 있었다.  
+
 만일 이 질문에 현재 답이 안나온다면 그때 과연 내가 문제에 관한 키워드를 찾아낼 수 있을까? 의구심이 들었다. 때문에 오늘은 다시 한번 자바스크립트의 동작 방식에 대해 알아낼 것이다.
 
 ## 자바스크립트는 결국 동기식 언어이다.
@@ -157,6 +158,7 @@ Promise를 번역하면 `약속`이죠. 자바스크립트에서 제공하는 �
 
 `Promise`는 현재 상태 <b>state</b>, 정보를 제공하는 <b>Producer</b>, 정보를 소비하는 <b>Consumer</b> 에 대한 견해가 핵심입니다.  
 `state`는 과정 마다 상태가 변경됩니다. `Promise`로 처리를 요청하여 진행되는 구간은 <b>pending</b>, 성공적으로 끝나면 <b>fulfilled</b>, 찾을 수 없거나 네트워크 오류가 발생하는 경우 <b>rejected</b>상태가 됩니다.  
+
 또한 데이터를 가공하여 제공하는 <b>Producer</b>, 원하는 데이터를 소모하는 <b>Consumer</b>가 존재하죠.
 
 그럼 콜백을 쓰지 않고 `Promise` 객체만을 이용해 비동기 처리를 진행해봅시다.
@@ -283,7 +285,7 @@ getHen() // 결과는 3초 뒤에 보일거예요.
   .catch(console.log)
   // error! 🦕 => 🥚 at
 ```
-위와 같이 <b>catch</b> 구문을 적절히 사용한다면 에러를 발생시키지 않을 수 있습니다. 이번엔 위에서 보았던 콜백 지옥 함수 코드도 `Promise`로 잘 정돈해봅시다.
+위와 같이 <b>catch</b> 구문을 적절히 사용한다면 에러를 발생시키지 않을 수 있습니다. 마지막으로 이번엔 위에서 보았던 콜백 지옥 함수 코드도 `Promise`로 잘 정돈해봅시다.
 ```js
 // [5] 콜백 지옥 없애기
 class UserStorage{
@@ -324,28 +326,151 @@ class UserStorage{
 const userStorage = new UserStorage();
 const id = prompt('enter your id');
 const password = prompt('enter your password');
-userStorage.loginUser(id, password)
 
-userStorage.loginUser(
-  id,
-  password,
-  user => {
-    //success
-    userStorage.getRoles(
-      user,
-      userWithRole =>{
-        // success
-        // 넘겨준 user인자가 ellie가 맞다면 성공!
-        // 성공적으로 받은 {name: 'ellie', rold: 'admin'} 인자에서 이름과 권한을 꺼내 출력합니다.
-        alert(`Hello ${userWithRole.name}, you have a ${userWithRole.role} role`);
-      },
-      error => {
-        // 넘겨준 user인자가 ellie가 아니라면 에러!
-        console.log(error);
-      }
-    )
-  },
-  error => {
-    console.log(error)
-  }
+// 콜백 지옥의 해결
+userStorage
+  .loginUser(id, password)
+  .then(userStorage.getRoles) // userStorage.getRoles(user) 축약!
+  .then(user => alert(
+    `Hello ${user.name}, you have a ${user.role}`));
+  .catch(console.log);
+
+// 콜백 지옥의 잔해
+// userStorage.loginUser(
+//   id,
+//   password,
+//   user => {
+//     //success
+//     userStorage.getRoles(
+//       user,
+//       userWithRole =>{
+//         // success
+//         // 넘겨준 user인자가 ellie가 맞다면 성공!
+//         // 성공적으로 받은 {name: 'ellie', rold: 'admin'} 인자에서 이름과 권한을 꺼내 출력합니다.
+//         alert(`Hello ${userWithRole.name}, you have a ${userWithRole.role} role`);
+//       },
+//       error => {
+//         // 넘겨준 user인자가 ellie가 아니라면 에러!
+//         console.log(error);
+//       }
+//     )
+//   },
+//   error => {
+//     console.log(error)
+//   }
 ```
+
+### 비동기의 꽃 Javascript async await
+<b>async await</b>은 <b>Promise</b>를 보다 간단하고 동기적으로 실행되는것처럼 만들 수 있습니다.
+
+<b>async await</b>은 보다 깔끔하게 <b>Promise</b>를 사용할 수 있는 방법이지, 대체해서 사용하는것은 아닙니다.  
+
+<b>Promise</b>의 경우 다음과 같이 사용했습니다.
+```js
+// Promise
+function fetchUser() {
+  return new Promise((resolve, reject) => {
+    resolve('ellie');
+  })
+}
+
+const user = fetchNumber(); // 비동기로 처리하지 않는다면 사용자 데이터를
+                            // 가지고오는데 10초가 걸리기 때문에 다음 코드가 10초간 동작을 못함.
+                            // 비동기로 적용해야함!
+user.then(console.log);
+console.log(user)
+```
+만일 <b>비동기 처리</b>를 하지 않는 경우 다음과 같은 현상이 발생합니다. 자바스크립트는 동기 처리 방식입니다.  
+때문에 다음과 같이 비동기 처리를 하지 않은 채 서버와 통신을 하게된다면 이후 코드는 통신을 기다려야하죠.
+```js
+// 비동기 처리 X
+function fetchUser() {
+  // 네트워크 통신으로 백엔드로부터 데이터를 가져오는 코드가 있다고 가정 ...
+  // 10초 뒤에 백엔드로부터 데이터를 받는다.
+  return 'ellie'; // 백엔드로부터 보내져 온 데이터를 반환
+}
+
+const user = fetchNumber(); // 비동기로 처리하지 않는다면 사용자 데이터를
+                            // 가지고오는데 10초가 걸리기 때문에 다음 코드가 10초간 동작을 못함.
+                            // 비동기로 적용해야함!
+console.log(user);
+```
+이제 <b>async await</b>을 이용해 비동기 처리를 간편하게 적용하면서 보기 쉽게 바꿔보도록 하겠습니다. 서버와 통신을 하는 함수에 <b>async</b>키워드를 붙여 준다면 <b>Promise</b>로 변환됩니다.
+```js
+// 1. async
+async function fetchUser() {
+  // 네트워크 통신으로 백엔드로부터 데이터를 가져오는 코드가 있다고 가정 ...
+  // 10초 뒤에 백엔드로부터 데이터를 받는다.
+  return 'ellie'; // 백엔드로부터 보내져 온 데이터를 반환
+}
+
+const user = fetchNumber(); // fetchNumber 함수 앞에 async 키워드를 붙여
+                            // Promise로 변환
+user.then(console.log); // Promise {} 
+console.log(user); // ellie
+```
+이제 <b>await</b>도 알아봅시다. `await` 은 `기다려`와 같습니다. 그리고 `async`가 붙은 함수안에서만 사용할 수 있습니다.
+```js
+// 2. await
+function delay(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+async function getApple(){
+  // 통신이 완료되기를 기다려.. await
+  await delay(1000);
+  return '🍎';
+}
+🍌
+async function getBanana(){
+  await delay(1000);
+  return '🍌';
+}
+
+async function pickFruits(){
+  // 아래는 await 구문이 2개 존재하네요..? 바나나는 애플이 완료되기까지 실행이 안되나요?
+  // 맞습니다. 아래 1번의 경우 총 2초가 소요됩니다.
+
+  // 1. 잘못된 사용
+  // 통신이 완료되기를 기다려.. await
+  // const apple = await getApple();
+  // 통신이 완료되기를 기다려.. await 응답이 올때까지 기다림 ...
+  // const banana = await getBanana();
+
+  // 2. 올바른 사용
+  // async가 붙은 함수의 경우 Promise로 변환됩니다.
+  // 이제 아래 구문에서 서버 응답을 기다릴 await은 제외하고 async 함수만을 호출해서
+  // 병렬적으로 처리할 수 있습니다.
+  const applePromise = getApple(); // 사과의 Promise
+  const bananaPromise = getBanana(); // 바나나의 Promise
+  const apple = await applePromise;
+  const banana = await bananaPromise;
+
+  return `${apple} + ${banana}`
+}
+
+pickFruits().then(console.log);
+```
+2번과 같이 올바른 사용의 예를 보았지만 불필요한 코드가 몇개 보입니다. `useful Promise APIs`를 사용해 좀 더 정리해봅시다.  
+<b>Promise</b>의 <b>all</b>메서드를 이용하면 좀 더 간편한 코드를 작성할 수 있습니다. <b>all</b>메서드의 경우 인자로 <b>Promise</b>가 담긴 <b>배열을</b> 받습니다.  
+모든 Promise들이 병렬적으로 응답을 받을 때까지 결과를 모아줍니다.
+```js
+function pickAllFruits(){
+  return Promise.all([getApple(), getBanana()])
+  .then(fruits => fruits.join((' + ')))
+}
+pickAllFruits().then(console.log);
+//(2) 🍎 + 🍌
+```
+가장 빠른 응답을 받은 Promise를 선택할 수도 있습니다. 예로 바나나가 1초, 사과가 1.5초가 걸린다고 생각해봅시다.
+```js
+function pickOnlyOne(){
+  return Promise.race([getApple(), getBanana()]);
+}
+
+// 응답을 더 빨리 받은 바나나를 출력합니다.
+pickOnlyOne().then(console.log);
+// 🍌
+```
+
+### async await을 이용한 HTTP 통신
