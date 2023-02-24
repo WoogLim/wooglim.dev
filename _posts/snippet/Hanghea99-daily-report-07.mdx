@@ -1,0 +1,341 @@
+---
+title: "[항해] 항해 3주차 5일 - 1"
+description: "Node.js 입문 1주차 - 기본 자바스크립트와 HTTP 그리고 패키지 매니저"
+language: "daliyreport"
+category: "Hanghae99"
+update: "2023-02-24"
+serisenumber: 7
+---
+## 시작
+Node.js 시작
+
+## 들어가기전 ..
+Node.js 에 들어가기 전 우선 자바스크립트 필수 개념을 정리해보도록 하겠습니다.
+
+### 에러 핸들링
+에러 핸들링의 경우 에러를 일으켜 프로그램을 종료시킬 수 있고, 다른 방법으로 프로그램을 종료시키지 않으면서 에러를 제어하는 핸들링 작업을 수행할 수 있습니다.
+
+#### 1 - try / catch
+try / catch 의 경우 에러가 발생해도 함수를 종료시키지 않습니다.
+```js
+// [1] try / catch 의 경우 에러가 발생해도 함수를 종료시키지 않는다.
+const users = ['Lee', 'Kim', 'Park', 2];
+
+try {
+  for(const user of users){
+    console.log(user.toUpperCase());
+  }
+} catch (err) {
+  console.error(`Error: ${err.message}`);
+}
+
+// Lee
+// Kim
+// Park
+// Error user.toUpperCase is not a function
+```
+
+#### 2 - throw
+throw 아래는 에러가 발생하는 순간 함수가 종료되어 버립니다.
+```js
+// [2] throw 아래는 에러가 발생하는 순간 함수가 종료되어 버린다.
+function withdraw(amount, account){
+  if(amount > account.balance)
+    throw new Error("잔고가 부족합니다."); // 에러 발생! 프로그램 종료.
+  account.balance -= amount;
+  console.log(`현재 잔고가 ${amount.balance}남았습니다.`); // 출력되지 않음.
+}
+
+const account = { balance : 1000 };
+withdraw(2000, account);
+```
+
+#### 3 - finally
+finally는 try / catch, throw 여부 상관없이 언제든지 실행됩니다.(마지막에)
+```js
+// [3] finally : try / catch 여부 상관없이 언제든지 실행됩니다.(마지막에)
+function errorException(isThrow) {
+  try{
+    console.log('자원을 할당하였습니다.');
+    if(isThrow) throw new Error();
+  } catch (error){
+    console.log('에러가 발생했습니다.');
+  } finally {
+    console.log('자원을 제거하였습니다.');
+  }
+}
+
+errorException(false);
+// 자원을 할당하였습니다.
+// 자원을 제거하였습니다.
+errorException(true);
+// 자원을 할당하였습니다.
+// 에러가 발생했습니다.
+// 자원을 제거하였습니다.
+```
+
+### 클래스
+클래스는 미리 정의해놓으면 필요할 때마다 인스턴스로 만들어 사용할 수 있습니다. 일종의 <b>틀</b>입니다.
+
+#### 클래스 생성하기
+<b>class</b>는 생성 시 new 키워드를 사용합니다.
+```js
+class User {
+
+}
+
+const user = new User(); // 인스턴스 생성
+user.name = '임건';
+user.age = 28;
+user.tech = "Node.js"
+
+console.log(user.name) // 임건
+console.log(user.age) // 28
+console.log(user.tech) // Node.js
+```
+
+#### 생성자
+<b>constructor</b>를 통해 class 내부 프로퍼티를 `new`키워드로 인스턴스로 생성되는 시점 해당 클래스에 생성하게 됩니다.
+```js
+class User {
+  constructor(name, age, tech){
+    this.name = name;
+    this.age = age;
+    this.tech = tech;
+  }
+}
+
+const user = new User("임건", 28, "Node.js"); // 인스턴스 생성. 초기화 할 인자를 입력합니다.
+
+console.log(user.name); // 임건
+console.log(user.age) // 28
+console.log(user.tech) // Node.js
+```
+
+#### this와 프로퍼티
+<b>this</b>는 클래스를 사용해 만들어질 객체 자신을 가리킵니다. 점표 접근자로 붙은 name 등 이름은 클래스를 이용해 만들어질 객체의 속성입니다.
+
+#### 메서드(Method)
+메서드는 객체에 묶여 있는 함수라고 보시면 됩니다.
+```js {7-9}
+class User {
+  constructor(name, age, tech){
+    this.name = name;
+    this.age = age;
+    this.tech = tech;
+  }
+
+  getName() { return this.name } // getName 메서드
+  getAge() { return this.age } // getAge 메서드
+  getTech() { return this.tech } // getTech 메서드
+}
+
+const user = new User("임건", 28, "Node.js"); // 인스턴스 생성. 초기화 할 인자를 입력합니다.
+
+console.log(user.getName()); // 임건
+console.log(user.getAge()) // 28
+console.log(user.getTech()) // Node.js
+```
+
+#### 상속
+일반적으로 클래스의 인스턴스는 선언한 클래스의 기능을 모두 상속받습니다.  
+
+상속으로 부모 클래스, 자식 클래스로 나눌 수 있습니다. 상속을 받는 클래스가 자식 클래스입니다.  
+
+`자식 클래스는 extends 부모 클래스`와 같은 방식으로 부모 클래스를 상속받을 수 있고 멤버 변수에 접근하기 위해 `this`가 아닌 `super`로 접근할 수 있습니다.
+```js
+class User { // User 부모 클래스
+  constructor(name, age, tech) { // 부모 클래스 생성자
+    this.name = name;
+    this.age = age;
+    this.tech = tech;
+  }
+  getTech(){ return this.tech; } // 부모 클래스 getTech 메서드
+}
+
+class Employee extends User{ // Employee 자식 클래스 User 부모 클래스를 상속받습니다.
+  constructor(name, age, tech) { // 자식 클래스 생성자
+    super(name, age, tech); // 여기서 super는 부모를 가리킵니다. this는 자신이였죠.
+    // 부모가 가진 멤버 변수, 메서드 또한 상속받습니다.
+    // this.name = name;
+    // this.age = age;
+    // this.tech = tech;
+  }
+  // getTech(){ return this.tech; }
+}
+
+const employee = new Employee("이용우", "28", "Node.js");
+console.log(employee.name); // 이용우
+console.log(employee.age); // 28
+console.log(employee.getTech()); // 부모 클래스의 getTech 메서드 호출: Node.js
+```
+
+### HTTP 통신
+HTTP는 데이터를 주고 받는 하나의 `통신 규약`입니다. 컴퓨터끼리 데이터를 주고 받는 약속을 의미합니다.  
+
+서버나 클라이언트끼리 의사 소통을(Network 로) 위해 `HTTP`를 이용합니다.
+
+#### 데이터를 주고 받는 방식
+HTTP는 언제나 요청(Request), 응답(Response) 개념이 존재합니다.  
+서버와 브라우저의 관계를 봆시다
+- 브라우저는 서버에게 자신이 원하는 페이지 URL 등 정보를 요청합니다.
+- 서버는 브라우저가 원하는 페이지가 있는지 확인 후 있다면 데이터를 반환(Response), 없다면 페이지에 대한 데이터를 반환합니다.
+- 브라우저는 서버에게 전달 받은 데이터를 기반으로 브라우저에 그려줍니다.
+- 어떠한 데이터를 주고 받는게 가능합니다.
+
+브라우저 상에서 HTTP 통신이 오가는 모습은 개발자 도구에 Network탭에서 확인할 수 있습니다. 각 리소스를 선택하면 Header, Preview, Response등 탭이 존재합니다.
+Preview, Response는 전달된 데이터를 볼 수 있으며 Preview는 데이터를 정렬해 표시합니다. Header에는 요청 URL, 요청 메소드, 상태 코드 등을 확인할 수 있습니다. Content-Type등도 확인할 수 있습니다. 데이터 통신에 대한 추가적인 정보가 보이게되죠.
+
+#### 요청 Method
+> GET  
+이름 그대로 어떤 리소스를 "얻고자"할 때 사용됩니다."
+> POST
+웹 서버에 데이터를 "게시"할 때 사용하는게 일반적입니다.(회원가입, 게시글 작성 등)
+
+PUT, DELETE도 추가적으로 정리해보겠습니다.
+
+#### Header 정보
+- 브라우저가 어떤 페이지를 원하는지
+- 요청 받은 페이지를 찾았는지
+- 성공적으로 찾았는지 (status code)
+
+#### Payload (데이터, 실질적 데이터)
+- 서버 응답을 보낼 때 항상 Payload를 보낼 수 있습니다.
+- 클라이언트가 요청하는 경우에도 Payload를 보낼 수 있습니다.
+- 보통 GET 메소드를 제외하곤 모두 Payload를 보낼 수 있습니다.
+
+## 환경 구성을 위한 준비
+
+### Pakage Manager
+- 패키지 매니저는 패키지를 손쉽게 다루는 작업을 안전하고 편히라게 사용하기 위한 툴입니다.
+- 대표적으로 Node.js에서 패키지 매니저는 npm, yarn이 존재합니다.
+
+> 패키지란?  
+- npm, yarn에 업로드된 Node.js 모듈을 패키지라고 부릅니다.
+- 모듈이 다른 모듈을 참조하듯이 패키지도 다른 패키지를 사용할 수 있습니다. 의존 관계라고 하죠.
+
+> npm  
+- npm은 자바스크립트에서 사용할 수 있는 패키지 관리자입니다.
+- python에 pip가 존재한다면 Node.js 에는 npm, yarn이 있습니다.
+
+> yarn  
+- npm에서 부족한 부분을 보완해 더욱 빠른 속도로 패키지를 관리할 수 있는 패키지입니다.
+
+> npm yarn 공존  
+- npm과 yarn을 동시 사용할 경우 모듈을 설치, 버전 수정 시 오류가 발생할 수 있습니다.
+- npm으로 설치한 버전, yarn에서 설치한 버전이 다르게 설치될 경우 각 버전들이 다르게 관리될 수 있어 문제가 발생, 충돌 우려가 있습니다.
+- 같이 사용하는 것은 좋지 않죠.
+
+> 패키지 버전 관리 Package.json  
+- 설치된 패키지들의 버전을 관리할 때 사용할 파일입니다.
+- run install을 실행하면 해당 패키지를 모두 설치할 수 있죠. 물론 설정한 버전으로 설치됩니다.
+- 패키지 관리 외에 프로젝트명, 작성자, 라이센스 정보등의 메타 데이터를 기록할 수 있습니다.
+- npm, yarn은 모두 동일한 `package.json`파일을 참조합니다.
+
+> Package-lock.json  
+- package.json 파일에 정의한 패키지 외에 `node_modules`에 들어있는 패키지들의 버전과 의존 관계가 상세히 기록되어 있습니다.
+- npm으로 패키지 설치, 수정, 삭제 시 패키지들의 의존 관계를 `package-lock.json`파일에 저장합니다.
+- 저장된 패키지들은 정확히 일치하는 버전만 기록되므로, 프로젝트에서 의존하는 패키지 버전을 정확하게 관리할 때 사용할 수 있습니다.
+
+### 배포를 위한 npm 학습
+#### npm init
+프로젝트 경로에 npm init을 입력하면 package.json 파일을 생성할 수 있습니다.
+```bash
+> npm init
+This utility will walk you through creating a package.json file.
+It only covers the most common items, and tries to guess sensible defaults.
+
+See `npm help init` for definitive documentation on these fields
+and exactly what they do.
+
+Use `npm install <pkg>` afterwards to install a package and
+save it as a dependency in the package.json file.
+
+Press ^C at any time to quit.
+package name: (package-manager-example)
+version: (1.0.0)
+# 프로젝트 설명
+description: project start package-manager-example
+# 프로젝트 시작하기 위해 어떤 파일을 사용할 것인지.
+entry point: (index.js)
+# 테스트 커맨드
+test command:
+git repository:
+keywords:
+author:
+license: (ISC)
+
+> ll
+total 8
+-rw-r--r--  1 wooglim  staff   256B  2 24 13:04 package.json
+```
+#### npm install
+패키지 설치시 사용할 명령입니다. install 뒤에 패키지명,버전을 입력하여 설치할 수 있습니다.
+```bash
+> npm i express
+
+added 57 packages, and audited 58 packages in 775ms
+
+7 packages are looking for funding
+  run `npm fund` for details
+
+found 0 vulnerabilities
+```
+설치된 패키지는 "dependencies"에서 확인할 수 있습니다. 현재 프로젝트 경로내 node_modules에 패키지가 추가됩니다.
+```json
+// package.json
+{
+  "name": "package-manager-example",
+  "version": "1.0.0",
+  "description": "project start package-manager-example",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}
+```
+
+#### 현재 패키지 설치? npm isntall
+npm install 을 입력하는 경우 package.json을 기반으로 node_modules에 명시된 모듈을 설치해주는 명령어 입니다.
+
+> devDependencies  
+- `pakage.json`을 보면 `dependencies`키가 존재하죠? `devDependencies`는 개발 단계에서만 필요한 모듈을 설치할 경우 포함됩니다.
+`npm install -D (모듈이름)`으로 추가할 수 있습니다.
+
+그럼 개발용으로 사용하기 위해 테스트 라이브러리 `jest와 supertest`를 개발용으로 설치해봅시다.
+```bash
+> npm install jest supertest -D
+
+added 298 packages, and audited 356 packages in 8s
+
+38 packages are looking for funding
+  run `npm fund` for details
+
+found 0 vulnerabilities
+```
+json을 보면 `devDependencies`에 설치한 패키지를 볼 수 있죠.
+```json
+{
+  "name": "package-manager-example",
+  "version": "1.0.0",
+  "description": "project start package-manager-example",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.18.2"
+  },
+  "devDependencies": {
+    "jest": "^29.4.3",
+    "supertest": "^6.3.3"
+  }
+}
+```

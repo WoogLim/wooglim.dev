@@ -1,0 +1,212 @@
+---
+title: "[항해] 항해 3주차 5일 - 1"
+description: "Node.js 입문 1주차 - express"
+language: "daliyreport"
+category: "Hanghae99"
+update: "2023-02-24"
+serisenumber: 7
+---
+## Express
+node.js의 경우 웹 서버 프레임워크로 express, nest.js 등을 이용합니다. node.js로도 웹 서버는 구현할 수 있지만 이를 기반으로 추가적으로 간편하고 빠르게 작업할 수 있게 보완한 것이 프레임워크입니다.
+
+다음은 <b>Express</b>의 특징입니다.
+- Express.js는 Node.js로 서버를 빠르고 간편하게 만들 수 있도록 도와주는 `웹 프레임워크`입니다.
+- Express.js 이외에 다양한 웹 프레임워크가 존재하나, 현재로선 가장 많이 사용되었습니다.
+- 최근에는 Nest.js가 각광받고 있습니다.
+
+웹서버와 차이
+- Express.js와 웹서버는 다릅니다.
+- Express.js는 웹서버가 자체가 아닌 Node.js기반 웹서버 구현을 위한 웹 프레임워크입니다.
+
+### 환경 구성
+
+#### 프로젝트 폴더 구성
+spa_mall 이라는 폴더를 생성합니다.
+
+#### npm init
+package.json 파일을 생성합니다.
+
+#### npm i express
+express 패키지를 설치합니다.
+
+#### 서버 실행하기
+```js
+//app.js
+const express = require('express');
+const app = express();
+const port = 3000;
+
+// 3000 번 포트로 get 메서드 실행 시 Hello World 응답.
+app.get('/', (req, res) => {
+  res.send('Hello World!');
+});
+
+// 3000 번 포트로 요청을 보낼 수 있도록 포트를 열어줍니다.
+app.listen(port, () => {
+  console.log(port, '포트로 서버가 열렸어요!');
+});
+```
+이후 브라우저에서 해당 URL을 요청하면 Hello World 텍스트를 보실 수 있습니다.
+
+만일 포트가 사용중인것을 확인하고 싶은 경우 아래 명령으로 사용중인 포트를 조회할 수 있습니다.
+```bash
+lsof - i :[포트명]
+```
+그리고 아래와 같이 포트를 중지할 수 있습니다.
+```bash
+kill -9  :[PID명]
+```
+
+#### API client
+<b>API clients</b>란 개발단계에서 우리가 작성한 API의 요청을 확인하거나 테스팅 할 때 도움을 주는 툴입니다. API Client를 사용함으로 개발 속도를 높이고 치명적인 에러를 예방하는데 도움을 받을 수 있습니다.  
+
+따로 프론트엔드를 구성하지 않고도 테스트가 가능한거죠.
+
+관련 프로그램은 다음과 같습니다.
+- Postman, Insomnia, Thunder Client
+- Thunder Client의 경우 VS Code내에서 사용할 수 있습니다. 물론 위와 같은 툴도 VS Code에 설치해 사용할 수 있지만 지금은 Thunder Client를 사용하겠습니다.
+
+현재는 `HTTP Method`중 `GET Method`에 대응하는 API만 생성했습니다. 이후 `POST, PATCH, PUT, DELETE, HEAD`등 다양한 Method에 대한 API를 개발하고 테스트하기 위해 사용할 수 있습니다.  
+Extensions탭에서 검색해 설치해봅시다.
+
+사용방법은 Postmap과 비슷합니다. Query탭에서 파라미터도 보낼 수 있고요. `POST, PUT`메서드 이용시 body에 데이터를 담아 보낼텐데, 이때에도 Body탭에 json 방식으로 데이터를 전달할 수 있습니다.
+
+또 좌측에 `Collections`탭에서는 여러가지의 API를 그룹화 할 수 있습니다.
+
+`Env`탭에는 여러번 사용되는 값들을 환경변수로 사용할 때 사용합니다. `Token`, `URL`, `개인 키` 등 다양한 자격증명 저장 및 사용할 수 있습니다.
+[그림 첨부 예정]
+
+### Routing 이해하기
+<b>Routing</b>은 클라이언트의 요청 조건(메서드, 주소 등)에 대응해 응답하는 방식을 말합니다. `Router`는 클라이언트 요청을 쉽게 처리 할 수 있게 도와주는 `Express.js`기본 기능중 하나입니다.
+
+> 일반적으로 Router는 아래와 같은 구조를 가집니다.
+```js
+router.METHOD(PATH, HANDLE);
+```
+- router: express의 라우터 정의
+- mehtod: HTTP Method
+- path: 실제 서버에서 API를 사용하기 위한 경로
+- handler: 라우트가 일치할 때 실행되는 함수
+
+우선 프로젝트 폴더내 `router`폴더 생성 후 아래와 같이 `goods`모듈(특정 부분을 공통 처리할 API)을 생성하고 `app.js`에서 불어와 사용해 봅시다.
+```js
+// goods.js
+const express = require("express"); // express 라이브러리 할당
+const router = express.Router(); // core Router를 반환받아 사용
+
+// API 생성
+// app.js에 app.use('/api', 현재 미들웨어)로 적용
+// locaklhost:3000/api/
+router.get('/',(req, res) => {
+  // 응답을 보낸다.
+  res.send("default url for goods.js GET Method");
+})
+
+// about url로 get 요청 들어오는 경우
+// locaklhost:3000/api/about
+router.get('/about', (req, res) => {
+  res.send("goods.js about PATH");
+})
+
+// 밖에서 사용할 수 있도록 exports해준다.
+module.exports = router;
+```
+아래와 같이 `app.js`에서 이 미들웨어를 사용할 수 있다.
+```js
+// app.js
+const express = require('express');
+const app = express();
+const port = 3000;
+const goodsRouter = require('./routes/goods.js')
+
+app.use
+
+app.get('/', (req, res) => {
+  res.send('Hello World!');
+});
+
+// localhost:3000/api/ -> goodsRouter
+// app.use에 인터프리터가 도달했을 때,
+// "/api" 라는 경로로 요청이 온다면 이 goodsRouter 미들웨어를 우선 탐색하라는 의미
+// 즉 goods 미들웨어를 탐색함. 전역 미들웨어.
+app.use("/api", goodsRouter);
+// 아래와 같이 배열내 미들웨어를 넣어 실행할 수 있다.
+// app.use("/api", [goodsRouter, userRouter]);
+
+app.listen(port, () => {
+  console.log(port, '포트로 서버가 열렸어요!');
+});
+```
+
+### Module 이해하기
+- Module은 분리된 자바스크립트 파일이며 각 파일은 특정한 기능을 가진 여러 개의 함수와 변수들의 집합입니다.
+- Module을 만들면 다른 프로그램에서 해당 모듈을 재사용할 수 있습니다.
+- Module은 그 자체로도 하나의 프로그램이면서 다른 프로그램의 부품으로도 사용할 수 있습니다.
+- 보통 1개의 파일이 1개의 모듈이 됩니다.
+
+#### Module의 메서드
+- export: 명령어를 변수나 앞에 붙이면 외부 모듈에서 해당 변수나 함수에 접근 가능
+- import, require: 외부 모듈을 불러올 수 있습니다. require는 현재 학습한 `CommomJS`로 모듈 시스템을 관리할 때, import는 `ES6`로 모듈 시스템을 관리할 때 유용합니다. 이는 `pakage.json`에서 확인할 수 있습니다. 파일내 적혀있지는 안지만 기본값으로 `type`값이 `CommonJS`입니다. 때문에 현재 예제에서는 `require`를 사용합니다. 아래와 같이 `ES6`로 변경된다면 `import`를 사용합니다.
+```json
+// package.json
+{
+  "type": "ES6"
+}
+```
+#### 모듈 자체를 바로 add 함수 할당
+우선 프로젝트 폴더내 `modules`폴더를 생성하고 `math.js`모듈에 두 값을 합하는 함수를 생성합니다.
+```js
+// math.js
+function add(a, b) {
+  return a + b;
+}
+
+module.exports = add;
+```
+이제 `math.js`모듈을 불러오고 함수를 실행해봅시다.
+```js
+// run.js
+const add = require("./math.js") // math.js 모듈을 가져온다.
+
+console.log(add(10, 30));
+// 40
+```
+
+#### 익명함수 하나만 외부 사용
+아래와 같이 `exports` 명령을 이용해 특정 함수만은 외부 에서 접근가능하도록 할 수 있습니다. 단, 객체로서 내보내게 됩니다.
+```js
+// math.js
+exports.add = function (a, b) {
+  return a + b;
+}
+
+// module.exports = add;
+```
+따라서 아래와 같이 `객체 분해 할당` 하여 간단하게 사용할 수 있습니다.
+```js
+// const add = require("./math.js") // { add: [Function (anonymous)]}
+const {add} = require("./math.js") // 객체 ㅂ
+
+console.log(add(10, 30));
+// 40
+```
+
+#### 모듈을 호출했을 때 키 값에 함수 할당
+```js
+// math.js
+function add (a, b) {
+  return a + b;
+}
+
+// 객체 형식으로 내보내기
+module.exports = {add: add};
+```
+
+#### 함수표현식으로 할당
+```js
+const add = (a, b) => {
+  return a + b;
+}
+
+exports.add = add;
+```
