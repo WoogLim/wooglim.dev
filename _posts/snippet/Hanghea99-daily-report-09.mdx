@@ -1,0 +1,422 @@
+---
+title: "[항해] 항해 3주차 5일 - 3"
+description: "Node.js 입문 1주차 - 서버 구현 시작"
+language: "daliyreport"
+category: "Hanghae99"
+update: "2023-02-25"
+serisenumber: 9
+---
+## 시작
+이번엔 실제 데이터베이스와 연동해보겠습니다. 시작 전 데이터베이스에 대해 간단히 알아보겠습니다.
+
+### 데이터 베이스
+
+#### 데이터 베이스란?
+- 단순히 데이터를 잘 저장하고 잘 찾기 위해 만들어진 소프트웨어를 Database Management System(DBMS)라고 합니다.
+- 관계형 데이터베이스(RDB), 비관계형 데이터베이스(NoSQL) 크게 둘로 나뉘어 집니다.
+> 관계형 데이터베이스 - Relational Database (RDB) : 데이터 형식이 정해져 있고, 데이터 끼리 관계를 맺어 모순이 없는 데이터를 유지할 수 있도록 도와주는것에 집중한 데이터베이스를 관계형 데이터베이스
+> 비관계형 데이터베이스 - Non-relational Database (NoSQL): 관계형 데이터베이스에 속하지 않는 모든 데이터베이스를 비관계형 데이터베이스라고 부릅니다. 비관계형 데이터베이스는 데이터의 형태가 고정되어 있지 않고 유연하게 확장할 수 있지만, 유연한 만큼 저장되는 데이터를 제대로 관리하지 않으면 데이터베이스에 저장된 데이터를 신뢰할 수 없게 되기도 합니다. 대표적으로 머신러닝 시 사용할 데이터를 저장합니다.
+- 몽고DB의 경우 NoSQL에 속합니다. 모든 데이터를 JSON형태로 저장할 수 있죠.
+
+#### 웹 서버와 DB 서버의 관계
+- 웹 서버는 웹 클라이언트가 원하는 데이터와 기능을 제공합니다.
+- DB 서버는 데이터를 최대한 성능 좋게 저장하고 DB 클라이언트가 원하는 데이터를 제공
+- 즉, 웹 서버는 DB 서버를 이용하는 DB 클라이언트가 될 수 있습니다. 브라우저 <-> 웹 서버 <-> 데이터베이스
+
+### mongo DB
+
+#### 설치하기(MAC)
+커뮤니티 버전 설치
+```bash
+brew tap mongodb/brew
+```
+```bash
+brew install mongodb-community
+```
+몽고 DB의 경우 `27017`을 기본 포트로 사용한다.
+```bash
+# 시작
+brew services start mongodb-community
+# 중단
+brew services stop mongodb-community
+```
+GUI 툴 [Studio T](https://robomongo.org/)를 설치합니다.
+
+#### 스키마 타입
+mongoDB에서 컬렉션이란 테이블, 스키마란 데이터 컬럼을 예로 들 수 있습니다.  
+mongoose(MongoDB)컬렉션에 저장할 데이터 스키마 타입은 다음과 같습니다.
+- `null` : null 값과 존재하지 않는 필드
+    - ex: `null`
+- `String` : 문자열
+    - ex: `“mongoDB”`
+- `Number` : 숫자
+    - ex: `3.14`
+- `Date` : 날짜
+    - ex: `new Date()`
+- `Buffer` : 파일을 담을 수 있는 버퍼, UTF-8이 아닌 문자열을 저장
+    - ex: `0x65`
+- `Boolean` : `true` or `false`
+    - ex: `true`
+- `ObjectId`(Schema.Types.ObjectId) : 객체 ID, 주로 다른 객체를 참조할 때 넣음
+    - ex: `ObjectId()`
+- `Array` : 배열 형태의 값
+    - ex: `["a", "b", "c"]`
+
+#### 모델
+- 데이터베이스에 데이터를 **저장**해줄때 데이터의 구조를 담당합니다.
+- 스키마를 사용하여 만들고, MongoDB에서 실제 작업을 처리할 수 있는 함수들을 지니고 있습니다.
+- **문서(Document)**를 생성할 때 사용합니다.
+
+#### 웹 서버에서 mongoDB 연결과 스키마 타입 설정
+웹 서버에서 mongoDB 연결을 위해 mongoose 설치
+```bash
+npm install mongoose
+```
+프로젝트 폴더에서 `schemas`폴더 생성 후 `index.js`파일에 다음과 같이 작성
+```js
+const mongoose = require("mongoose");
+
+const connect = () => {
+  // 커넥션 에러 시 catch
+  mongoose
+    .connect("mongodb://localhost:27017/spa_mall")
+    .catch(err => console.log(err));
+};
+
+mongoose.connection.on("error", err => {
+  // 커넥션 과정 에러 발생 시, 에러 발생
+  console.error("몽고디비 연결 에러", err);
+});
+
+// connect 익명함수를 외부에서 이용 가능하도록 설정
+module.exports = connect;
+```
+이후 커넥션 코드를 적어주고 실행한다.
+```js {7-8}
+// app.js
+const express = require('express');
+const app = express();
+const port = 3000;
+
+const goodsRouter = require('./routes/goods.js')
+const connect = require("./schemas") // index.js 생략 가능
+connect();
+
+// body 데이터가 들어온 경우 읽어들일 수 있는 전역 미들웨어
+app.use(express.json())
+
+app.use("/api", [goodsRouter])
+
+app.get('/', (req, res) => {
+  res.send('Hello World');
+})
+
+app.listen(port, () => {
+  console.log(port, '포트로 서버가 열렸어요!');
+});
+```
+
+#### 상품 등록 예시 프로젝트
+이제 상품을 등록하는 API를 생성해보자. `schema`폴더내 아래와 같은 컬렉션 내 스키마 타입 및 null 허용, 유니크값 적용 등 스키마 파일을 만들어준다.
+```js
+const mongoose = require("mongoose");
+
+const goodsSchema = new mongoose.Schema({
+  goodsId: {
+    type: Number,
+    required: true,
+    unique: true,
+  },
+  name: {
+    type: String,
+    required: true,
+    unique: true,
+  },
+  thumbnailUrl: {
+    type: String,
+  },
+  category: {
+    type: String,
+  },
+  price: {
+    type: Number,
+  }
+});
+
+module.exports = mongoose.model("Goods", goodsSchema);
+```
+`routes`폴더내 `goods.js`파일에 다음과 같이 상품을 등록하는 API를 생성한다.
+```js
+const express = require("express");
+const router = express.Router();
+
+const goods = [
+  {
+    goodsId: 4,
+    name: "상품 4",
+    thumbnailUrl:
+      "https://cdn.pixabay.com/photo/2016/09/07/02/11/frogs-1650657_1280.jpg",
+    category: "drink",
+    price: 0.1,
+  },
+  {
+    goodsId: 3,
+    name: "상품 3",
+    thumbnailUrl:
+      "https://cdn.pixabay.com/photo/2016/09/07/02/12/frogs-1650658_1280.jpg",
+    category: "drink",
+    price: 2.2,
+  },
+  {
+    goodsId: 2,
+    name: "상품 2",
+    thumbnailUrl:
+      "https://cdn.pixabay.com/photo/2014/08/26/19/19/wine-428316_1280.jpg",
+    category: "drink",
+    price: 0.11,
+  },
+  {
+    goodsId: 1,
+    name: "상품 1",
+    thumbnailUrl:
+      "https://cdn.pixabay.com/photo/2016/09/07/19/54/wines-1652455_1280.jpg",
+    category: "drink",
+    price: 6.2,
+  },
+];
+
+// 상품 목록 조회 API
+router.get("/goods", (req, res) => {
+  res.status(200).json({goods})
+})
+
+// 상품 상세 조회 API
+router.get("/goods/:goodsId", (req, res) =>{
+  const {goodsId} = req.params;
+  console.log(goodsId);
+  const [result] = goods.filter((good) => Number(goodsId) === good.goodsId)
+
+  res.status(200).json({ detail: result });
+})
+
+// Goods 스키마 가져오기
+const Goods = require("../schemas/goods.js");
+
+// 상품 등록 API
+router.post("/goods/", async (req, res) => {
+  // req.body json 데이터 구조 분해 할당
+  const {goodsId, name, thumbnailUrl, category, price} = req.body;
+
+  // 데이터를 조회하는 시점 await (동기적 처리) 데이터가 가져오면 다음 코드 수행
+  const goods = await Goods.find({goodsId})
+
+  // 이미 해당 데이터가 존재한다면
+  if(goods.length){
+    return res.status(400).json({
+      success:false,
+      errorMessage: "이미 존재하는 GoodsId입니다."
+    });
+  }
+
+  const createGoods = await Goods.create({goodsId, name, thumbnailUrl, category, price});
+
+  res.json({goods: createGoods});
+})
+
+module.exports = router;
+```
+이후 서버에 json 형식의 데이터를 body에 담아 서버로 보내게 되면 등록 테스트를 진행할 수 있다.
+
+### 장바구니 REST API 생성하기
+현재 프로젝트 폴더에서 `schemas`폴더내 `cart.js`파일 생성 후 장바구니 컬렉션의 데이터 컬럼을 정의한다.
+```js
+// cart.js
+const mongoose = require("mongoose");
+
+const cartSchema = new mongoose.Schema({
+  // 상품
+  goodsId: {
+    type: Number,
+    required: true,
+    unique: true,
+  },
+  // 상품 갯수
+  quantity: {
+    type: Number,
+    required: true
+  }
+})
+
+module.exports = mongoose.model("Cart", cartSchema);
+```
+#### 소스코드
+`routes`폴더내 `carts.js`에는 카트에 담긴 상품 조회 GET API, `goods.js`에는 장바구니 상품 생성(<b>POST</b>), 상품 수정(<b>PUT</b>), 상품 삭제(<b>DELETE</b>) API를 생성한다.
+```js
+// carts.js
+const express = require("express")
+const router = express.Router();
+
+const Cart = require("../schemas/cart.js");
+const Goods = require("../schemas/goods.js")
+
+// localhost:3000/api/carts GET Method
+router.get("/carts", async(req, res) => {
+  // 장바구니 정보 모두 가져오기
+  const carts = await Cart.find({});
+  // [
+  // {goodsId, quantity}
+  // ]
+
+  // 배열내 객체 순회
+  const goodsIds = carts.map((cart) => {
+    // goodsId만 추출
+    return cart.goodsId;
+  })
+  // [2, 11, 1];
+
+  // 위에서 추출한 goodsIds 로 상품 정보를 조회한다.
+  // mongoose의 find 임.
+  const goods = await Goods.find({goodsId: goodsIds});
+  // Goods에 해당하는 모든 정보를 가지고 올건데, 
+  // 만약 goodsIds 변수 안에 존재하는 값일 때에만 조회하라.
+
+  const results = carts.map((cart) => {
+    return {
+      "quantity": cart.quantity,
+      // 위 24라인의 find와 다른 어레이를 탐색하는 find임.
+      "goods": goods.find((item) => item.goodsId === cart.goodsId),
+    }
+  })
+
+  res.json({
+    "carts": results,
+  })
+})
+
+module.exports = router;
+```
+```js
+// goods.js
+const express = require("express");
+const router = express.Router();
+
+// 상품 스키마
+const Goods = require("../schemas/goods.js")
+
+// 상품 등록 API
+router.post("/goods/", async(req, res) => {
+  // req.body json 데이터 구조 분해 할당
+  const {goodsId, name, thumbnailUrl, category, price} = req.body;
+
+  // 데이터를 조회하는 시점 await (동기적 처리) 데이터가 가져오면 다음 코드 수행
+  const goods = await Goods.find({goodsId})
+
+  // 이미 해당 데이터가 존재한다면
+  if(goods.length){
+    return res.status(400).json({
+      success:false,
+      errorMessage: "이미 존재하는 GoodsId입니다."
+    });
+  }
+
+  const createGoods = await Goods.create({goodsId, name, thumbnailUrl, category, price});
+
+  res.json({goods: createGoods});
+})
+
+// 상품 목록 조회 API
+router.get("/goods", async(req, res) => {
+  const goods = await Goods.find({})
+
+  res.status(200).json(goods)
+})
+
+// 상품 상세 조회 API
+router.get("/goods/:goodsId", async(req, res) =>{
+  const {goodsId} = req.params;
+  // console.log(goodsId);
+  // const [result] = goods.filter((good) => Number(goodsId) === good.goodsId)
+  const goods = await Goods.find({goodsId})
+
+  res.status(200).json({ detail: goods });
+})
+
+// 장바구니 스키마
+const Cart = require("../schemas/cart.js")
+
+// 장바구니 상품 추가 POST API
+router.post("/goods/:goodsId/cart", async(req,res) => {
+  const {goodsId} = req.params;
+  const {quantity} = req.body;
+
+  const existsCarts = await Cart.find({goodsId}); // goodsId: goodsId
+  if(existsCarts.length){
+    return res.status(400).json({
+      "success": false,
+      "errorMessage": "이미 장바구니에 해당 상품이 존재합니다.",
+    })
+  }
+
+  // 장바구니에 없다면 생성
+  await Cart.create({goodsId, quantity});
+
+  res.json({result: "success"});
+})
+
+// 장바구니 상품 수정 PUT API
+router.put("/goods/:goodsId/cart", async(req,res) => {
+  const {goodsId} = req.params;
+  const {quantity} = req.body;
+
+  const existsCarts = await Cart.find({goodsId});
+  if(existsCarts.length){
+    // 값이 존재하면 수량을 수정한다.
+    // updateOne {조건, 바꿀 데아터}
+    await Cart.updateOne(
+      {"goodsId": goodsId},
+      {$set: {"quantity": quantity}},
+    )
+  } 
+  res.status(200).json({success:true});
+})
+
+// 장바구니 상품 삭제 DELETE API
+router.delete("/goods/:goodsId/cart", async(req, res) => {
+  const {goodsId} = req.params;
+
+  const existsCarts = await Cart.find({goodsId});
+  if(existsCarts.length) {
+    // 상품이 존재하면 삭제
+    await Cart.deleteOne({goodsId});
+  }
+
+  res.json({success:true})
+})
+
+module.exports = router;
+```
+위와 같은 REST API를 정의한 라우터를 사용하도록 `app.js`에 추가한다.
+```js
+// app.js
+const express = require('express');
+const app = express();
+const port = 3000;
+
+const goodsRouter = require('./routes/goods.js')
+const cartsRouter = require("./routes/carts.js")
+
+const connect = require("./schemas") // index.js 생략 가능
+connect();
+
+// body 데이터가 들어온 경우 읽어들일 수 있는 전역 미들웨어
+app.use(express.json())
+app.use("/api", [goodsRouter, cartsRouter])
+
+app.get('/', (req, res) => {
+  res.send('Hello World');
+})
+
+app.listen(port, () => {
+  console.log(port, '포트로 서버가 열렸어요!');
+});
+```
