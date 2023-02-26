@@ -1,0 +1,47 @@
+---
+title: "[GIT] 명령어 정려"
+description: "Git 명령어 정리해보기"
+language: "Git"
+category: "Git"
+update: "2023-02-26"
+serisenumber: 1
+---
+## 시작
+---
+자주 쓰는 깃허브 명령어 모음입니다.
+
+### 기본 명령어
+
+- `git init`
+    Git 저장소를 초기화 하여 해당 프로젝트 폴더를 Git repository 로 만들어줍니다.
+    
+- `git add`
+    지금 변경한 변경 사항을 스테이징 영역(Staging Area)에 올립니다.
+    - `git add .`: 모든 변경 사항을 올린다.
+    - `git add app.js`: app.js 변경사항만 올린다.
+
+- `git commit`
+    스테이징 영역에 올라가 있는 변경사항을 하나의 기록(History)으로 남깁니다.
+    
+- `git remote add`
+    `git remote add <name> <url>` 명령어로 Local Repository 에 `<name>`이라는 이름의 Remote Repository 를 추가할 수 있습니다.
+    `<url>` 에는 Remote repository의 주소가 들어갑니다.
+    
+- `git push`
+    Local Repository에 존재하는 Push 되지 않은 변경사항을 Remote Repository에 업로드 합니다.
+    
+- `git clone`
+    Remote Repository로 부터 프로젝트를 복제합니다.
+    
+- `git pull`
+    Remote Repository에 새로 올라온 변경사항을 Local Repository로 가져옵니다.
+
+### 원격 프로젝트 가져와 사용하기
+1. `git clone`
+2. `npm install`
+3. 서버 시작
+
+### 이미 배포한 서버 코드를 최신 코드로 재시작 할 경우
+1. `git pull`
+2. (필요한경우) `npm install`
+3. 서버 재시작
