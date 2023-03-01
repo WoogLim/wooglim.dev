@@ -1,0 +1,127 @@
+---
+title: "[Next.js V13] 정리 노트 - 1"
+description: "Next JS 기초 개념 정리"
+language: "Typescript"
+category: "NextJS"
+update: "2023-01-30"
+serisenumber: 1
+---
+## Intro
+---
+- 본 내용은 강의 제공 사이트 유데미 Laith Harb 강사님의 "The Next.js 13 Bootcamp - The Complete Developer Guide" 강의를 듣고 정리하였습니다.
+- [https://www.udemy.com/course/the-nextjs-13-bootcamp-the-complete-developer-guide/](https://www.udemy.com/course/the-nextjs-13-bootcamp-the-complete-developer-guide/)
+
+## Intro
+---
+- 현재 블로그 또한 `Next.js`를 이용해 만들어졌지만 만든 시점은 `12`버전이었다. 당시 사전 지식 없이 무작정 만들다보니 부족한 부분이 보였고 블로그 업데이트가 필요하다고 느꼈다. 이 기회를 빌려 `Next.js`에 대해 알아보도록 해야겠다.
+- [Next beta Docs를 참조하시면 더욱 도움이 됩니다.](https://beta.nextjs.org/docs/installation)
+
+## I 준비사항 
+---
+아래와 같은 환경이 구성되어있어야 합니다.
+- Node.js 16.8 이상의 버전
+
+### I-I 프로젝트 설정하기
+
+프로젝트는 다음과 같이 구성하겠습니다. npx의 경우 node 설치 시 기본적으로 같이 설치가 진행됩니다.
+```bash
+> npx create-next-app@13.1.1 --experimental-app
+Need to install the following packages:
+  create-next-app@13.1.1
+Ok to proceed? (y) y
+✔ What is your project named? … opentablenextjs
+✔ Would you like to use TypeScript with this project? … No / Yes
+✔ Would you like to use ESLint with this project? … No / Yes
+Creating a new Next.js app in /Users/wooglim/dev/nextPractice/opentablenextjs.
+```
+
+또한 Typescript를 기본 언어로 사용하겠습니다.
+
+프로젝트 구성 완료 시 `package.json`을 보시면 다음과 같이 `script`가 작성되어 있습니다. 일단 `npm run dev`명령을 입력해 서버를 실행해 봅시다.
+```json
+// package.json
+"scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  }
+```
+`npm run dev`입력
+```bash
+> npm run dev
+```
+
+브라우저에서 접속하면 다음과 같은 페이지가 보입니다. 해당 루트 페이지의 경로는 `/app/page.tsx`입니다.
+[그림 - npm run dev]
+
+위 `app`폴더 부분에서 가장 많은 작업이 일어날 것입니다. `global.css` 및 레이아웃을 주로 구성할테니 말이죠.
+
+### I-II 유용한 CSS 라이브러리 설치하기
+---
+페이지 작업 시 CSS를 직접 작성하는건 매우 어렵습니다.. 제 기준에서는요, 그래서 `tailwindcss`를 이용하겠습니다.
+
+- [tailwind CSS 공식문서](https://tailwindcss.com/docs/guides/nextjs)
+
+설치는 공식문서와 같이 진행합니다. 버전은 알아보신 후 명시하시길 권장드립니다. 우선`dev`종속성을 갖도록 설정하겠습니다.
+```bash
+> npm install -D tailwindcss@3.2.4 postcss@8.4.20 autoprefixer@10.4.13
+```
+
+다음으로 초기화가 필요합니다. 이후 폴더를 보시면 `tailwind.config.js`, `postcss.config.js`가 추가될겁니다.
+```bash
+> npx tailwindcss init -p
+```
+
+이후 `tailwind.config.js`에 다음과 같이 설정해줍니다. `app`폴더내 모든 디렉토리에 포함된 `js,ts,jsx,tsx`파일은 `tailwindcss`를 사용할 수 있게됩니다.
+```js
+// tailwind.config.js
+
+/** @type {import('tailwindcss').Config} */
+module.exports = {
+  // tailwind CSS 를 적용할 경로를 app폴더내 모든 디렉토리내 js,ts,jsx,tsx파일에 적용
+  content: ["./app/**/*.{js,ts,jsx,tsx}"],
+  theme: {
+    extend: {},
+  },
+  plugins: [],
+}
+```
+
+추가로 `app/global.css`파일 루트에 다음과 같이 Tailwind의 레이어에 대한 지시문을 파일에 추가합니다.
+```css
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+```
+
+여기까지입니다. 이제 app 폴더내 `js,ts,jsx,tsx` 파일에서 `tailwindCSS`를 온전히 사용할 수 있게됩니다. 다음과 같이 공식문서를 보시면 적용할 수 있는 스타일을 조회할 수 있습니다.
+
+[그림 - tailwindCSS docs]
+
+폰트 크기도 달라지게 되므로 다음과 같이 `tailwind.config.js`에 폰트 사이즈를 지정할 수 있습니다. 이후 사용 시 태그 `className`(눈치채셨겠지만 React를 따릅니다.) 속성에 `text-설정명`과 같이 적용할 수 있습니다.
+```js
+// tailwind.config.js
+/** @type {import('tailwindcss').Config} */
+module.exports = {
+  // tailwind CSS 를 적용할 경로를 app폴더내 모든 디렉토리내 js,ts,jsx,tsx파일에 적용
+  content: ["./app/**/*.{js,ts,jsx,tsx}"],
+  theme: {
+    extend: {},
+    fontSize: {
+      "2xsm": "10px",
+      xsm: "12px",
+      sm: "13px",
+      reg: "15px",
+      lg: "18px",
+      "2xl": "22px",
+      "3xl": "25px",
+      "4xl": "32px",
+      "5xl": "40px",
+      "6xl": "50px",
+      "7xl": "70px"
+    }
+  },
+  plugins: [],
+}
+```
