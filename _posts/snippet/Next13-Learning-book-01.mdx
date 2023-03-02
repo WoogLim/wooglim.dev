@@ -125,3 +125,50 @@ module.exports = {
   plugins: [],
 }
 ```
+
+### I-III 파일 기반 라우팅
+---
+Next JS는 파일 기반 라우팅을 따릅니다. 그리고 루트 페이지인 `App/page.tsx`경로는 도메인을 입력하면 렌더링 됩니다. 만일 `locahost:3000/search`와 같은 경로를 찾는다면 다음과 같은 폴더 트리 구조를 형성해야합니다.
+```text
+  > APP[Folder]
+    page.tsx
+    > search[Folder]
+      page.tsx
+    > restaurant[Folder]
+      > shakeshack[Folder]
+        page.tsx
+```
+`localhost:3000`을 요청하면 `App/page.tsx`를 렌더링 하고 `localhost:3000/search`를 요청하면`App/search/page.tsx`를 렌더링합니다.
+간단히 라우팅이 가능하지만 단점으로는 변경할 수 없습니다. 만일 동적인 라우팅이 가능하도록 하고 싶다면 아래와 같이 `[]`로 묶어 경로를 설정합니다.
+```text
+  > APP[Folder]
+    page.tsx
+    > search[Folder]
+      page.tsx
+    > restaurant[Folder]
+      > [name][Folder]
+        page.tsx
+```
+혹은 아래와 같이 `slug`를 설정하는 것이 대표적입니다. 찾는 경로에 따라 해당 디렉토리 경로로 이동하는 것이죠.
+```text
+  > APP[Folder]
+    page.tsx
+    > search[Folder]
+      page.tsx
+    > restaurant[Folder]
+      > [slug][Folder]
+        page.tsx
+```
+
+### I-IV 링크 구성 하기
+---
+HTML의 a태그와 같이 `Link`태그로 링크를 연결할 수 있습니다. 특정 버튼을 누르면 파일 기반 라우팅을 이용해 홈으로 이동할 수 있고, 타 메뉴 이동이 가능하죠.
+다음 코드와 같다면 `localhost:port`즉 홈 경로로 이동할 것입니다.
+```tsx
+import Link from "next/link"
+
+<Link href="/" className="font-bold text-gray-700 text-2xl">
+  Home
+</Link>
+```
+`Link`태그는 `a`태그를 제외한 태그를 감쌀 수 있습니다. `a`태그의 스타일은 적용하지 않습니다. 어떠한 경로에 있는 파일(`menu/page.tsx`) 여도, `Link` 태그의 시작지점은 초기 도메인(루트 프로젝트 경로)입니다. 때문에 `menu/page.tsx` 페이지에서 `restaurant/[slug]/page.tsx`를 탐색하고 싶다면 `Link`태그 `href`속성으로 `/restaurant/동적인 값`만 입력해주면 됩니다.
