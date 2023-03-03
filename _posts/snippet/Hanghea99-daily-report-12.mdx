@@ -279,7 +279,7 @@ module.exports = async (req, res, next) => {
 // authMiddleware -> next() -> async(req, res)
 const authMiddleware = require("../middlewares/auth-middleware")
 
-router.get("/users/me", authMiddleware, async(req, res) => {
+router.get("/users/me", aut hMiddleware, async(req, res) => {
   const {email, nickname} = res.locals.user;
 
   res.status(200).json({
@@ -290,5 +290,3 @@ router.get("/users/me", authMiddleware, async(req, res) => {
   });
 })
 ```
-
-장바구니 관련 API에도 이런 미들웨어를 추가해보자.

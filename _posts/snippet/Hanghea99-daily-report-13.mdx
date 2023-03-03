@@ -1,0 +1,236 @@
+---
+title: "[항해] 항해 숙련 주차 - 3"
+description: "Node.js 숙련 1주차 - MySQL 연동"
+language: "daliyreport"
+category: "Hanghae99"
+update: "2023-03-03"
+serisenumber: 13
+---
+## 시작
+이전까지의 프로젝트에서는 mongoDB, mongoose를 이용했다. 이제 RDBMS 중 하나인 MySQL과 Sequelize를 사용해보자.
+
+### 관계형 DB SQL 기초
+
+#### DDL
+- DDL(Data Definition Language)은 데이터를 정의할 때 사용하는 언어로 테이블이나 데이터베이스를 생성, 수정, 삭제와 같은 행위를 할 때 사용합니다.
+
+`CREATE`: DATABASE, TABLE, VIEW, INDEX 생성시 사용
+```sql
+CREATE DATABASE 데이터베이스명;
+CREATE TABLE 테이블명
+{
+ 컬럼명 컬럼속성
+}
+```
+
+`DROP`: DATABASE, TABLE, VIEW, INDEX 등을 삭제할 때 사용
+```sql
+DROP DATABASE 데이터베이스명;
+DROP TABLE 테이블명;
+```
+
+`ALTER` : **DATABASE**, **TABLE** 등의 **속성**을 **변경**할 때 사용
+```sql
+ALTER DATABASE 데이터베이스명 변경조건;
+ALTER TABLE 테이블명 ADD 변경조건;
+ALTER TABLE 테이블명 DROP 변경조건;
+ALTER TABLE 테이블명 MODIFY 변경조건;
+ALTER TABLE 테이블명 RENAME 변경조건;
+...
+```
+
+#### DML
+- DML(Data Manopulation Language)은 데이터베이스에 데이터를 조작할 때 사용하는 언어로 데이터의 저장, 삭제, 수정, 조회와 같은 행위
+
+`SELECT`
+```sql
+SELECT 컬럼목록 FROM 테이블명 [WHERE 조건];
+```
+
+`INSERT`
+```sql
+INSERT INTO 테이블명 (컬럼목록) VALUES (값목록);
+```
+
+`DELETE`
+```sql
+DELETE FROM 테이블명 [WHERE 조건];
+```
+
+`UPDATE`
+```sql
+UPDATE 테이블명 SET 컬럼 = 값 [WHERE 조건];
+```
+
+#### DCL
+- DCL(Data Control Language)은 데이터베이스에 대한 권한과 관련된 문법으로 특정 유저가 DB에 접근할 수 있는 권한
+
+`COMMIT`
+- 데이터베이스의 작업이 정상적으로 완료되었음을 관리자에게 알려줄 때 사용
+- [트랜잭션](https://jerryjerryjerry.tistory.com/48)
+```sql
+START TRANSACTION;
+...
+COMMIT;
+```
+
+`ROLLBACK`
+- 데이터베이스의 작업이 비정상적으로 완료되었음을 관리자에게 알려줄 때 사용
+```sql
+START TRANSACTION;
+...
+ROLLBACK;
+```
+
+`GRANT`
+- 데이터베이스의 특정한 유저에게 사용 권한을 부여할 때 사용
+```sql
+GRANT [권한] ON 객체명 TO 사용자;
+```
+
+`REVOKE`
+- 데이터베이스의 특정한 유저에게 사용 권한을 취소할 때 사용
+```sql
+REVOKE [권한] ON 객체명 FROM 사용자;
+```
+
+#### SQL 사용하기
+
+`데이터베이스 생성`
+```sql
+CREATE DATABASE NodeJS;
+```
+
+`테이블 생성`
+```sql
+CREATE TABLE IF NOT EXISTS courses (
+    id bigint(5) NOT NULL AUTO_INCREMENT, 
+    title varchar(255) NOT NULL,
+    tutor varchar(255) NOT NULL,
+    PRIMARY KEY (id)
+);
+```
+
+`데이터 삽입`
+```sql
+INSERT INTO courses (title, tutor) VALUES
+    ('Spring 기초반', '최원빈'),
+    ('Spring 숙련반', '최원빈'),
+    ('React 기초반', '김예지'),
+    ('React 숙련반', '김예지'),
+    ('Node.js 기초반', '이용우'),
+    ('Node.js 숙련반', '이용우'),
+    ('웹개발 종합반', '이범규'),
+    ('웹개발 종합반 플러스', '이범규');
+```
+
+`데이터 조회`
+```sql
+SELECT * FROM courses;
+```
+
+`조회 조건 추가`
+```sql
+SELECT * FROM courses WHERE tutor='이용우';
+```
+
+### 제약 조건
+---
+- 제약조건(Constraint)은 각 컬럼들간의 제한사항을 관리하고, 조건을 위반하는 데이터를 방지하여 데이터베이스의 완전성을 보장하는 규칙
+- 테이블에 소속된 특정 컬럼이 **중복된 키**를 가질 수 없는 조건(**Unique**)
+- 아무런 값을 입력받지 않을 수 있도록 설정하는 조건(**Null**)
+- 특정 컬럼을 테이블 내에서 **고유성을 보장하는 컬럼**을 설정하는 조건(**Primary Key**)
+- 데이터베이스를 설계할 때 가장 많은 고민을 하게 될 **테이블 간의 관계**를 설정하는 조건(**Foreign Key**)
+
+#### 종류
+- **고유(Unique) 제약 조건**
+- **NULL 제약 조건**
+- **기본 키 (Primary Key) 제약 조건**
+- **외래 키 (Foreign Key) 제약 조건**
+
+#### ERD
+테이블 정의시 관계를 고려하여 생성한다. 음식, 고객 테이블을 만들어 고객이 몇일에 음식을 주문했는지 기록하는 테이블도 만들어보자
+음식과 고객 테이블은 N:N 관계로 테이블을 구성하면 구문은 아래와 같이 작성할 수 있다.
+```sql
+CREATE TABLE User
+(
+    userId int(11)      NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    name   varchar(255) NOT NULL UNIQUE
+);
+
+CREATE TABLE Food
+(
+    foodId int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    name   varchar(255),
+    price  int(11)
+);
+
+CREATE TABLE Order
+(
+    orderId   int(11)  NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    userId    int(11)  NOT NULL,
+    foodId    int(11)  NOT NULL,
+    createdAt datetime NOT NULL DEFAULT NOW(),
+    FOREIGN KEY (foodId) REFERENCES Food (foodId)
+        ON DELETE NO ACTION
+        ON UPDATE CASCADE,
+    FOREIGN KEY (userId) REFERENCES User (userId)
+        ON DELETE NO ACTION
+        ON UPDATE CASCADE
+);
+```
+
+#### PRIMARY KEY
+- 기본 키(Primary Key)는 테이블에 있는 데이터를 고유하게 구분할 수 있는 정보를 나타내기 위해서 사용합니다.
+이전에 테이블을 생성할 때에도 PRIMARY KEY라는 조건으로 기본 키가 선언되어 있던 것을 확인할 수 있습니다. 만약 기본 키를 설정하지 않은 테이블을 생성하려고할 때는 특정 데이터를 찾기위한 고유한 정보가 존재하지 않기 때문에 아래와 같은 에러메시지가 출력되면서 테이블이 생성되지 않습니다.
+
+#### AUTO_INCREMENT
+- AUTO_INCREMENT는 데이터를 삽입할 때 아무런 데이터를 입력하지 않더라도 고유한 값을 유지할 수 있도록 도와주는 속성
+- DB 내에서 데이터가 입력될 때 마다 숫자를 1씩 증가시켜 기본 키의 고유한 값을 유지
+
+#### NULL
+- NULL 속성은 특정 컬럼에서 NULL값을 허용하거나, 허용하지 않도록 설정하는 조건
+- 사용자가 이메일이나, 패스워드를 통해 로그인을 할 경우 해당하는 2개의 정보는 필수로 존재해야 컬럼값 NOT NULL
+
+#### UNIQUE
+- 특정 컬럼에서 중복된 값이 허용되지 않도록 설정하는 조건
+- 이메일의 중복을 허용할 경우 이름, 나이, 닉네임과 같은 추가 정보를 입력받아야 사용자를 특정
+
+#### FOREIGN KEY
+- 외래 키(Foreign Key) 제약 조건은 테이블과 다른 테이블간의 관계를 맺을 때 사용하는 제약 조건
+**외래 키(Foreign Key)**는 테이블간의 연관 관계를 표현할 때 사용합니다. 
+
+연관 관계는 대표적으로 3가지의 형태로 표현할 수 있습니다.
+
+- **1:1** - **1명**의 사용자(`User`)는 **1개**의 사용자 정보(`UserInfo`)를 가질 수 있다.
+- **1:N** - **1명**의 사용자(`User`)는 **여러개**의 주문(`Order`)을 할 수 있다.
+- **N:M** - **여러명**의 학생(`Student`)은 **여러개**의 학원(`School`)을 등록할 수 있다.
+```sql
+CREATE TABLE 테이블명
+  FOREIGN KEY (컬럼명) REFERENCES 참조_테이블명 (참조_컬럼명)
+    ON DELETE [연계 참조 제약 조건]
+    ON UPDATE [연계 참조 제약 조건] -- 수정 참조 컬럼이 수정된 경우
+);
+```
+- 외래 키 제약 조건은 CREATE TABLE 문을 사용하여 테이블을 생성함과 동시에 정의
+
+- 외래 키의 경우 다른 테이블과 관계를 맺고 있는 참조 데이터가 삭제(DELETE)또는 수정(UPDATE)될 때 어떤 행위를 해야하는지 설정할 수 있습니다. 이런 행위를 수행하는 조건을 연계 참조 무결성 제약 조건이라고 정의합니다.
+
+#### 연계 참조 무결성 제약 조건의 종류
+- **CASCADE** : 참조하고 있는 개체가 **변경/삭제** 될 경우 함께 **변경/삭제**됩니다.
+```sql
+FOREIGN KEY (UserId) REFERENCES Users(userId)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE;
+```
+
+- **NO ACTION** : 참조하고 있는 개체가 변경/삭제 될 경우 아무런 행위를 하지 않고 에러가 발생
+```sql
+FOREIGN KEY (UserId) REFERENCES Users(userId)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION;
+```
+
+보통 1:N의 경우 N이 1의 키를 외래키로 가진다.
+1:1의 경우 참조하는 쪽에서 외래키로 가진다음 UNIQUE 제약 조건을 추가한다.
+N:N의 경우 별도의 테이블을 생성하고 두 테이블의 값을 외래키로 가진다.
