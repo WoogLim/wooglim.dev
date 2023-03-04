@@ -8,3 +8,312 @@ serisenumber: 15
 ---
 ## 시작
 이번에는 Sequelize를 이용해 회원가입, 로그인, 게시판, 댓글 API를 구현해보도록 하자.
+
+### 회원가입 API
+app.js파일의 내용을 변경합니다.
+```js
+// app.js
+
+const express = require("express");
+const cookieParser = require("cookie-parser");
+const app = express();
+const PORT = 3018;
+
+app.use(express.json());
+app.use(cookieParser());
+app.use('/api', []);
+
+app.listen(PORT, () => {
+  console.log(PORT, '포트 번호로 서버가 실행되었습니다.');
+})
+```
+
+`회원가입 API 로직`
+> **[게시판 프로젝트] 회원가입 API 비즈니스 로직**  
+1. `email`, `password`, `name`, `age`, `gender`, `profileImage`를 **body**로 전달받습니다.  
+2. 동일한 `email`을 가진 사용자가 있는지 확인합니다.  
+3. **Users** 테이블에 `email`, `password`를 이용해 사용자를 생성합니다.  
+4. **UserInfos** 테이블에 `name`, `age`, `gender`, `profileImage`를 이용해 사용자 정보를 생성합니다.  
+
+회원가입 API는 사용자와 사용자 정보가 1:1 관계를 가진 것을 바탕으로 비즈니스 로직이 구현됩니다.
+
+사용자 정보는 사용자가 존재하지 않을 경우 생성될 수 없으므로 전달받은 인자값을 이용해 사용자 → 사용자 정보 순서대로 회원가입을 진행해야합니다.
+
+routes/users.route.js 파일을 생성하고, UsersRouter를 app.js전역 미들웨어에 등록 후 회원가입 API를 구현하도록 하겠습니다!
+
+해당 API는 반드시 `Users`와 함께 `UsersInfos`정보도 같이 들어가야합니다. 이를 위해 `트랜잭션`을 이용해야합니다. 하지만 이 부분은 아래에서 설명하도록 하겠습니다.
+```js
+// routes/users.route.js
+// 회원가입 API
+router.post("/users", async(req,res) => {
+  const {email, password, name, age, gender, profileIamge} = req.body;
+
+  // 1. 동일한 이용자가 있는지 확인
+  const isExistUser = await Users.findOne({
+    where: {
+      email
+    }
+  });
+
+  // email과 동일 유저가 있는 경우 에러
+  if(isExistUser){
+    return res.status(409).json({
+      message:"이미 존재하는 이메일입니다."
+    })
+  }
+
+  // 사용자 테이블에 데이터 삽입
+  const user = await Users.create({email, password});
+  
+  // 사용자 정보 테이블에 데이터 삽입
+  // 어떤 사용자의 정보인지 내용이 필요
+  await UserInfos.create({
+    UserId: user.userId, // 현재 사용자 정보가 24번째 줄에서 생성된 사용자의 userId를 할당
+    name, age, gender, profileIamge
+  })
+
+  return res.status(201).json({message: '회원가입이 완료되었습니다.'});
+})
+```
+
+### 로그인 API
+로그인 API와 사용자 인증 미들웨어의 비즈니스 로직은 mongoose를 이용하였을 때와 동일합니다.
+
+mongoose의 Schema에서 Sequelize의 Users 모델을 이용하는 부분만 변경되었죠. 변경되는 부분을 알아봅시다.
+
+아래 구문에서 달라진 부분은 17번 구문밖에 없습니다.
+```js {17}
+// middlewares/auth-middleware.js
+const jwt = require("jsonwebtoken");
+const {Users} = require("../models")
+
+module.exports = async(req, res, next) => {
+  // req.cookies 는 app.js에 전역 미들웨어로 cookieParser가 있어 사용 가능
+  const {authorization} = req.cookies;
+  const [tokenType, token] = (authorization ?? "").split(" ");
+
+  if(tokenType !== "Bearer" || !token){
+    // Bearer이 아닐때 or
+    // token이 비었을때 만료 등.
+    return (res.status(401).json({
+      message: "토큰 타입이 일치하지 않거나, 토큰이 존재하지 않습니다."
+    }))
+  }
+
+  // 토큰 decode 에러 핸들링
+  try{
+    const decodedToken = jwt.verify(token, "customized_secret_key");
+    // 복호화된 토큰에서 생성당시 userId 가져오기
+    const userId = decodedToken.userId;
+
+    const user = await Users.findOne({
+      where: {userId}
+    });
+
+    if(!user){
+      //사용자가 존재하지 않을 때
+      return res.status(401).json({
+        "message": "토큰에 해당하는 사용자가 존재하지 않습니다."
+      })
+    }
+
+    res.locals.user = user;
+    next();
+  }catch(error){
+    return res.status(401).json({
+      message: "비정상적인 접근입니다."
+    })
+  }
+}
+```
+
+```js
+// routes/users.route.js
+
+// 로그인 API
+router.post("/login", async (req,res) => {
+  const {email, password} = req.body;
+  const user = await Users.findOne({
+    where: {email}
+  })
+
+  // 1. 해당하는 사용자가 존재하는가
+  // 2. 해당하는 사용자의 비밀번호가 존재하는가.
+
+  if(!user){
+    return res.status(401).json({message: "해당하는 사용자가 존재하지 않습니다."})
+  }else if(user.password !== password) {
+    return res.status(401).json({message: "해당 이메일/비밀번호로 등록된 계정이 존재하지 않습니다."})
+  }
+
+  // jwt를 생성하고
+  const token = jwt.sign({userId: user.userId}, "customized_secret_key");
+
+  // 쿠키를 발급
+  res.cookie("authorization", `Bearer ${token}`);
+  
+  // response
+  return res.status(200).json({message: "로그인에 성공했습니다."})
+})
+```
+
+### 사용자 정보 조회 API
+---
+1:1 관계를 맺고 있는 `Users`, `userInfos`를 `Join`하여 가져와야 합니다.
+
+`사용자 정보 조회 로직`
+> **[게시판 프로젝트] 사용자 정보 조회 API 비즈니스 로직**  
+1. 사용자를 특정하기 위해 `userId`를 Params로 전달받습니다.  
+2. 사용자를 조회할 때, 1:1 관계를 맺고 있는 **Users**와 **UserInfos** 테이블을 조회합니다.  
+3. 조회한 사용자의 상세한 정보를 클라이언트에게 반환합니다.
+
+사용자 정보 조회 API는 단순히 Users 테이블 하나만 조회를 하는 것이아닌, UserInfos 테이블을 함께 조회합니다. 그렇기 때문에, 각각의 테이블을 1번씩 조회하게 되어 총 2번의 조회를 하게 되는 문제가 발생합니다. 이런 문제를 해결하기 위해 Sequelize에서는 include라는 문법을 제공합니다.
+
+```js
+// 사용자 정보 조회 API
+router.get("/users/:userId", async(req, res) => {
+  const {userId} = req.params;
+
+  // 사용자 테이블과 사용자 정보 테이블에 있는 데이터를 가지고 와야함.
+  const user = await Users.findOne({
+    attributes: ['userId', 'email', 'createdAt', 'updatedAt'],
+    // 관계 있는 Model 간 데이터를 가지고 오기 위해 include 사용
+    include: [
+      {
+        model: UserInfos, // 참조할 모델
+        attributes: ['name', 'age', 'gender', 'profileImage'], // 참조 테이블에서 가져올 데이터
+      }
+    ],
+    where: {userId}
+  })
+
+  return res.status(200).json({ data: user});
+})
+```
+`include`속성은 find종류의 메서드에서 사용가능합니다.
+[finder 메서드 옵션](https://sequelize.org/docs/v6/core-concepts/model-querying-finders/)
+
+include 문법을 사용하기 위해서는 model에서 hasMany, hasOne, BelongsTo와 같이 관계 설정이 되어야 현재 모델에서 참조하는 외래 키를 인식하고, SQL을 생성할 수 있게 됩니다.
+
+- **`model`**: 현재 모델에 추가하여 조회할 모델을 설정합니다.
+    - SQL에서 JOIN 할 대상 테이블과 동일한 값을 입력합니다.
+- **`attributes`**: 다른 Finder 메서드에서 사용하는것과 동일하게, `include.model`에 작성한 모델에서 조회할 컬럼을 지정합니다.
+
+### 게시글 생성 API
+
+`게시글 생성 API`
+> **[게시판 프로젝트] 게시글 생성 API 비즈니스 로직**  
+1. 게시글을 작성하려는 클라이언트가 로그인된 사용자인지 검증합니다  
+2. 게시글 생성을 위한 `title`, `content`를 **body**로 전달받습니다.  
+3. **Posts** 테이블에 게시글을 생성합니다.
+
+게시글은 “사용자(Users)는 여러개의 게시글(Posts)을 등록할 수 있어요.” 조건에 따라 사용자와 1:N의 관계를 가지고, 현재 로그인 한 사용자의 정보가 존재하였을 때만 게시글을 생성할 수 있도록 구현해야합니다.
+
+```js
+// routes/posts.route.js
+router.post("/posts", authMiddleware, async(req, res) => {
+  // 게시글을 생성하는 사용자의 정보
+  const {userId} = res.locals.user;
+  const {title, content} = req.body;
+
+  const post = await Posts.create({
+    UserId: userId,
+    title, content
+  })
+
+  return res.status(201).json({data: post})
+})
+```
+
+### 게시글 목록 조회 API
+```js
+// routes/posts.route.js
+
+router.get("/posts", async(req, res) => {
+  // 내림차순
+  const posts = await Posts.findAll({
+    attributes: ['postId', 'title', 'createdAt', 'updatedAt'],
+    order: [['createdAt', 'DESC']]
+  })
+
+  return res.status(200).json({ data: posts });
+})
+```
+
+### 게시글 상세 조회 API
+```js
+// routes/posts.route.js
+
+router.get("/posts", async(req, res) => {
+  // 내림차순
+  const posts = await Posts.findAll({
+    attributes: ['postId', 'title', 'createdAt', 'updatedAt'],
+    order: [['createdAt', 'DESC']]
+  })
+
+  return res.status(200).json({ data: posts });
+})
+```
+
+### 게시글 수정 API
+```js
+router.put("/posts/:postId", authMiddleware, async(req, res) => {
+  const {userId} = res.locals.user;
+  const {postId} = req.params;
+  const {title, content} = req.body;
+
+  const post = await Posts.findOne({
+    where: {
+      userId, postId
+    }
+  })
+
+  if(!post){
+    return (res.status(404).json({
+      message: "게시글을 수정할 권한이 없습니다."
+    }));
+  }
+
+  await Posts.update({
+    title, content
+  },{
+    where: {
+      [Op.and]: [{userId}, {postId}]
+    }
+  })
+
+  return res.status(200).json({ data: "게시글이 수정되었습니다."})
+})
+```
+
+### 게시글 삭제 API
+```js
+router.delete("/posts/:postId", authMiddleware, async(req, res) => {
+  const {userId} = res.locals.user;
+  const {postId} = req.params;
+
+  const post = await Posts.findOne({
+    where: {
+      postId
+    }
+  })
+
+  if(!post){
+    return (res.status(404).json({
+      message: "게시글이 존재하지 않습니다."
+    }));
+  }else if(post.UserId !== userId){
+    return (res.status(404).json({
+      message: "권한이 없습니다."
+    }));
+  }
+
+  await Posts.destroy({
+    where: {
+      [Op.and]: [{userId}, {postId}]
+    }
+  })
+
+  return res.status(200).json({ data: "게시글이 삭제되었습니다."})
+})
+```
