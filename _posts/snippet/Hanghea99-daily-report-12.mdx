@@ -1,292 +1,236 @@
 ---
-title: "[항해] 항해 숙련 주차 - 2"
-description: "Node.js 숙련 1주차 - JWT, 여러 미들웨어를 이용한 비즈니스 로직 구현해보기"
+title: "[항해] 항해 숙련 주차 - 3"
+description: "Node.js 숙련 1주차 - MySQL 연동"
 language: "daliyreport"
 category: "Hanghae99"
 update: "2023-03-03"
 serisenumber: 12
 ---
-### 미들웨어
+## 시작
+이전까지의 프로젝트에서는 mongoDB, mongoose를 이용했다. 이제 RDBMS 중 하나인 MySQL과 Sequelize를 사용해보자.
 
-#### 미들웨어의 개념
-- 웹 서버에서 요청을 받을때 가끔 모든 요청에 대해 공통적인 처리를 하고싶은 경우가 생길 수 있습니다. 미들웨어를 통해 웹 서버의 요청/응답에 대해 공통적으로 관리가 가능합니다.
-- 모든 요청에 대해서 로그를 남겨 확인하고 싶은 경우처럼 말이죠. 이 외에도 승인된 사용자만 API를 접근할 수 있게 만들고 싶을때도 해당 될 수 있습니다.
-- 브라우저가 보낸 데이터를 우리가 쉽게 사용할 수 있게 바꿔주는 미들웨어도 존재 bodyParser, cookieParser
-- 보안 연결 방법인 HTTPS를 지원하기 위해서는 https 모듈을 추가하고, 모든 요청과 응답을 기록하고 싶다면 로깅을 해주는 모듈을 추가
+### 관계형 DB SQL 기초
 
-```js
-// form-urlencoded 라는 규격의 body 데이터를 손쉽게 코드에서 사용할 수 있게 도와주는 미들웨어
-app.use(express.urlencoded({ extended: false }));
-// JSON 이라는 규격의 body 데이터를 손쉽게 코드에서 사용할 수 있게 도와주는 미들웨어에요!
-app.use(express.json());
-```
+#### DDL
+- DDL(Data Definition Language)은 데이터를 정의할 때 사용하는 언어로 테이블이나 데이터베이스를 생성, 수정, 삭제와 같은 행위를 할 때 사용합니다.
 
-#### 미들웨어 작성
-```js
-app.use((req, res, next) => {
-  // 필요한 코드
-});
-```
-- req: 요청(Request)에 대한 정보가 담겨있는 객체입니다.
-> HTTP Headers, Query Parameters, URL 등 브라우저가 서버로 보내는 정보들이 담겨있습니다.
-- res: 응답(Response)을 위한 기능이 제공됩니다.
-> 어떤 HTTP Status Code로 응답 할지, 어떤 데이터 형식으로 응답 할지, 헤더는 어떤 값을 넣어 응답 할지 다양한 기능을 제공합니다.
-- next: 다음 스택으로 정의된 미들웨어를 호출합니다. -> 현재 app.use에서 빠져나와 다음 미들웨어가 존재하면 해당 미들웨어 실행.
-
-[그림 미들웨어]
-
-보통 미들웨어에서는 응답을 직접 처리하지 않고, 특정 로직이 작동하면 `next()`구문을 통해 실제 응답이 이뤄지는 지점까지를 범위로 삼습니다.
-`Request 로그 남기는 미들웨어 작성`
-```js
-app.use((req, res, next) => {
-    console.log('Request URL:', req.originalUrl, ' - ', new Date());
-    next();
-});
-```
-사용자 인증 및 로깅, 공통적인 코드를 사용할 시 구현하면 될것같군요.
-
-여러개의 미들웨어가 겹치는 경우 동작하는 방식에 대해 코드로 알아봅시다. 위의 그림과 같습니다.
-```js
-app.use((req, res, next) => {
-    console.log('첫번째 미들웨어');
-    next();
-});
-
-app.use((req, res, next) => {
-    console.log('두번째 미들웨어');
-    next();
-});
-
-app.use((req, res, next) => {
-    console.log('세번째 미들웨어');
-    next();
-});
-
-// print: 첫번째 미들웨어
-// print: 두번째 미들웨어
-// print: 세번째 미들웨어
-```
-아래와 같이 특정 라우터에 관한 미들웨어로도 사용할 수 있습니다.
-
-```js
-app.use("/api",
-  (req, res, next) => {
-    console.log("이 라우터에서만 작동하는 미들웨어")
-    next();
-  },
-  [goodsRouter, cartsRouter]
-)
-```
-
-#### 라우터와 차이
-- Router와 미들웨어는 서로 다른 방식처럼 보이지만 Router는 미들웨어 기반으로 구현된 객체이므로 미들웨어와 동일한 방식으로 작동 결론적으로 둘다 미들웨어로 보면 됩니다.
-
-#### 대표적인 구문
-- `app.use(Middleware)` : 모든 요청에서 미들웨어가 실행된다.
-- `app.use(’/api’, Middleware)` : **/api**로 시작하는 요청에서 미들웨어를 실행한다.
-- `app.post(’/api’, Middleware)` : **/api**로 시작하는 POST 요청에서 미들웨어를 실행한다.
-
-### 미들웨어와 JWT로 로그인 구현하기
-
-우선 다음과 같이 `jsonwebtoken`, `cookie-parser`를 설치합니다.
-```bash
-> npm i jsonwebtoken cookie-parser
-```
-
-사용자로부터 `nickname`, `email`, `password`를 받는다고 보고 구현해봅시다.
-
-`회원가입` 로직은 다음과 같습니다.
-> **회원가입의 비즈니스 로직 정리하기!**  
-1. `email`, `nickname`, `password`, `confirmPassword`를 전달 받음  
-2. `password`와 `confirmPassword`가 동일한지 검증  
-3. `email`과 `nickname`값이 이미 DB에 존재하는지 검증  
-4. `email`, `nickname`, `password`를 DB에 저장  
-5. **회원 가입 성공**
-
-`password`의 경우 암호화를 진행하여 DB에 저장합니다만 우선 뒤로 두고 진행해봅시다.(Node.js의 경우 crypto 라이브러리로 암호화를 진행할 수 있죠. 브라우저에서는 https를 적용하구요.)
-
-```js
-// users.js
-
-const express = require("express")
-const router = express.Router();
-const User = require("../schemas/user")
-
-// 회원가입 API
-router.post('/users', async(req, res) => {
-
-  const {email, nickname, password, confirmPassword} = req.body;
-
-  // 패스워드, 패스워드 확인 성공
-  if(password !== confirmPassword){
-    res.status(400).json({
-      errorMessage: "패스워드가 패스워드 확인란과 다릅니다.",
-    });
-    return;
-  }
-
-  // email, nickname이 실제로 DB에 존재하는지 확인
-  const isExitsUser = await User.findOne({
-    $or: [{email}, {nickname}], // 이메일 또는 이메일이 일치할 때 조회 둘다 unique 설정 해두었음.
-  });
-
-  if(isExitsUser){
-    // 이미 존재하는 계정
-    // 민감한 데이터를 가지므로 상세하게 전달하지 않는다.
-    res.status(400).json({
-      errorMessage: "이메일 또는 닉네임이 이미 사용중입니다."
-    });
-    return;
-  }
-
-  const user = new User({email, nickname, password});
-  await user.save(); // DB에 저장한다.
-
-  return res.status(201).json({});
-
-});
-
-module.exports = router;
-```
-
-`로그인 API`  
-이메일, 패스워드를 입력받아 데이터베이스에 있는 정보중 이메일, 패스워드가 일치하면 로그인이 성공  
-로그인에 성공하면 JWT토큰 구성 예시와 같은 방법으로 JWT를 생성하여 반환한다.
-
-`로그인` 로직은 다음과 같습니다.
-> **로그인의 비즈니스 로직 정리하기!**  
-1. `email`, `password`를 전달 받음  
-2. `email`에 해당하는 사용자가 DB에 존재하는지 검증  
-3. 사용자가 존재하지 않거나 사용자와 입력받은 `password`가 일치하는지 검증  
-4. **JWT** 생성 후 **Cookie** 및 **Body**로 클라이언트에게 전달  
-5. **로그인 성공!**
-
-```js
-// auth.js
-const express = require("express");
-const router = express.Router();
-const User = require("../schemas/user")
-const jwt = require("jsonwebtoken")
-
-// 로그인 API
-router.post('/auth', async(req, res) => {
-  const {email, password} = req.body;
-
-  // 이메일이 일치하는 유저를 찾음
-  const user = await User.findOne({email});
-
-  // 1. 이메일과 일치하는 유저가 없거나
-  // 2. 유저가 있지만, 유저의 비밀번호와 입력한 비밀번호가 다를 때
-  if(!user || user.password !== password ){
-    return res.status(400).json({
-      errorMessage: "로그인에 실패하였습니다.", 
-    })
-  }
-
-  // 실제로 담을 데이터, 비밀키
-  const token = jwt.sign({userId: user.userId}, "customized-secret-key");;
-
-  // Bearer -> 어떤 타입으로 데이터를 쿠키 값을 전달했는지 타입 지정
-  res.cookie("Authorization", `Bearer ${token}`);
-  res.status(200).json({token});
-});
-
-module.exports = router;
-```
-
-쿠키를 전달 받은 사용자가 정말 쿠키를 가지고 있는지 인증하는 미들웨어를 구현해봅시다.
-
-프론트엔드에서 `Authorization: Bearer JWT토큰내용`과 같은 양식으로 보낸다고 했을때, HTTP인증 유형 중 `Bearer`타입을 사용해 토큰을 전달합니다.
-
-`Authorization`헤더로 전달받는 토큰이 유요한지 검사하고, 만약 유효한 경우 토큰 안에 있는 `userId`데이터로 해당 사용자가 데이터베이스에 존재하는지 체크합니다.
-`OAuth 2.0` 인증으로 발급한 엑세스 토큰이 아니기 때문에 공식적으로 이 방법은 `비표준`방식으로 볼 수 있습니다. 단, 토큰을 헤더로 교환할 목적으로 사용할 인증 유형이 `Bearer`가 제일 적절하다는 점에서 많이 사용되는 방식입니다.
-
-이와 같이 사용자 인증 방식을 결정하는 방법에 대해 정리한 글이 있습니다.
-
-[백엔드가 이정도는 해줘야 함(Velog) - 5. 사용자 인증 방식 결정](https://velog.io/@city7310/%EB%B0%B1%EC%97%94%EB%93%9C%EA%B0%80-%EC%9D%B4%EC%A0%95%EB%8F%84%EB%8A%94-%ED%95%B4%EC%A4%98%EC%95%BC-%ED%95%A8-5.-%EC%82%AC%EC%9A%A9%EC%9E%90-%EC%9D%B8%EC%A6%9D-%EB%B0%A9%EC%8B%9D-%EA%B2%B0%EC%A0%95)
-
-`검증 미들웨어`로 사용자 인증이 성공했다면 이후 기능을 허가하도록 구현해보자
-```js
-// /middlewares/auth-middleware.js
-const jwt = require("jsonwebtoken")
-const User = require("../schemas/user")
-
-module.exports = async (req, res, next) => {
-  const { Authorization } = req.cookies;
-  console.log(req.cookies);
-  // Bearer header.payload.signature
-  
-  // undefined; 로 존재한다면 아래 구문은 에러
-  // authorization.split()
-
-  // null 병합 연산 -> authorization 가 undefined라면 빈 문자열
-  // Bearer, JWT로 분리
-  const [authType, authToken] = (Authorization ?? "").split(" ") // Bearer header.payload.signature를 분리 
-
-  console.log(authType);
-  console.log(authToken);
-  // 1. Bearer 검증
-  // authType === Bearer값인지 확인
-  // authToken 검증, authToken(JWT)(쿠키)가 있는지 확인
-  if( authType !== "Bearer" || !authToken){
-    res.status(400).json({
-      errorMessage: "로그인 후에 이용할 수 있는 기능입니다."
-    })
-    return;
-  }
-
-  // 2. authToken 검증
-  // authToken이 만료되었는가,
-  // authToken이 서버가 발급한 토큰이 맞는지 검증
-  // authToken에 있는 userId에 해당하는 사용자가 실제 DB에 존재하는지 확인
-
-  // 서버가 멈추게 되지 않도록 try... catch 문 이용
-  try{
-    // 검증
-    // authToken이 만료되었는가, verify -> 만료 확인
-    // authToken이 서버가 발급한 토큰이 맞는지 검증 -> 생성 당시 비밀키가 맞는지 검증
-    const {userId} = jwt.verify(authToken, "customized-secret-key");
-
-    // authToken에 있는 userId에 해당하는 사용자가 실제 DB에 존재하는지 확인
-    const user = await User.findOne({userId})
-
-    // 다음 미들웨어에 넘기기 위해. user 정보 전달
-    res.locals.user = user;
-
-    // 다음 미들웨어로 보낸다.
-    next();
-  }catch(err){
-    // 사용자 인증에 실패한 이유
-    console.error(err);
-
-    res.status(400).json({
-      errorMessage: "로그인 후에 이용할 수 있는 기능입니다."
-    })
-    
-    return;
-  }
+`CREATE`: DATABASE, TABLE, VIEW, INDEX 생성시 사용
+```sql
+CREATE DATABASE 데이터베이스명;
+CREATE TABLE 테이블명
+{
+ 컬럼명 컬럼속성
 }
 ```
 
-`내 정보 조회`구현하기  
-
-우선 이 API는 사용자가 토큰을 헤더에 담아 보내야 동작하는 API입니다. 로그인을 해야 "내 정보"를 조회할 수 있게 되죠.
-```js
-// users.js
-
-
-// 내 정보 조회 API -> email, nickname 반환
-// authMiddleware -> next() -> async(req, res)
-const authMiddleware = require("../middlewares/auth-middleware")
-
-router.get("/users/me", aut hMiddleware, async(req, res) => {
-  const {email, nickname} = res.locals.user;
-
-  res.status(200).json({
-    user: {
-      email,
-      nickname
-    }
-  });
-})
+`DROP`: DATABASE, TABLE, VIEW, INDEX 등을 삭제할 때 사용
+```sql
+DROP DATABASE 데이터베이스명;
+DROP TABLE 테이블명;
 ```
+
+`ALTER` : **DATABASE**, **TABLE** 등의 **속성**을 **변경**할 때 사용
+```sql
+ALTER DATABASE 데이터베이스명 변경조건;
+ALTER TABLE 테이블명 ADD 변경조건;
+ALTER TABLE 테이블명 DROP 변경조건;
+ALTER TABLE 테이블명 MODIFY 변경조건;
+ALTER TABLE 테이블명 RENAME 변경조건;
+...
+```
+
+#### DML
+- DML(Data Manopulation Language)은 데이터베이스에 데이터를 조작할 때 사용하는 언어로 데이터의 저장, 삭제, 수정, 조회와 같은 행위
+
+`SELECT`
+```sql
+SELECT 컬럼목록 FROM 테이블명 [WHERE 조건];
+```
+
+`INSERT`
+```sql
+INSERT INTO 테이블명 (컬럼목록) VALUES (값목록);
+```
+
+`DELETE`
+```sql
+DELETE FROM 테이블명 [WHERE 조건];
+```
+
+`UPDATE`
+```sql
+UPDATE 테이블명 SET 컬럼 = 값 [WHERE 조건];
+```
+
+#### DCL
+- DCL(Data Control Language)은 데이터베이스에 대한 권한과 관련된 문법으로 특정 유저가 DB에 접근할 수 있는 권한
+
+`COMMIT`
+- 데이터베이스의 작업이 정상적으로 완료되었음을 관리자에게 알려줄 때 사용
+- [트랜잭션](https://jerryjerryjerry.tistory.com/48)
+```sql
+START TRANSACTION;
+...
+COMMIT;
+```
+
+`ROLLBACK`
+- 데이터베이스의 작업이 비정상적으로 완료되었음을 관리자에게 알려줄 때 사용
+```sql
+START TRANSACTION;
+...
+ROLLBACK;
+```
+
+`GRANT`
+- 데이터베이스의 특정한 유저에게 사용 권한을 부여할 때 사용
+```sql
+GRANT [권한] ON 객체명 TO 사용자;
+```
+
+`REVOKE`
+- 데이터베이스의 특정한 유저에게 사용 권한을 취소할 때 사용
+```sql
+REVOKE [권한] ON 객체명 FROM 사용자;
+```
+
+#### SQL 사용하기
+
+`데이터베이스 생성`
+```sql
+CREATE DATABASE NodeJS;
+```
+
+`테이블 생성`
+```sql
+CREATE TABLE IF NOT EXISTS courses (
+    id bigint(5) NOT NULL AUTO_INCREMENT, 
+    title varchar(255) NOT NULL,
+    tutor varchar(255) NOT NULL,
+    PRIMARY KEY (id)
+);
+```
+
+`데이터 삽입`
+```sql
+INSERT INTO courses (title, tutor) VALUES
+    ('Spring 기초반', '최원빈'),
+    ('Spring 숙련반', '최원빈'),
+    ('React 기초반', '김예지'),
+    ('React 숙련반', '김예지'),
+    ('Node.js 기초반', '이용우'),
+    ('Node.js 숙련반', '이용우'),
+    ('웹개발 종합반', '이범규'),
+    ('웹개발 종합반 플러스', '이범규');
+```
+
+`데이터 조회`
+```sql
+SELECT * FROM courses;
+```
+
+`조회 조건 추가`
+```sql
+SELECT * FROM courses WHERE tutor='이용우';
+```
+
+### 제약 조건
+---
+- 제약조건(Constraint)은 각 컬럼들간의 제한사항을 관리하고, 조건을 위반하는 데이터를 방지하여 데이터베이스의 완전성을 보장하는 규칙
+- 테이블에 소속된 특정 컬럼이 **중복된 키**를 가질 수 없는 조건(**Unique**)
+- 아무런 값을 입력받지 않을 수 있도록 설정하는 조건(**Null**)
+- 특정 컬럼을 테이블 내에서 **고유성을 보장하는 컬럼**을 설정하는 조건(**Primary Key**)
+- 데이터베이스를 설계할 때 가장 많은 고민을 하게 될 **테이블 간의 관계**를 설정하는 조건(**Foreign Key**)
+
+#### 종류
+- **고유(Unique) 제약 조건**
+- **NULL 제약 조건**
+- **기본 키 (Primary Key) 제약 조건**
+- **외래 키 (Foreign Key) 제약 조건**
+
+#### ERD
+테이블 정의시 관계를 고려하여 생성한다. 음식, 고객 테이블을 만들어 고객이 몇일에 음식을 주문했는지 기록하는 테이블도 만들어보자
+음식과 고객 테이블은 N:N 관계로 테이블을 구성하면 구문은 아래와 같이 작성할 수 있다.
+```sql
+CREATE TABLE User
+(
+    userId int(11)      NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    name   varchar(255) NOT NULL UNIQUE
+);
+
+CREATE TABLE Food
+(
+    foodId int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    name   varchar(255),
+    price  int(11)
+);
+
+CREATE TABLE Order
+(
+    orderId   int(11)  NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    userId    int(11)  NOT NULL,
+    foodId    int(11)  NOT NULL,
+    createdAt datetime NOT NULL DEFAULT NOW(),
+    FOREIGN KEY (foodId) REFERENCES Food (foodId)
+        ON DELETE NO ACTION
+        ON UPDATE CASCADE,
+    FOREIGN KEY (userId) REFERENCES User (userId)
+        ON DELETE NO ACTION
+        ON UPDATE CASCADE
+);
+```
+
+#### PRIMARY KEY
+- 기본 키(Primary Key)는 테이블에 있는 데이터를 고유하게 구분할 수 있는 정보를 나타내기 위해서 사용합니다.
+이전에 테이블을 생성할 때에도 PRIMARY KEY라는 조건으로 기본 키가 선언되어 있던 것을 확인할 수 있습니다. 만약 기본 키를 설정하지 않은 테이블을 생성하려고할 때는 특정 데이터를 찾기위한 고유한 정보가 존재하지 않기 때문에 아래와 같은 에러메시지가 출력되면서 테이블이 생성되지 않습니다.
+
+#### AUTO_INCREMENT
+- AUTO_INCREMENT는 데이터를 삽입할 때 아무런 데이터를 입력하지 않더라도 고유한 값을 유지할 수 있도록 도와주는 속성
+- DB 내에서 데이터가 입력될 때 마다 숫자를 1씩 증가시켜 기본 키의 고유한 값을 유지
+
+#### NULL
+- NULL 속성은 특정 컬럼에서 NULL값을 허용하거나, 허용하지 않도록 설정하는 조건
+- 사용자가 이메일이나, 패스워드를 통해 로그인을 할 경우 해당하는 2개의 정보는 필수로 존재해야 컬럼값 NOT NULL
+
+#### UNIQUE
+- 특정 컬럼에서 중복된 값이 허용되지 않도록 설정하는 조건
+- 이메일의 중복을 허용할 경우 이름, 나이, 닉네임과 같은 추가 정보를 입력받아야 사용자를 특정
+
+#### FOREIGN KEY
+- 외래 키(Foreign Key) 제약 조건은 테이블과 다른 테이블간의 관계를 맺을 때 사용하는 제약 조건
+**외래 키(Foreign Key)**는 테이블간의 연관 관계를 표현할 때 사용합니다. 
+
+연관 관계는 대표적으로 3가지의 형태로 표현할 수 있습니다.
+
+- **1:1** - **1명**의 사용자(`User`)는 **1개**의 사용자 정보(`UserInfo`)를 가질 수 있다.
+- **1:N** - **1명**의 사용자(`User`)는 **여러개**의 주문(`Order`)을 할 수 있다.
+- **N:M** - **여러명**의 학생(`Student`)은 **여러개**의 학원(`School`)을 등록할 수 있다.
+```sql
+CREATE TABLE 테이블명
+  FOREIGN KEY (컬럼명) REFERENCES 참조_테이블명 (참조_컬럼명)
+    ON DELETE [연계 참조 제약 조건]
+    ON UPDATE [연계 참조 제약 조건] -- 수정 참조 컬럼이 수정된 경우
+);
+```
+- 외래 키 제약 조건은 CREATE TABLE 문을 사용하여 테이블을 생성함과 동시에 정의
+
+- 외래 키의 경우 다른 테이블과 관계를 맺고 있는 참조 데이터가 삭제(DELETE)또는 수정(UPDATE)될 때 어떤 행위를 해야하는지 설정할 수 있습니다. 이런 행위를 수행하는 조건을 연계 참조 무결성 제약 조건이라고 정의합니다.
+
+#### 연계 참조 무결성 제약 조건의 종류
+- **CASCADE** : 참조하고 있는 개체가 **변경/삭제** 될 경우 함께 **변경/삭제**됩니다.
+```sql
+FOREIGN KEY (UserId) REFERENCES Users(userId)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE;
+```
+
+- **NO ACTION** : 참조하고 있는 개체가 변경/삭제 될 경우 아무런 행위를 하지 않고 에러가 발생
+```sql
+FOREIGN KEY (UserId) REFERENCES Users(userId)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION;
+```
+
+보통 1:N의 경우 N이 1의 키를 외래키로 가진다.
+1:1의 경우 참조하는 쪽에서 외래키로 가진다음 UNIQUE 제약 조건을 추가한다.
+N:N의 경우 별도의 테이블을 생성하고 두 테이블의 값을 외래키로 가진다.

@@ -7,3 +7,135 @@ update: "2023-03-04"
 serisenumber: 14
 ---
 ## 시작
+이번에는 Sequelize를 이용해 회원가입, 로그인, 게시판, 댓글 API를 구현해보도록 하자.
+
+### 테이블 구조도
+
+[그림 테이블 구조도]  
+
+**사용자**(`Users`)는 1개의 **사용자 정보**(`UserInfo`)를 **가지고** 있어요.
+
+- 그렇기 때문에 `Users` 테이블과 `UserInfo` 테이블은 **1:1** 관계를 가지고 있어요!
+
+**사용자**(`Users`)는 여러개의 **게시글**(`Posts`)을 **등록**할 수 있어요.
+
+- 그렇기 때문에 `Users` 테이블과 `Posts` 테이블을 **1:N** 관계를 가지고 있어요!
+
+**사용자**(`Users`)는 여러개의 **댓글**(`Comments`)을 **작성**할 수 있어요.
+
+- 그렇기 때문에 `Users` 테이블과 `Comments` 테이블은 **1:N** 관계를 가지고 있어요!
+
+#### 라이브러리 설치
+```bash
+# 라이브러리를 설치합니다.
+> npm install express sequelize mysql2 cookie-parser jsonwebtoken
+
+# sequelize-cli, nodemon 라이브러리를 DevDependency로 설치합니다.
+> npm install -D sequelize-cli nodemon
+
+# 설치한 sequelize를 초기화 하여, sequelize를 사용할 수 있는 구조를 생성합니다.
+> npx sequelize init
+```
+
+#### migration 파일 생성
+테이블 구조도에 따른 migration파일을 생성해 봅시다.
+```bash
+# Users 모델
+npx sequelize model:generate --name Users --attributes email:string,password:string
+# UserInfos 모델
+npx sequelize model:generate --name UserInfos --attributes UserId:integer,name:string,age:integer,gender:string,profileImage:string
+# Posts 모델
+npx sequelize model:generate --name Posts --attributes UserId:integer,title:string,content:string
+# Comments 모델
+npx sequelize model:generate --name Comments --attributes UserId:integer,PostId:integer,comment:string
+```
+
+이후 폴더 구조는 아래와 같이 변경/추가됩니다.
+```text
+내 프로젝트 폴더 이름
+├── config
+│   └── config.json
+├── migrations
+│   ├── 20230119050219-create-posts.js
+│   ├── 20230119050219-create-user-infos.js
+│   ├── 20230119050219-create-users.js
+│   └── 20230119050220-create-comments.js
+├── models
+│   ├── comments.js
+│   ├── index.js
+│   ├── posts.js
+│   ├── userinfos.js
+│   └── users.js
+├── package-lock.json
+├── package.json
+└── seeders
+```
+
+SQL 구문과 비교하면 다음과 같은 모습입니다.
+```sql
+CREATE TABLE Users
+(
+    userId    int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    email     varchar(255) UNIQUE NOT NULL,
+    password  varchar(255)        NOT NULL,
+    createdAt datetime            NOT NULL DEFAULT NOW(),
+    updatedAt datetime            NOT NULL DEFAULT NOW()
+);
+
+
+CREATE TABLE UserInfos
+(
+    userInfoId   int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    UserId       int(11) UNIQUE NOT NULL, -- 1:1 관계 이므로 UNIQUE 조건을 삽입합니다.
+    name         varchar(255) NOT NULL,
+    age          int(11) NOT NULL,
+    gender       varchar(255) NOT NULL,
+    profileImage varchar(255) NULL,
+    createdAt    datetime     NOT NULL DEFAULT NOW(),
+    updatedAt    datetime     NOT NULL DEFAULT NOW()
+);
+
+ALTER TABLE UserInfos
+    ADD CONSTRAINT FK_UserInfos_Users
+        FOREIGN KEY (UserId) REFERENCES Users (userId) ON DELETE CASCADE;
+
+
+CREATE TABLE Posts
+(
+    postId    int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    UserId    int(11) NOT NULL,
+    title     varchar(255) NOT NULL,
+    content   varchar(255) NOT NULL,
+    createdAt datetime     NOT NULL DEFAULT NOW(),
+    updatedAt datetime     NOT NULL DEFAULT NOW()
+);
+
+ALTER TABLE Posts
+    ADD CONSTRAINT FK_Posts_Users
+        FOREIGN KEY (UserId) REFERENCES Users (userId) ON DELETE CASCADE;
+
+
+CREATE TABLE Comments
+(
+    commentId int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    UserId    int(11) NOT NULL,
+    PostId    int(11) NOT NULL,
+    comment   varchar(255) NOT NULL,
+    createdAt datetime     NOT NULL DEFAULT NOW(),
+    updatedAt datetime     NOT NULL DEFAULT NOW()
+);
+
+ALTER TABLE Comments
+    ADD CONSTRAINT FK_Comments_Posts
+        FOREIGN KEY (PostId) REFERENCES Posts (postId) ON DELETE CASCADE;
+
+ALTER TABLE Comments
+    ADD CONSTRAINT FK_Comments_Users
+        FOREIGN KEY (UserId) REFERENCES Users (userId) ON DELETE CASCADE;
+```
+
+현재 `migration`파일의 경우 외래키가 정의되지 않았습니다. 코드를 수정해 외래키를 참조하도록 변경해봅시다.
+```js
+// 날짜-create-users.js
+
+```

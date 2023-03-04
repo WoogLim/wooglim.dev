@@ -1,236 +1,579 @@
 ---
 title: "[항해] 항해 숙련 주차 - 3"
-description: "Node.js 숙련 1주차 - MySQL 연동"
+description: "Node.js 숙련 1주차 - Sequelize"
 language: "daliyreport"
 category: "Hanghae99"
-update: "2023-03-03"
+update: "2023-03-04"
 serisenumber: 13
 ---
 ## 시작
-이전까지의 프로젝트에서는 mongoDB, mongoose를 이용했다. 이제 RDBMS 중 하나인 MySQL과 Sequelize를 사용해보자.
+- Sequelize는 ORM(Object Relational Mapping)으로써 Javascript 객체(Object)와 데이터베이스의 관계(Relation)을 연결(Mapping) 해주는 도구입니다.
+Node.js 환경에서는 TypeORM, Prisma, Sequelize 등 다양한 ORM이 존재합니다. 하지만 저희는 Javascript 환경에서 가장 간편하게 사용할 수 있고, ORM 개념을 학습하기 쉬운 Sequelize를 바탕으로 진행해보겠습니다.
+- Sequelize와 같은 ORM은 여러가지의 관계형 데이터베이스(RDB)를 사용할 수 있습니다. 예를들어 MySQL이나 Oracle, MariaDB, PostgreSQL과도 사용할 수 있죠.
 
-### 관계형 DB SQL 기초
+RDBMS에서 `Table`이 MongoDB에서는 `Collections`, `ROW`의 경우 `Documents`, `Columns`의 경우 `Fields`이죠.
 
-#### DDL
-- DDL(Data Definition Language)은 데이터를 정의할 때 사용하는 언어로 테이블이나 데이터베이스를 생성, 수정, 삭제와 같은 행위를 할 때 사용합니다.
+- mongoose의 경우 ODM(Object Document Mapping)으로 Javascript의 객체를 Document와 연결하지만, Sequelize는 ORM(Object Relational Mapping)으로 Javascript의 객체와 데이터베이스의 관계(Relation)를 연결해주는 차이점이 있습니다.
+또한 mongoose는 지원하는 데이터베이스는 MongoDB 밖에 존재하지 않았지만, Sequelize의 경우 RDBMS에 해당하는 다양한 데이터베이스를 사용할 수 있다는 장점이있습니다.
 
-`CREATE`: DATABASE, TABLE, VIEW, INDEX 생성시 사용
-```sql
-CREATE DATABASE 데이터베이스명;
-CREATE TABLE 테이블명
-{
- 컬럼명 컬럼속성
+- mongoose의 경우 Schema의 형태로 컬렉션(Collection)에 대한 속성을 설정하였다면, Sequelize의 경우 Model의 형태로 테이블(Table)의 속성을 설정할 수 있습니다.
+
+### ORM의 장점
+- 과거에는 MySQL을 사용하려 할때, ORM을 사용하지 않고, 모든 코드를 SQL을 사용하는 Raw Query 형태로 구현하여 사용.
+
+프로젝트를 구현할 때, Raw Query로 구현하지 않고, ORM을 사용하는 이유가 무엇일까요? (물론 Raw Query로도 많이 사용합니다.)
+Sequelize와 같은 ORM을 사용하는 가장 큰 이유는 대표적으로 2가지가 있습니다.
+
+>1.`프로덕션에서 사용하는 데이터베이스가 언제바뀔 지 알 수 없습니다.`  
+스타트업을 예를 들어 보겠습니다.  
+처음은 가장 보편적으로 사용하는 MySQL을 사용하고 있었습니다. 그러나 시간이 지날수록 개발자들의 유지보수 만으로 DB를 관리하기 어려워져 기술지원이 활발한 Oracle로 DB를 변경하려할 때 ORM을 사용하지 않는 개발자들은 두가지의 선택의 기로에 서게 됩니다.  
+1. 서비스 중인 프로덕션의 모든 Raw Query코드를 MySQL에서 Oracle로 변경하는 것을 고려
+2. Oracle로 변경하지 않고, 어려운 현재 상황을 감내하고 계속 MySQL을 쓴다
+하지만, ORM을 도입하였을 경우 여러분들은 이런 상황을 겪지 않고, 단순히 ORM의 속성값만 변경할 경우 언제든지 자유롭게 DB를 변경할 수 있게 되어 개발할 때 선택의 폭이 넓어지게 됩니다. 
+
+>2.`데이터베이스에서 사용하는 DB 또는 Table 속성이 변경되었을 때 빠르게 수정이 가능합니다.`
+만일 클라이언트의 요구로 특정 컬럼을 변경하는 경우 해당 컬럼이 존재하는 테이블과 연관된 코드는 모두 수정해야합니다.  
+하지만 ORM을 사용할 경우 테이블을 나타내는 Sequelize의 Model을 수정하기만 하더라도 수많은 API에서 Raw Query를 수정하지 않고도 추가 컬럼 값에 대한 정보를 추가할 수 있습니다.
+
+### Sequelize 라이브러리 설치하기
+```bash
+# express, sequelize, mysql2 라이브러리를 설치합니다.
+> npm install express sequelize mysql2
+
+# sequelize-cli, nodemon 라이브러리를 DevDependency로 설치합니다.
+> npm install -D sequelize-cli nodemon
+
+# 설치한 sequelize를 초기화 하여, sequelize를 사용할 수 있는 구조를 생성합니다.
+> npx sequelize init 
+```
+
+이후 프로젝트 폴더는 다음과 같이 변경/추가됩니다.
+```text
+내 프로젝트 폴더 이름
+├── models
+│   └── index.js
+├── config
+│   └── config.json
+├── migrations
+├── seeders
+├── package-lock.json
+└── package.json
+```
+
+> 1. models 폴더 안에 index.js가 생성됨  
+sequelize 모델을 편리하게 사용할 수 있게 해주는 파일
+
+> 2. config 폴더 안에 config.json 파일이 생성됨  
+데이터베이스에 연결하기 위한 설정 데이터가 JSON 형식으로 포함
+
+> 3. migrations 폴더가 생성
+
+> 4. seeder 폴더가 생성됨  
+
+> 주의 사항  
+현재로서는 생성된 폴더나 파일들은 임의로 옮기지 않는다. sequelize-cli는 정해진 경로에 있는 파일을 사용하고 저장하기 때문에 임의로 옮기면 오동작 할 가능성이 있음.
+
+#### Sequelize와 AWS RDS 생성 MySQL Cluster와 연결하기
+Sequelize는 연결하려는 RDBMS의 속성을 config/config.json파일에서 관리하고 있다. development 프로퍼티에 정의된 속성들을 수정하여 사용자 명, 비밀번호, 엔드포인트 등 다양한 설정값을 입력해주어야한다.
+
+```json
+// /config/config.json
+"development": {
+    "username": "계정명",
+    "password": "계정 비밀번호",
+    "database": "사용할 데이터베이스 명",
+    "host": "RDS 엔드포인트 주소",
+    "dialect": "mysql"
+  },
+```
+위와 같이 설정 후 아래 명령어를 입력합니다. 지정한 데이터베이스가 없다면 새로 생성하게될 것입니다.
+```bash
+> npx sequelize db:create
+```
+
+#### Sequelize의 Migration과 Model
+- Sequelize의 구성은 migration, model 2가지로 구분됩니다.
+- migration은 Sequelie CLI를 이용해 MySQL에 테이블을 생성하기 위해 사용됩니다. 후에 VIEW, TRIGGER, INDEX 또한 이 마이그레이션에서 설정할 수 있습니다.
+- model은 특정 Table과 Column의 속성값을 입력하여, MySQL과 Express 프로젝트를 연결 (Mapping)시켜줍니다.
+
+```bash
+npx sequelize model:generate --name Posts --attributes title:string,content:string,password:string
+# sequelize 를 이용해서
+# model:generate --name Posts 모델(테이블)을 생성할 것이다. Posts라는 이름으로.
+# --attributes 내부에 포함될 컬럼들 title:string,content:string,password:string
+```
+
+이후 `migrations`폴더내 `날짜-create-posts.js`형식의 파일이 생성된다. 설정하지 않은 `id, createAt, updateAt`은 현재 기본적으로 추가된다.
+
+```js
+'use strict';
+/** @type {import('sequelize-cli').Migration} */
+module.exports = {
+  async up(queryInterface, Sequelize) {
+    await queryInterface.createTable('Posts', {
+      id: {
+        allowNull: false, // null값 미허용
+        autoIncrement: true, // 1씩 증가
+        primaryKey: true, // 기본키 설정
+        type: Sequelize.INTEGER // 데이터 타입
+      },
+      title: {
+        type: Sequelize.STRING // String(255)
+        // defaultValue: "제목" // 값이 설정되지 않은 경우 기본값을 설정합니다.
+        // unique : true // 고유한 값만 들어올 수 있도록 설정합니다.
+      },
+      content: {
+        type: Sequelize.STRING
+      },
+      password: {
+        type: Sequelize.STRING
+      },
+      createdAt: {
+        allowNull: false,
+        type: Sequelize.DATE
+      },
+      updatedAt: {
+        allowNull: false,
+        type: Sequelize.DATE
+      }
+    });
+  },
+  async down(queryInterface, Sequelize) {
+    await queryInterface.dropTable('Posts');
+  }
+};
+```
+
+또한 `models`폴더내 `index.js`, `posts.js`가 생성된 것을 확인할 수 있다.
+```js
+// /models/posts.js
+'use strict';
+const {
+  Model
+} = require('sequelize');
+module.exports = (sequelize, DataTypes) => {
+  class Posts extends Model {
+    /**
+     * Helper method for defining associations.
+     * This method is not a part of Sequelize lifecycle.
+     * The `models/index` file will call this method automatically.
+     */
+    static associate(models) {
+      // define association here
+    }
+  }
+  Posts.init({
+    title: DataTypes.STRING,
+    content: DataTypes.STRING,
+    password: DataTypes.STRING
+  }, {
+    sequelize,
+    modelName: 'Posts',
+  });
+  return Posts;
+};
+```
+
+폴더 구조는 다음과 같이 보이게 됩니다.
+```text
+내 프로젝트 폴더 이름
+├── models
+│   ├── index.js
+│   └── posts.js
+├── config
+│   └── config.json
+├── migrations
+│   └── 20230118144300-create-posts.js
+├── seeders
+├── package-lock.json
+└── package.json
+```
+
+[→ --attributes 뒤에 정의했던 model attributes의 데이터 타입에 대해 자세히 알고싶다면 여기를 클릭하세요!](https://sequelize.org/docs/v6/core-concepts/model-basics/#data-types)
+
+#### 마이그레이션을 이용해 테이블 생성
+migrations 폴더에 정의된 migration 파일들과 MySQL의 테이블을 매핑하려면 추가로 작업이 필요합니다.
+```bash
+# migrations 폴더에 정의된 migration 파일들과 MySQL의 테이블을 맵핑시킵니다.
+npx sequelize db:migrate
+
+== 날짜-create-posts: migrating =======
+== 날짜-create-posts: migrated (0.098s)
+```
+위 명령을 입력하게되면 현재 migrations 폴더의 파일을 바탕으로 테이블 생성합니다.
+
+#### Sequelize CLI 살펴보기
+- `**[sequelize db:create](https://github.com/sequelize/cli#usage)**`
+    - `config/config.json`에 설정한 `database`를 생성합니다.
+- `**[sequelize db:drop](https://github.com/sequelize/cli#usage)**`
+    - `config/config.json`에 설정한 `database`를 DROP합니다.
+- [`**sequelize model:generate**`](https://sequelize.org/docs/v6/other-topics/migrations/#creating-the-first-model-and-migration)
+    - `migration`과 `model`을 생성합니다.
+    - 각 Column의 속성을 지정해줄 수 있습니다.
+- [`**sequelize db:migrate**`](https://sequelize.org/docs/v6/other-topics/migrations/#running-migrations)
+    - `migrations` 폴더에 있는 `migration` 파일을 이용해 MySQL의 테이블을 생성합니다.
+- [`**sequelize db:migrate:undo**`](https://sequelize.org/docs/v6/other-topics/migrations/#undoing-migrations)
+    - 가장 최근에 실행된 `db:migration` 명령을 되돌립니다.
+- [`**sequelize seed:generate**`](https://sequelize.org/docs/v6/other-topics/migrations/#creating-the-first-seed)
+    - `seeder` 폴더에 있는 `seed` 파일을 이용해 각 테이블에 데이터를 삽입합니다.
+
+[→ Sequelize CLI 명령어에 대해 자세히 알고싶다면 여기를 클릭하세요!](https://github.com/sequelize/cli#usage)
+
+#### Sequelize의 migration
+- Sequelize의 Migration은 MySQL의 테이블을 정의 및 생성하기 위해 사용됩니다.
+- express.js 프로젝트에서 MySQL을 사용하기 위해 Sequelize를 설정하였지만, MySQL에 테이블이 존재하지 않을 경우에는 데이터를 생성하거나, 수정할 수 없죠
+- Sequelize는 migration 파일을 이용하여 테이블에 대한 속성값을 정의하여 MySQL의 테이블을 설계 및 생성할 수 있습니다.
+
+```js
+// migrations/날짜-create-posts
+d: {
+        allowNull: false, // null값 미허용
+        autoIncrement: true, // 1씩 증가
+        primaryKey: true, // 기본키 설정
+        type: Sequelize.INTEGER // 데이터 타입
+      },
+```
+위에 보시면 type 옵션이 보이실겁니다. 어떤 데이터 타입이 존재하는지 어떤 크기로 설정되어있는지 보시면 좋습니다.
+[→ Sequelize의 Data Types을 자세하게 알고싶다면 여기를 클릭하세요!](https://sequelize.org/docs/v7/other-topics/other-data-types/)
+
+이제 한번 `migration`에 생성된 파일을 변경해 기존 테이블을 변경해봅시다.
+```js
+'use strict';
+/** @type {import('sequelize-cli').Migration} */
+module.exports = {
+  async up(queryInterface, Sequelize) {
+    await queryInterface.createTable('Posts', {
+      postId: {
+        allowNull: false, // null값 미허용
+        autoIncrement: true, // 1씩 증가
+        primaryKey: true, // 기본키 설정
+        type: Sequelize.INTEGER // 데이터 타입
+      },
+      title: {
+        allowNull: false,
+        type: Sequelize.STRING // String(255)
+        // defaultValue: "제목" // 값이 설정되지 않은 경우 기본값을 설정합니다.
+        // unique : true // 고유한 값만 들어올 수 있도록 설정합니다.
+      },
+      content: {
+        allowNull: false,
+        type: Sequelize.STRING
+      },
+      password: {
+        allowNull: false,
+        type: Sequelize.STRING
+      },
+      createdAt: {
+        allowNull: false,
+        type: Sequelize.DATE,
+        defaultValue: Sequelize.fn("NOW") // 기본값으로 현재 시간 설정
+      },
+      updatedAt: {
+        allowNull: false,
+        type: Sequelize.DATE,
+        defaultValue: Sequelize.fn("NOW") // 기본값으로 현재 시간 설정
+      }
+    });
+  },
+  async down(queryInterface, Sequelize) {
+    await queryInterface.dropTable('Posts');
+  }
+};
+```
+
+이전 `migrate`명령 (create)을 취소하고 다시 테이블을 생성해봅시다.
+```bash
+# 가장 최근에 실행한 db:migrate를 취소합니다
+> npx sequelize db:migrate:undo
+
+# migrations 폴더에 존재하는 migration 파일을 기반으로 테이블을 생성합니다.
+> npx sequelize db:migrate
+```
+
+그럼 테이블을 추가할 때마다 `migration`파일을 정의 해야만 테이블을 생성할 수 있을까 라는 의문점이 드실 겁니다. `sequelize.sync()` 구문을 실행할 경우 이후 배울 models 폴더에 생성된 `model`파일을 이용해 테이블을 설계할 수 있게 됩니다. `migration`파일을 구성하지 않고도 Sequelize와 MySQL의 테이블을 동기화 시킬 수 있게 됩니다.
+
+단, 그럼에도 불구하고 `migration` 파일을 이용해 각 테이블에 대한 속성값을 관리해야합니다.  
+Production 환경에서 DB를 사용할 때는 서버의 실행 없이 MySQL에 대한 관리가 필요한 경우가 많이 존재하고, model 파일만으로 구체적인 DB 설정을 하기 힘들기 때문입니다. 예를 들어 MySQL에서 INDEX, VIEW, SCHEDULER와 같은 명령들은 Sequelize.sync 명령어를 통해 관리하기 어렵습니다.
+
+`Migration`파일을 사용하지 않고 마이그레이션이 가능하죠. 다음 코드와 같이 작성하면 됩니다.
+```js
+// app.js
+const { sequelize } = require("./models/index.js");
+
+async function main() {
+  // sequelize에 테이블들이 존재하지 않는 경우 태이블을 생성합니다.
+  await sequelize.sync();
 }
+
+main();
 ```
 
-`DROP`: DATABASE, TABLE, VIEW, INDEX 등을 삭제할 때 사용
+#### Sequelize의 Model
+- Sequelize의 model은 특정 Table과 Column의 속성값을 입력하여, MySQL과 Express 프로젝트를 연결 (Mapping)시켜줍니다.
+- Sequelize의 모델은 Javascript에서 MySQL의 테이블을 사용하기 위한 다리 역할을 수행합니다.
+- 즉, migration 파일은 테이블을 생성하는 것 이었다면, model 파일은 MySQL과 실제 연결되어 사용할 수 있게 도와주는 것 입니다.
+
+만약 Sequelize의 모델을 사용하지 않고, Posts 테이블을 조회한다면 아래와 같은 Raw Query를 사용해야할 것 입니다.
 ```sql
-DROP DATABASE 데이터베이스명;
-DROP TABLE 테이블명;
+SELECT postId, title, content, createdAt, updatedAt
+FROM Posts;
 ```
 
-`ALTER` : **DATABASE**, **TABLE** 등의 **속성**을 **변경**할 때 사용
-```sql
-ALTER DATABASE 데이터베이스명 변경조건;
-ALTER TABLE 테이블명 ADD 변경조건;
-ALTER TABLE 테이블명 DROP 변경조건;
-ALTER TABLE 테이블명 MODIFY 변경조건;
-ALTER TABLE 테이블명 RENAME 변경조건;
-...
+Sequelize에서 Posts 모델을 생성할 경우 아래와 같은 코드를 이용해 간단하게 Posts 테이블을 조회할 수 있을 것이고, 언제든지 컬럼이 추가 및 변경 되더라도 코드의 변화가 존재하지 않을 것 입니다.
+```js
+const { Posts } = require("./models");
+const posts = Posts.findAll();
 ```
 
-#### DML
-- DML(Data Manopulation Language)은 데이터베이스에 데이터를 조작할 때 사용하는 언어로 데이터의 저장, 삭제, 수정, 조회와 같은 행위
+#### Sequelize의 Model 살펴보기
+- Sequelize의 Model은 기본 키(Primary Key)에 해당하는 컬럼이 구현되어 있지 않고, 컬럼들의 속성이 단순히 type만 선언되어 있는 것을 확인할 수 있습니다.
 
-`SELECT`
-```sql
-SELECT 컬럼목록 FROM 테이블명 [WHERE 조건];
+특별한 점은 model과 migration은 동일한 문법을 가지고 있어 기존 코드를 사용하더라도 호환이 됩니다. 이 특성을 이용해 봅시다.
+
+```js
+'use strict';
+const {
+  Model
+} = require('sequelize');
+module.exports = (sequelize, DataTypes) => {
+  class Posts extends Model {
+    /**
+     * Helper method for defining associations.
+     * This method is not a part of Sequelize lifecycle.
+     * The `models/index` file will call this method automatically.
+     */
+    static associate(models) {
+      // define association here
+    }
+  }
+  Posts.init({
+    title: DataTypes.STRING,  // 설정한 데이터 타입
+    content: DataTypes.STRING,
+    password: DataTypes.STRING
+  }, {
+    sequelize,
+    modelName: 'Posts', // 모델(테이블) 이름
+  });
+  return Posts;
+};
+```
+다음과 같이 `migration`파일과 비슷한 모습으로 변경해봅시다.
+```js
+'use strict';
+const {
+  Model, Sequelize
+} = require('sequelize');
+module.exports = (sequelize, DataTypes) => {
+  class Posts extends Model {
+    /**
+     * Helper method for defining associations.
+     * This method is not a part of Sequelize lifecycle.
+     * The `models/index` file will call this method automatically.
+     */
+    static associate(models) {
+      // define association here
+    }
+  }
+  Posts.init({
+      postId: {
+        allowNull: false,
+        autoIncrement: true,
+        primaryKey: true,
+        type: DataTypes.INTEGER
+      },
+      title: {
+        type: DataTypes.STRING,
+        allowNull: false
+      },
+      content: {
+        type: DataTypes.STRING,
+        allowNull: false
+      },
+      password: {
+        type: DataTypes.STRING,
+        allowNull: false
+      },
+      createdAt: {
+        allowNull: false,
+        type: DataTypes.DATE,
+        // DataTypes.NOW -> migration파일에서는 현재 이슈로 등록되어 NOW가 온전히 작동하고 있지 않습니다.
+        defaultValue: DataTypes.NOW
+      },
+      updatedAt: {
+        allowNull: false,
+        type: DataTypes.DATE,
+        defaultValue: DataTypes.NOW
+      }
+    }, {
+    sequelize,
+    modelName: 'Posts', // 모델(테이블) 이름
+  });
+  return Posts;
+};
 ```
 
-`INSERT`
-```sql
-INSERT INTO 테이블명 (컬럼목록) VALUES (값목록);
+#### Sequelize의 Model 설정하기
+- Sequelize의 API를 실행하기 전 까지 model은 정상적으로 구현되었는지 확인하기 어렵습니다. 이를 이용하여 게시글 API를 생성해봅시다.
+
+### Sequelize Method
+- Sequelize는 mongoose와 동일하게, find(), findOne(), findByPk() 등 다양한 메서드를 지원합니다. mongoose를 사용했을 때는 Schmea를 이용해 DB를 사용하였다면, Sequelize는 작성한 model을 이용해 테이블의 구조를 설계하고, MySQL의 데이터를 조작할 것입니다.
+
+[Posts 테이블]
+- Posts 테이블은 게시글 제목(title), 내용(content), 비밀번호(password)총 3개의 컬럼을 가지고 있고 postId, createdAt, updatedAt 컬럼은 아무런 데이터를 입력하지 않더라도 기본값을 가질 수 있도록 구성되어 있습니다
+- 필수값 3개를 입력해 우선 추가해봅시다.
+
+#### 게시글 생성
+
+> **게시글 생성 API**의 비즈니스 로직  
+1. `title`, `content`, `password`를 **body**로 전달받는다.  
+2. `title`, `content`, `password`를 이용해 **Posts** 테이블에 데이터를 삽입 한다.  
+3. 생성된 게시글을 반환한다.
+
+우선 `app.js`를 다음과 같이 작성합니다.
+```js
+const express = require("express");
+const postsRouter = require("./routes/posts.route");
+const app = express();
+const PORT = 3017;
+
+app.use(express.json());
+app.use('/api', [postsRouter]);
+
+app.listen(PORT, () => {
+  console.log(PORT, '포트 번호로 서버가 실행되었습니다.');
+})
 ```
 
-`DELETE`
-```sql
-DELETE FROM 테이블명 [WHERE 조건];
+`routes`폴더를 생성하고 `post.route.js`파일을 생성하여 API를 작성해봅시다.
+
+`1. 게시글 생성 API`
+```js
+// routes/post.route.js
+
+const express = require("express");
+const { Posts } = require("../models");
+const router = express.Router();
+
+// routes/posts.route.js
+
+// 게시글 생성
+router.post('/posts', async (req, res) => {
+  const { title, content, password } = req.body;
+  const post = await Posts.create({ title, content, password });
+
+  res.status(201).json({ data: post });
+});
+
+module.exports = router;
 ```
+`create`메소드는 `INSERT INTO`와 같은 `Raw Query`를 대신 입력해줍니다.
 
-`UPDATE`
-```sql
-UPDATE 테이블명 SET 컬럼 = 값 [WHERE 조건];
+`2. 게시글 조회 API`
+게시글 조회 API는 **게시글 목록 조회**, **게시글 상세 조회** 2개의 API로 구현할 수 있습니다.
+
+**게시글 목록 조회** API의 경우 게시글의 **내용(content)**을 제외하고, 
+**게시글 상세 조회** API일 경우에만 게시글의 **전체 내용이 출력**되도록 구현할 예정입니다.
+
+```js
+// 게시글 목록 조회 API
+router.get("/posts", async(req, res) => {
+  const posts = await Posts.findAll({
+    attributes: ['postId', 'title', 'createdAt', 'UpdatedAt']
+  }) // 해당 테이블에 게시글 컬럼을 제외한 모든 데이터를 가져온다.
+
+  res.status(200).json({
+    data: posts
+  })
+})
+
+// 게시글 상세 조회 API
+router.get("/posts/:postId", async(req, res) => {
+  const { postId } = req.params;
+
+  const post = await Posts.findOne({
+    attributes: ["postId", "title", "content", "createdAt", "updatedAt"],
+    where: { postId }
+  }); // postId값이, 현재 전달받은 postId 변수 값과 일치하는 데이터를 찾아라
+
+  res.status(200).json({
+    data: post
+  })
+})
 ```
+위 구문에서 보았듯이 `attributes`속성을 작성하는 구문을 보셨을겁니다. 다른 컬럼을 불러오지 않도록 설정해주는 것이 좋습니다.
 
-#### DCL
-- DCL(Data Control Language)은 데이터베이스에 대한 권한과 관련된 문법으로 특정 유저가 DB에 접근할 수 있는 권한
+[find Method 종류 보러가기](https://sequelize.org/docs/v6/core-concepts/model-querying-finders/)
 
-`COMMIT`
-- 데이터베이스의 작업이 정상적으로 완료되었음을 관리자에게 알려줄 때 사용
-- [트랜잭션](https://jerryjerryjerry.tistory.com/48)
-```sql
-START TRANSACTION;
-...
-COMMIT;
+`3. 게시글 수정`
+> **게시글 수정 API**의 비즈니스 로직  
+1. Query String으로 어떤 게시글을 수정할 지 `postId`를 전달받습니다.  
+2. 변경할 `title`, `content`와 권한 검증을 위한 `password`를 **body**로 전달받습니다.  
+3. `postId`를 기준으로 게시글을 검색하고, 게시글이 존재하는지 확인합니다.  
+4. 게시글이 조회되었다면 해당하는 게시글의 `password`가 일치하는지 확인합니다.  
+5. 모든 조건을 통과하였다면 **게시글을 수정**합니다.
+
+```js
+// routes/posts.route.js
+
+const { Op } = require("sequelize");
+
+// 게시글 수정
+router.put('/posts/:postId', async (req, res) => {
+  const { postId } = req.params;
+  const { title, content, password } = req.body;
+
+  const post = await Posts.findOne({ where: { postId } });
+  if (!post) {
+    return res.status(404).json({ message: '게시글이 존재하지 않습니다.' });
+  } else if (post.password !== password) {
+    return res.status(401).json({ message: '비밀번호가 일치하지 않습니다.' });
+  }
+
+  await Posts.update(
+    { title, content }, // 수정할 데이터 컬럼
+    {
+      where: {
+        // Op.and postId AND password 가 일치하는 데이터
+        [Op.and]: [{ postId }, [{ password }]],
+      }
+    } // 어떤 데이터를 수정할 것인가.
+  );
+
+  res.status(200).json({ data: "게시글이 수정되었습니다." });
+});
 ```
+SQL에서는 특정한 데이터를 검출하기 위해 where절에서 **OR(`||`), AND(`&&`), `LIKE`, 정규표현식** 등 다양한 연산자를 사용할 수 있습니다.
 
-`ROLLBACK`
-- 데이터베이스의 작업이 비정상적으로 완료되었음을 관리자에게 알려줄 때 사용
-```sql
-START TRANSACTION;
-...
-ROLLBACK;
+일반적으로 Sequelize의 where절은 **문자열** 또는 **숫자**를 입력하여 데이터를 검색할 수 있지만, `Sequelize.Op`를 이용할 경우 여러분들은 더욱 많은 데이터를 검증할 수 있는 조건을 사용할 수 있게 됩니다.
+
+[Op 연산자 알아보기](https://sequelize.org/docs/v6/core-concepts/model-querying-basics/#operators)
+
+`4. 게시글 삭제`
+> **게시글 삭제 API**의 비즈니스 로직  
+1. Query String으로 어떤 게시글을 수정할 지 `postId`를 전달받습니다.  
+2. 권한 검증을 위한 `password`를 **body**로 전달받습니다.  
+3. `postId`를 기준으로 게시글을 검색하고, 게시글이 존재하는지 확인합니다.  
+4. 게시글이 조회되었다면 해당하는 게시글의 `password`가 일치하는지 확인합니다.  
+5. 모든 조건을 통과하였다면 **게시글을 삭제**합니다.
+
+```js
+router.delete('/posts/:postId', async (req, res) => {
+  const { postId } = req.params;
+  const { password } = req.body;
+
+  const post = await Posts.findOne({ where: { postId } });
+  if (!post) {
+    return res.status(404).json({ message: '게시글이 존재하지 않습니다.' });
+  } else if (post.password !== password) {
+    return res.status(401).json({ message: '비밀번호가 일치하지 않습니다.' });
+  }
+
+  await Posts.destroy({ 
+    where: {
+       [Op.and]: [{postId}, {password}] // 게시글의 비밀번호와, postId가 일치할 때, 삭제한다.
+    },
+  });
+
+  res.status(200).json({ data: "게시글이 삭제되었습니다." });
+});
 ```
-
-`GRANT`
-- 데이터베이스의 특정한 유저에게 사용 권한을 부여할 때 사용
-```sql
-GRANT [권한] ON 객체명 TO 사용자;
-```
-
-`REVOKE`
-- 데이터베이스의 특정한 유저에게 사용 권한을 취소할 때 사용
-```sql
-REVOKE [권한] ON 객체명 FROM 사용자;
-```
-
-#### SQL 사용하기
-
-`데이터베이스 생성`
-```sql
-CREATE DATABASE NodeJS;
-```
-
-`테이블 생성`
-```sql
-CREATE TABLE IF NOT EXISTS courses (
-    id bigint(5) NOT NULL AUTO_INCREMENT, 
-    title varchar(255) NOT NULL,
-    tutor varchar(255) NOT NULL,
-    PRIMARY KEY (id)
-);
-```
-
-`데이터 삽입`
-```sql
-INSERT INTO courses (title, tutor) VALUES
-    ('Spring 기초반', '최원빈'),
-    ('Spring 숙련반', '최원빈'),
-    ('React 기초반', '김예지'),
-    ('React 숙련반', '김예지'),
-    ('Node.js 기초반', '이용우'),
-    ('Node.js 숙련반', '이용우'),
-    ('웹개발 종합반', '이범규'),
-    ('웹개발 종합반 플러스', '이범규');
-```
-
-`데이터 조회`
-```sql
-SELECT * FROM courses;
-```
-
-`조회 조건 추가`
-```sql
-SELECT * FROM courses WHERE tutor='이용우';
-```
-
-### 제약 조건
----
-- 제약조건(Constraint)은 각 컬럼들간의 제한사항을 관리하고, 조건을 위반하는 데이터를 방지하여 데이터베이스의 완전성을 보장하는 규칙
-- 테이블에 소속된 특정 컬럼이 **중복된 키**를 가질 수 없는 조건(**Unique**)
-- 아무런 값을 입력받지 않을 수 있도록 설정하는 조건(**Null**)
-- 특정 컬럼을 테이블 내에서 **고유성을 보장하는 컬럼**을 설정하는 조건(**Primary Key**)
-- 데이터베이스를 설계할 때 가장 많은 고민을 하게 될 **테이블 간의 관계**를 설정하는 조건(**Foreign Key**)
-
-#### 종류
-- **고유(Unique) 제약 조건**
-- **NULL 제약 조건**
-- **기본 키 (Primary Key) 제약 조건**
-- **외래 키 (Foreign Key) 제약 조건**
-
-#### ERD
-테이블 정의시 관계를 고려하여 생성한다. 음식, 고객 테이블을 만들어 고객이 몇일에 음식을 주문했는지 기록하는 테이블도 만들어보자
-음식과 고객 테이블은 N:N 관계로 테이블을 구성하면 구문은 아래와 같이 작성할 수 있다.
-```sql
-CREATE TABLE User
-(
-    userId int(11)      NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    name   varchar(255) NOT NULL UNIQUE
-);
-
-CREATE TABLE Food
-(
-    foodId int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    name   varchar(255),
-    price  int(11)
-);
-
-CREATE TABLE Order
-(
-    orderId   int(11)  NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    userId    int(11)  NOT NULL,
-    foodId    int(11)  NOT NULL,
-    createdAt datetime NOT NULL DEFAULT NOW(),
-    FOREIGN KEY (foodId) REFERENCES Food (foodId)
-        ON DELETE NO ACTION
-        ON UPDATE CASCADE,
-    FOREIGN KEY (userId) REFERENCES User (userId)
-        ON DELETE NO ACTION
-        ON UPDATE CASCADE
-);
-```
-
-#### PRIMARY KEY
-- 기본 키(Primary Key)는 테이블에 있는 데이터를 고유하게 구분할 수 있는 정보를 나타내기 위해서 사용합니다.
-이전에 테이블을 생성할 때에도 PRIMARY KEY라는 조건으로 기본 키가 선언되어 있던 것을 확인할 수 있습니다. 만약 기본 키를 설정하지 않은 테이블을 생성하려고할 때는 특정 데이터를 찾기위한 고유한 정보가 존재하지 않기 때문에 아래와 같은 에러메시지가 출력되면서 테이블이 생성되지 않습니다.
-
-#### AUTO_INCREMENT
-- AUTO_INCREMENT는 데이터를 삽입할 때 아무런 데이터를 입력하지 않더라도 고유한 값을 유지할 수 있도록 도와주는 속성
-- DB 내에서 데이터가 입력될 때 마다 숫자를 1씩 증가시켜 기본 키의 고유한 값을 유지
-
-#### NULL
-- NULL 속성은 특정 컬럼에서 NULL값을 허용하거나, 허용하지 않도록 설정하는 조건
-- 사용자가 이메일이나, 패스워드를 통해 로그인을 할 경우 해당하는 2개의 정보는 필수로 존재해야 컬럼값 NOT NULL
-
-#### UNIQUE
-- 특정 컬럼에서 중복된 값이 허용되지 않도록 설정하는 조건
-- 이메일의 중복을 허용할 경우 이름, 나이, 닉네임과 같은 추가 정보를 입력받아야 사용자를 특정
-
-#### FOREIGN KEY
-- 외래 키(Foreign Key) 제약 조건은 테이블과 다른 테이블간의 관계를 맺을 때 사용하는 제약 조건
-**외래 키(Foreign Key)**는 테이블간의 연관 관계를 표현할 때 사용합니다. 
-
-연관 관계는 대표적으로 3가지의 형태로 표현할 수 있습니다.
-
-- **1:1** - **1명**의 사용자(`User`)는 **1개**의 사용자 정보(`UserInfo`)를 가질 수 있다.
-- **1:N** - **1명**의 사용자(`User`)는 **여러개**의 주문(`Order`)을 할 수 있다.
-- **N:M** - **여러명**의 학생(`Student`)은 **여러개**의 학원(`School`)을 등록할 수 있다.
-```sql
-CREATE TABLE 테이블명
-  FOREIGN KEY (컬럼명) REFERENCES 참조_테이블명 (참조_컬럼명)
-    ON DELETE [연계 참조 제약 조건]
-    ON UPDATE [연계 참조 제약 조건] -- 수정 참조 컬럼이 수정된 경우
-);
-```
-- 외래 키 제약 조건은 CREATE TABLE 문을 사용하여 테이블을 생성함과 동시에 정의
-
-- 외래 키의 경우 다른 테이블과 관계를 맺고 있는 참조 데이터가 삭제(DELETE)또는 수정(UPDATE)될 때 어떤 행위를 해야하는지 설정할 수 있습니다. 이런 행위를 수행하는 조건을 연계 참조 무결성 제약 조건이라고 정의합니다.
-
-#### 연계 참조 무결성 제약 조건의 종류
-- **CASCADE** : 참조하고 있는 개체가 **변경/삭제** 될 경우 함께 **변경/삭제**됩니다.
-```sql
-FOREIGN KEY (UserId) REFERENCES Users(userId)
-    ON DELETE CASCADE
-    ON UPDATE CASCADE;
-```
-
-- **NO ACTION** : 참조하고 있는 개체가 변경/삭제 될 경우 아무런 행위를 하지 않고 에러가 발생
-```sql
-FOREIGN KEY (UserId) REFERENCES Users(userId)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION;
-```
-
-보통 1:N의 경우 N이 1의 키를 외래키로 가진다.
-1:1의 경우 참조하는 쪽에서 외래키로 가진다음 UNIQUE 제약 조건을 추가한다.
-N:N의 경우 별도의 테이블을 생성하고 두 테이블의 값을 외래키로 가진다.

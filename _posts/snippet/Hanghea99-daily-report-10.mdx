@@ -1,10 +1,363 @@
 ---
-title: "[항해] 항해 주특기 입문 완료/숙련 초반 주차 WIL"
-description: "Node.js 입문 완료/숙련 초반 주차 회고"
+title: "[항해] 항해 숙련 주차 - 1"
+description: "Node.js 숙련 1주차 - HTTP와 세션, 쿠키 그리고 JWT"
 language: "daliyreport"
 category: "Hanghae99"
-update: "2023-03-05"
+update: "2023-03-03"
 serisenumber: 10
 ---
 ## 시작
-이번엔 실제 데이터베이스와 연동해보겠습니다. 시작 전 데이터베이스에 대해 간단히 알아보겠습니다.
+입문 주차엔 Node.js를 이용한 REST API 구현, mongoDB를 사용했다. 이번 주차에는 네트워크를 들여다보고 쿠키와 세션, JWT를 이용한 로그인, 더 많은 미들웨어 사용, RDBMS 및 DB설계, Sequelize 등 많은 것을 경험해 볼 주차이다.
+
+## 기본지식
+
+### HTTP etc
+- `웹 브라우저` : 단순히 웹 문서를 가져와 보여주는 것이 아닌, 여러 프로토콜(http, ftp, file)을 지원하며 다른 웹 서버에 데이터를 보낼 수 있다.
+- `쿠키` : 웹 브라우저에 구현된 기술 중 하나. 보통 상태를 저장하기 위해서 사용합니다.
+> 서버에서 쿠키를 Response에 담아 보내면 웹 브라우저는 받은 데이터를 그대로 저장합니다.
+브라우저는 가지고 있는 쿠키가 있다면 서버에 Request를 할 때 항상 가지고 있는 쿠키 데이터를 포함해서 보냅니다.
+단, 쿠키는 별도의 암호화 없이 데이터를 그대로 주고받기 때문에 클라이언트에서 마음대로 조작하기 쉬워 보안에 취약합니다.
+때문에 `https`를 이용해 쿠키를 암호화 합니다.
+- `세션` : 웹 브라우저에 구현된 기술중 하나. 또한 세션은 쿠키의 특성을 이용한 기술입니다.
+> 세션 데이터는 서버에 저장(`자물쇠`)되고 데이터마다 고유한 세션 ID(`열쇠`)가 만들어집니다.
+이 ID를 쿠키를 이용해 주고 받기 때문에 세션 데이터에 접근이 가능한것은 오직 서버뿐이기 때문에 쿠키가 가지고 있던 보안 취약점을 해결합니다.
+하지만, 모든 인증을 서버에서 처리하기 때문에 사용자가 많아질 수록 서버에서 처리해야하는 부하가 증가하여 문제가 발생할 수 있습니다.
+때문에 `redis`와 같은 캐시DB를 이용하기도 합니다.
+- 서버 프로그램 : 클라이언트에게 요청을 받아 응답을 주는 프로그램.
+- 서버 컴퓨터 : `서버 프로그램`을 실행하고 있는 컴퓨터 (EC2)
+
+- 미들웨어 작동 방식
+```js
+router.get("/", (req, res) => {
+  res.send('HI!');
+})
+
+express.json() 을 거치고 위 url, method에 맞는 router로 넘어감.
+app.use("/api",express.json(),router);
+```
+
+### 정적 파일 연결하기
+- `express.static` 함수는`app.js` 파일 기준으로, 입력 값(지금은 "`./assets`") 경로에 있는 **파일**을 아무런 가공 없이 그대로 전달해주는 **미들웨어**에요!
+```js
+// app.js
+
+// 정적 파일을 연결해주는 미들웨어 express.static
+// 해당하는 주소가 assets폴더에 있다면 파일을 보내줌.
+app.use(express.static("./assets"));
+// localhost:3000/index.html -> assets폴더내 index.html을 브라우저에 보내줌.
+```
+
+### REST API
+---
+- [REST 아키텍쳐](https://ko.wikipedia.org/wiki/REST)를 따라 구현된 API를 REST API라고 부릅니다.
+- REST는 “Representational State Transfer”의 줄임 말로, [위키](https://ko.wikipedia.org/wiki/REST)를 따르면 다음과 같습니다.
+    
+    > **REST**(Representational State Transfer)는 [월드 와이드 웹](https://ko.wikipedia.org/wiki/%EC%9B%94%EB%93%9C_%EC%99%80%EC%9D%B4%EB%93%9C_%EC%9B%B9)과 같은 분산 [하이퍼미디어](https://ko.wikipedia.org/wiki/%ED%95%98%EC%9D%B4%ED%8D%BC%EB%AF%B8%EB%94%94%EC%96%B4) 시스템을 위한 [소프트웨어 아키텍처](https://ko.wikipedia.org/wiki/%EC%86%8C%ED%94%84%ED%8A%B8%EC%9B%A8%EC%96%B4_%EC%95%84%ED%82%A4%ED%85%8D%EC%B2%98)의 한 형식이다.
+    > 
+- 최대한 간단하게 설명하자면 **URL**, **Headers**, **Method** 등 네트워크 표현 수단을 사람이 봐도 이해하기 쉬운 표현으로 정의한다고 이해하면 됩니다.
+또한 이 “REST 아키텍쳐”는 사람이 봐도 쉽게 이해할 수 있도록 “**자원**”을 **정의**하고 이 “**자원**”을 **중심으로 표현**을 구성하는 **원칙**을 제시합니다.
+- REST API는 “**REST 아키텍쳐**”라는 규칙을 따르는 API라고 생각하시면 됩니다.
+- 간단히 말하면 원래 있던 방법보다 더 쉽고 사람이 읽기 편한 방식으로 원칙을 세워놨고, 개발자들의 **생산성**과 **상호작용을 증진**시키는것에 목적이 있습니다.
+
+### Validation
+---
+- Validation은 말 그대로 어떤것을 검증한다고 보면 됩니다.
+```js
+function is1(value) {
+	return value === 1;
+}
+```
+- 더 쉽고 간결하게 작성하도록 도와주는 joi라는 라이브러리를 다음시간에 사용해볼 예정입니다.
+
+## 인증
+JWT란 무엇인지 이해하고, 쿠키와 세션을 구현해보자.
+
+### 쿠키와 세션
+- 쿠키(Cookie): 브라우저가 서버로부터 응답으로 Set-Cookie 헤더를 받은 경우 해당 데이터를 저장한 뒤 모든 요청에 포함하여 보냅니다.
+> **데이터**를 여러 사이트에 공유할 수 있기 때문에 보안에 취약할 수 있습니다. (프론트엔드에서 열어볼 수 있음. 단, HTTPS를 적용하면 다른 브라우저에 탐색이 불가능해짐.)  
+> **쿠키**는 userId=user-1321;userName=sparta 와 같이 문자열 형식으로 존재하며 쿠키 간에는 세미콜론(;) 으로 구분됩니다.
+
+- 세션(Session): 쿠키를 기반으로 구성된 기술입니다. 단, 클라이언트가 마음대로 데이터를 확인 할 수 있던 쿠키와는 다르게 세션은 데이터를 서버에만 저장하기 때문에 보안이 좋으나, 반대로 사용자가 많은 경우 서버에 저장해야 할 데이터가 많아져서 서버 컴퓨터가 감당하지 못하는 문제가 생기기 쉽습니다.
+
+- 추가 배경 지식 : 쿠키의 경우 로그인 정보 탈취되는 경우 문제가 발생할 수 있었는데, 세션은 사용자에게 실제 정보를 넘기는 것이 아닌, 서버에 저장된 데이터를 확인할 수 있는 열쇠를 할당하기 때문에 보안적인 측면에서는 우수하다. 단, 서버에서 부하가 발생할 수 있기 때문에 매번 DB에 접근 등으로, mongoDB or MySQL이 아닌 cache DB라고 불리는 Redis를 사용하면 완화할 수 있다.
+
+### 쿠키 만들기
+- 서버가 **클라이언트**의 **HTTP 요청(Request)**을 **수신**할 때, **서버**는 **응답(Response)**과 함께 `Set-Cookie` 라는 헤더를 함께 **전송**할 수 있습니다. 그 후 쿠키는 해당 **서버**에 의해 만들어진 **응답(Response)**과 함께 **Cookie HTTP 헤더**안에 포함되어 전달받습니다.
+
+`set-Cookie`
+```js
+app.get("/set-cookie", (req, res) => {
+  let expire = new Date();
+  expire.setMinutes(expire.getMinutes() + 60); // 만료 시간을 60분으로 설정합니다.
+
+  // 헤더에 쿠키 전달.
+  res.writeHead(200, {
+    'Set-Cookie': `name=sparta; Expires=${expire.toGMTString()}; HttpOnly; Path=/`,
+  });
+  return res.status(200).end();
+});
+```
+express를 이용해 보다 간편하게 쿠키를 할당할 수 있는 구문이 있다. 아래 코드를 보자.
+
+`res.cookie()`
+```js
+app.get("/set-cookie", (req, res) => {
+  let expires = new Date();
+  expires.setMinutes(expires.getMinutes() + 60); // 만료 시간을 60분으로 설정합니다.
+
+  // cookir("네임","값", {옵션})
+  res.cookie('name', 'sparta', {
+    expires: expires // 완료 시간
+  });
+  return res.status(200).end();
+});
+```
+
+[그림 - 쿠키]
+
+### req를 이용해 쿠키 접근
+**클라이언트**는 **서버**에 **요청(Request)**을 보낼 때 **자신이 보유하고 있는 쿠키**를 **자동으로** **서버**에 전달하게 됩니다. 여기서 **클라이언트**가 전달하는 쿠키 정보는 **Request header**에 포함되어 서버에 전달되게 됩니다.
+
+그렇다면 **서버**에서는 어떠한 방식으로 쿠키를 사용할 수 있을까요?
+
+일반적으로 쿠키는 `req.headers.cookie`에 들어있습니다. `req.headers`는 클라이언트가 요청한 **Request**의 **헤더**를 의미합니다.
+
+```js
+app.get("/get-cookie", (req, res) => {
+  const cookie = req.headers.cookie;
+  console.log(cookie); // name=sparta
+  return res.status(200).json({ cookie });
+});
+```
+
+### cookieParser 미들웨어
+쿠키에 저장되는 값들은 `pycharm=4231miire3o2o1; name=sparta`등 문자열로 값이 저장됩니다. 서버에서 읽을때도 마찬가지입니다. `cookie-parser`미들웨어를 사용하여 분리할 수 있습니다.
+- cookie-parser 미들웨어는 요청에 추가된 쿠키를 req.cookies 객체로 만들어 줍니다. 더이상 req.headers.cookie와 같이 번거롭게 사용하지 않아도 될 겁니다.
+
+일단 라이브러리 설치를 진행합니다.
+```bash
+npm i cookie-parser
+```
+
+cookie-parser 미들웨어를 전역으로 사용하기 위해서는 다음과 같이 사용합니다.
+```js
+app.use(cookieParser());
+```
+다음과 같이 보다 간편히 사용하면서 문자열이 아닌 객체로 쿠키를 가져올 수 있습니다.
+```js
+const cookieParser = require('cookie-parser');
+app.use(cookieParser());
+
+app.get("/get-cookie", (req, res) => {
+  const cookie = req.cookies;
+  console.log(cookie); // { name: 'sparta' }
+  return res.status(200).json({ cookie });
+});
+```
+> **cookie-parser**는 단순히 쿠키를 `req.cookies`로 만들어 주기만 하는것이 아니라 더욱 쿠키를 손쉽게 사용할 수 있도록 도와주는 라이브러리 입니다. 더욱 자세한 내용을 확인하고 싶다면 [npm 문서](https://www.npmjs.com/package/cookie-parser)를 확인해보세요! 😎
+
+브라우저 도구 탭에서 Response를 보시면 다음과 같이 객체가 출력됩니다.
+```json
+{
+  "cookie": {
+    "name": "sparta"
+  }
+}
+```
+
+### 세션 만들기
+- 쿠키의 경우 서버를 재시작하거나 새로고침을 하더라도 로그인이 유지됩니다. 사용자의 입장에서는 편하게 사용할 수 있지만 서버의 입장에서는 상당히 위험한 상황입니다. 쿠키가 조작되거나 노출되는 경우 보안적으로 문제가 발생할 수 있습니다. 때문에 사용자가 누구인지 확실히 구분할 수 있는 정보가 있어야 합니다. 민감한 정보는 서버에서만 관리하고, 사용자가 누구인지 구분할 수 있는 정보를 통해 사용자의 특정한 정보를 반환할 수 있게 될 것입니다.
+
+`/set-session` API를 호출했을 때 `name=sparta` 의 정보를 서버에 저장하고, 저장한 시점의 시간 정보를 쿠키로 반환받는 API와 
+`/get-session` API를 호출했을 때 쿠키의 시간 정보를 이용하여 서버에 저장된 `name` 정보를 출력하는 API 만들기
+
+`set-session`
+```js
+// 사용자의 정보를 저장할 만한 자물쇠(데이터를 저장하는 부분)
+let session = {}; // Key - Value()
+
+app.get('/set-session', (req, res) => {
+  const name = "sparta" // 세션에 저장 데이터(서버)
+  // 열쇠
+  const uniqueInt = Date.now(); // 클라이언트에게 할당 할 열쇠
+
+  // 세션에 데이터 저장. 클라이언트에게 열쇠가 온다면 서버에서 저장된 데이터 전달.
+  session[uniqueInt] = name; // 세션에 데이터 저장
+
+  // 클라이언트에게 쿠키(열쇠 할당)
+  res.cookie("sessionKey", uniqueInt)
+  res.status(200).end();
+})
+```
+
+`get-session`
+```js
+app.get('/get-session', (req, res) => {
+  const {sessionKey} = req.cookies; // 쿠키 정보 가져오기
+  const sessionItem = session[sessionKey] // 쿠키 값으로 현재 세션에 저장된 데이터 탐색
+
+  console.log(sessionItem);
+  return res.status(200).json({sessionItem});
+})
+```
+
+### JWT란
+- JSON 형태의 데이터를 안전하게 교환해 사용할 수 있게 해줍니다.
+- 인터넷 표준으로서 자리잡은 규격입니다.
+- 여러가지 암호화 알고리즘을 사용할 수 있습니다.
+- `header.payload.signature` 의 형식으로 3가지의 데이터를 포함합니다. (개미처럼 머리, 가슴, 배)
+때문에 JWT 형식으로 변환 된 데이터는 항상 2개의 `.` 이 포함된 데이터여야 합니다.
+
+header, payload, signature 예
+
+`header`
+```json
+{
+  "alg" : "HS256", // HS256 암호화 알고리즘
+  "typ" : "JWT" // type : JWT
+}
+```
+`payload`
+```json
+// 개발자가 원하는 데이터 저장
+{
+  "sub": "12345667890",
+  "name": "John Doe",
+  "iat": 1516239822
+}
+```
+`signature`
+```json
+HMACSHA256(
+  base64UrlEncode (header)
+  base64UrlEncode (payload), 
+  your-256-bit-secret // 비밀 키 - 최초에 만든 JWT와 동일한지 확인할 때 필요한 키
+) O secret base64 encoded
+```
+- **header**(머리)는 signature(배)에서 어떤 암호화를 사용하여 생성된 데이터인지 표현합니다.
+- **payload**(가슴)는 개발자가 원하는 데이터를 저장합니다.
+- **signature**(배)는 이 토큰이 변조되지 않은 정상적인 토큰인지 확인할 수 있게 도와줍니다.
+
+#### 알아둘 특성
+- JWT는 비밀 키를 모르더라도 복호화(Decode)가 가능합니다. 변조만 불가능 할 뿐, 누구나 복호화하여 보는것은 가능하다는 의미가 됩니다!
+`payload`내 데이터는 누구든지 볼 수 있음. 서버에서 이해 가능한 값을 넣는게 좋음.
+- 민감한 정보(개인정보, 비밀번호 등)는 담지 않도록 해야합니다.
+- 특정 언어에서만 사용 가능한것은 아닙니다! 단지 개념으로서 존재하고, 이 개념을 코드로 구현하여 공개된 코드를 우리가 사용하는게 일반적입니다.
+
+#### 쿠키, 세션과 어떻게 다른가
+- 데이터를 교환하고 관리하는 방식인 쿠키/세션과 달리, JWT는 단순히 데이터를 표현하는 형식 `header.payload.signature`
+- JWT로 만든 데이터를 브라우저로 보내도 쿠키처럼 자동으로 저장되지는 않지만, 변조가 거의 불가능하고 서버에 데이터를 저장하지 않기 때문에 서버를 Stateless(무상태)로 관리할 수 있기 때문에 최근 많이 쓰이는 기술중 하나입니다.
+추가로 시크릿키를 이용해 변조가 일어났는지 알 수 있습니다.
+- Stateless(무상태)와 Stateful(상태 보존)의 차이를 간단히 설명하자면,
+Node.js 서버가 언제든 죽었다 살아나도 똑같은 동작을 하면 Stateless하다고 볼 수 있습니다.
+반대로 서버가 죽었다 살아났을때 조금이라도 동작이 다른 경우 Stateful하다고 볼 수 있겠죠
+- 로그인 정보를 서버에 저장하게 되면 무조건 Stateful(상태 보존)이라고 볼 수 있습니다. 예로, 로그인 정보가 세션으로 관리되고 있다가 서버가 껐다 켜지면 세션도 사라지므로 다른 동작
+
+### JWT 사용하기
+- 자바스크립트로 JWT를 만들고 JWT에 있는 데이터를 복호화하여 확인하고 비밀키도 비교해봅시다.
+
+
+`jsonwebtoken` 설치하기
+```js
+npm i jsonwebtoken
+```
+
+#### JWT 이용해 데이터 암호화하기
+
+```js
+const jwt = require("jsonwebtoken")
+
+const payloadData = {
+  myPayloadData: 1234
+}
+
+// jwt 생성하기
+// 인자로 처음엔 어떤 데이터를 넣을 것인지,
+// 두번째로 어떤 비밀키를 이용할 것인지
+const token = jwt.sign(payloadData, "mysecretKey");
+console.log(token);
+// eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJteVBheWxvYWREYXRhIjoxMjM0LCJpYXQiOjE2Nzc4MjE0NDh9.Swcg2Gfa-sQ4DCUJZZomXySn5GAGILXNgm2AVO0LAMY
+
+// header - eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.
+// payload - eyJteVBheWxvYWREYXRhIjoxMjM0LCJpYXQiOjE2Nzc4MjE0NDh9.
+// signature - Swcg2Gfa-sQ4DCUJZZomXySn5GAGILXNgm2AVO0LAMY
+```
+
+실제로 데이터를 확인해보기 위해 [jwt.io](https://jwt.io/)에서 확인해 봅시다.
+
+[그림 jwt io]
+
+실제 코드로 확인해 봅시다. `jwt.decode()`구문으로 데이터를 조회할 수 있습니다.
+```js
+const decodedValue = jwt.decode(token);
+console.log('복호화한 token 입니다.', decodedValue)
+// 복호화한 token 입니다. { myPayloadData: 1234, iat: 1677821758 }
+```
+
+다음으로 비밀키로 검증을 진행해 봅시다.
+
+#### 언제 사용해야하는가?
+
+우선 JWT는 다음과 같은 특징을 가지고 있습니다.
+- JWT가 인증 서버에서 발급되었는지 위변조 여부를 확인할 수 있습니다.
+- 누구든지 JWT 내부에 들어있는 정보를 확인할 수 있습니다. (복호화)
+
+아래 로그인 API를 들여다 봅시다.
+
+`JWT를 적용하지 않은 로그인 API`
+```js
+const express = require('express');
+const app = express();
+
+app.post('/login', function (req, res, next) {
+  const user = { // 사용자 정보
+    userId: 348, // 사용자의 고유 아이디 (Primary key)
+    email: "namgun421@gmail.com", // 사용자의 이메일
+    name: "남군식", // 사용자의 이름
+  }
+
+  res.cookie('sparta', user);  // sparta 라는 이름을 가진 쿠키에 user 객체를 할당합니다.
+  return res.status(200).end();
+});
+
+app.listen(5002, () => {
+  console.log(5002, "번호로 서버가 켜졌어요!");
+});
+```
+만일 쿠키를 받은 브라우저에서 email을 `master@master.com`등으로 변경해 관리자 페이지를 요청할 수도 있게 됩니다.
+
+`JWT를 적용한 로그인 API`
+```js
+const express = require('express');
+const JWT = require("jsonwebtoken");
+const app = express();
+
+app.post('/login', async (req, res) => {
+  // 사용자 정보
+  const user = {
+    userId: 348, // 사용자의 고유 아이디 (Primary key)
+    email: "namgun421@gmail.com", // 사용자의 이메일
+    name: "남군식", // 사용자의 이름
+  }
+
+  // 사용자 정보를 JWT로 생성
+  const userJWT = await JWT.sign(user, // user 변수의 데이터를 payload에 할당
+    "secretOrPrivateKey", // JWT의 비밀키를 secretOrPrivateKey라는 문자열로 할당
+    { expiresIn: "1h" } // JWT의 인증 만료시간을 1시간으로 설정
+  );
+
+  // userJWT 변수를 sparta 라는 이름을 가진 쿠키에 Bearer 토큰 형식으로 할당
+  res.cookie('sparta', `Bearer ${userJWT}`);
+  return res.status(200).end();
+});
+
+app.listen(3001, () => {
+  console.log(3001, "번호로 서버가 켜졌어요!");
+});
+```
+이후 서버에서 JWT를 전달받아 현재 서버에서 만들어진 JWT가 맞는지 검증을 할 수 있습니다. 이후 알아보도록 하죠.
+
+#### 이 암호화된 데이터를 쓰는 방법
+- 결국은 이 암호화된 데이터는 클라이언트가 전달 받고, 쿠키 or 로컬스토리지에 저장해 API 서버에 요청하면 서버가 요구하는 HTTP인증 양식에 맞게 보내 인증을 시도합니다. 이용권이라고 생각하면 편합니다.
+
+다음편에서 미들웨어와 JWT를 이용해 프로젝트를 구현해보겠습니다.
