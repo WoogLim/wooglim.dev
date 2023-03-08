@@ -58,43 +58,19 @@ DATABASE_URL="커넥션 주소"
 
 `1. Restaurant`
 
-|컬럼|타입|설명|
-|------|---|---|
-|id|int|아이디(PK)|
-|name|string|레스토랑 이름|
-|main_img|string|레스토랑 전경|
-|description|string|레스토랑 설명|
-|images|string|음식 사진들|
-|open_time|string|오픈 시간|
-|close_time|string|클로즈 시간|
-|slug|string|레스토랑 url|
-|price|int|가격|
-|location_id|int|지역 아이디(FK : ref of Location Table id)|
-|cuisine_id|int|요리 아이디(FK : ref of Cuisine Table id)|
+![스크린샷 2023-03-08 오후 2 17 57](https://user-images.githubusercontent.com/51357635/223626300-d0902222-50be-4367-ae6d-0c1a1d10383f.png)
 
 `2.Items`
 
-|컬럼|타입|설명|
-|------|---|---|
-|id|int|아이디(PK)|
-|name|string|메뉴 이름|
-|price|string|메뉴 가격|
-|description|string|메뉴 설명|
-|restaurant_id|int|레스토랑 아이디(FK : ref of Restaurant Table id)|
+![스크린샷 2023-03-08 오후 2 18 07](https://user-images.githubusercontent.com/51357635/223626310-d9acdf98-bba7-4801-a5e2-46631d7612fe.png)
 
 `3.Location`
 
-|컬럼|타입|설명|
-|------|---|---|
-|id|int|아이디(PK)|
-|name|string|지역 이름|
+![스크린샷 2023-03-08 오후 2 18 19](https://user-images.githubusercontent.com/51357635/223626321-c062e36e-91bc-45db-8516-c465ce864304.png)
 
 `4.Cuisine`
 
-|컬럼|타입|설명|
-|------|---|---|
-|id|int|아이디(PK)|
-|name|string|요리 이름|
+![스크린샷 2023-03-08 오후 2 18 29](https://user-images.githubusercontent.com/51357635/223626330-6202f500-86aa-4c71-b476-e6a75feeb80d.png)
 
 위에 정의한 테이블을 `prisma`를 이용해 스키마를 정의하면 다음과 같은 코드로 만들 수 있습니다.
 ```json
