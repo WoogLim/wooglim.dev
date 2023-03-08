@@ -1,0 +1,66 @@
+---
+title: "[항해] 항해 숙련 주차 - 6"
+description: "Node.js 숙련 1주차 - Sequelize를 이용한 게시판 API 구현"
+language: "daliyreport"
+category: "Hanghae99"
+update: "2023-03-07"
+serisenumber: 16
+---
+## 시작
+이번에는 Sequelize를 이용해 회원가입, 로그인, 게시판, 댓글 API를 구현해보도록 하자.
+
+### 에러핸들링
+현주님 코드
+```js
+//게시글 삭제하기
+router.delete("/:postId", authmiddleware, async (req, res) => {
+    try {
+        const { postId } = req.params;
+        const { userId } = res.locals.user;
+        const existsPosts = await Posts.findOne({ postId });
+        if (existsPosts === null) {
+            const error = new Error("게시글이 존재하지 않습니다.");
+            error.expect = true;
+            error.status = 412
+            throw error;
+
+        } else if (userId !== existsPosts.userId) {
+            const error = new Error("게시글 삭제의 권한이 존재하지 않습니다.");
+            error.expect = true;
+            error.status = 412
+            throw error;
+        }
+        try {
+            await Posts.deleteOne({ postId });
+        } catch {
+            const error = new Error("게시글이 정상적으로 삭제되지 않았습니다");
+            error.expect = true;
+            error.status = 401
+            throw error;
+        }
+        return res.status(200).json({ massage: "게시글을 삭제하였습니다." })
+
+    } catch (err) {
+        return res.status(err.status || 400).json({ errorMessage: err.expect ? err.message : "게시물 삭제를 실패했습니다." });
+    }
+
+})
+```
+클래스 만들기.
+```js
+module.exports = class CustomError extends Error{
+constructor (message, status, expect) { 0개의 사용 위치
+  super();
+  this.message = message;
+  this.status = status;
+  this.expect = expect;
+}
+```
+
+```js
+const CustomError = require('./test' );
+
+console.log(new CustomError ( message: '비밀번호가 틀렸습니다.', status: 400, expect: true));
+```
+
+500에러는 최종격.

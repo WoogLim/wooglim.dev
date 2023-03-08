@@ -172,3 +172,43 @@ import Link from "next/link"
 </Link>
 ```
 `Link`태그는 `a`태그를 제외한 태그를 감쌀 수 있습니다. `a`태그의 스타일은 적용하지 않습니다. 어떠한 경로에 있는 파일(`menu/page.tsx`) 여도, `Link` 태그의 시작지점은 초기 도메인(루트 프로젝트 경로)입니다. 때문에 `menu/page.tsx` 페이지에서 `restaurant/[slug]/page.tsx`를 탐색하고 싶다면 `Link`태그 `href`속성으로 `/restaurant/동적인 값`만 입력해주면 됩니다.
+
+### I-V Hook 맛보기
+---
+먼저 훅을 대부분 클라이언트에서 작동하므로 `page.tsx`상단에 서버 구성 요소를 클라이언트 요소로 바꾸기 위해 `"use client"`를 입력해줍니다.
+```tsx
+// page.tsx
+"use client"
+
+import Image from 'next/image'
+import { Inter } from '@next/font/google'
+import styles from './page.module.css'
+import Link from 'next/link'
+import {useRouter} from "next/navigation"
+import { useState } from 'react'
+
+const inter = Inter({ subsets: ['latin'] })
+
+export default function Home() {
+  const router = useRouter();
+  const [location, setLocation] = useState("");
+```
+이후에는 `useRouter, userState`등 클라이언트에서 온전히 사용할 수 있게됩니다.  
+두개의 훅을 사용해 다음과 같이 검색을 구현할 수 있습니다. 버튼을 클릭하면 `search`구문이 url에 붙게됩니다.
+```tsx
+<div className="text-left text-lg py-3 m-auto flex justify-center">
+  <input
+    className="rounded  mr-3 p-2 w-[450px]"
+    type="text"
+    placeholder="State, city or town"
+    value={location}
+    onChange={(e) => setLocation(e.target.value)}
+  />
+  <button className="rounded bg-red-600 px-9 py-2 text-white" onClick={() => {
+    if(location === "banana") return;
+    router.push("/search");
+  }}>
+    Let's go
+  </button>
+</div>
+```

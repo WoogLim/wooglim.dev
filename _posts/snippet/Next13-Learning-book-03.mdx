@@ -1,0 +1,190 @@
+---
+title: "[Next.js V13] 정리 노트 - 2"
+description: "서버 컴포넌트에 데이터 Fetching 하기 With PostgreSQL and Prisma"
+language: "PostgreSQL"
+category: "NextJS"
+update: "2023-03-08"
+serisenumber: 3
+---
+## Intro
+---
+- 본 내용은 강의 제공 사이트 유데미 Laith Harb 강사님의 "The Next.js 13 Bootcamp - The Complete Developer Guide" 강의를 듣고 정리하였습니다.
+- [https://www.udemy.com/course/the-nextjs-13-bootcamp-the-complete-developer-guide/](https://www.udemy.com/course/the-nextjs-13-bootcamp-the-complete-developer-guide/)
+
+### 이 시간에
+---
+이전까지 과정을 보면 컴포넌트내 들어가는 음식 이름, 소개 등 모두 텍스트만 입력해 하드코딩되어 있었습니다. 이제 실제 데이터베이스에서 데이터를 가져와 서버 컴포넌트에 붙여보도록 합니다. 데이터베이스는 Postgres를 사용할 것이며 이 데이터 베이스에 대해 정리해보도록 하겠습니다.
+
+### PostgreSQL
+---
+postgreSQL은 관계형 데이터베이스입니다. 기존 관계형 데이터베이스와 다르게 특출난 점은 데이터 행마다 git과 같이 버전관리가 진행되는것입니다. 이와 관련된 내용은 추후 알아보도록 하겠습니다.
+
+### Superbase를 이용해 데이터베이스 구성
+---
+백엔드 구현에는 꽤 시간이 걸리므로 파이어베이스와 같은 클라우드 환경의 백엔드를 구축해봅시다. 그중 `PostgreSQL`을 지원하는 [Superbase](https://supabase.com/)를 이용하겠습니다. 또한 데이터베이스 매핑을 위한 도구로 `Prisma`를 이용하겠습니다.
+```bash
+npm i prisma@4.8.1
+```
+설치 완료 후 이 프로젝트에서`prisma`사용을 위해 초기화합니다.
+```bash
+npx prisma init
+```
+
+초기화 이후 프로젝트 폴더내 `prisma`폴더, `.evn`파일이 생성되며 데이터 베이스 연결 및 model생성이 가능합니다.
+```text
+내 프로젝트 폴더 이름
+├── pages
+├── public
+│   └── config.json
+├── prisma
+│   └── schema.prisma
+├── .env
+...
+```
+`env`파일에는 데이터베이스에 연결할 URL을 입력해줍니다. 현재 단계에서는 `Superbase`에서 생성한 데이터베이스의 커넥션 URL을 입력해주겠습니다.
+```env
+# Environment variables declared in this file are automatically made available to Prisma.
+# See the documentation for more detail: https://pris.ly/d/prisma-schema#accessing-environment-variables-from-the-schema
+
+# Prisma supports the native connection string format for PostgreSQL, MySQL, SQLite, SQL Server, MongoDB and CockroachDB.
+# See the documentation for all the connection string options: https://pris.ly/d/connection-strings
+
+DATABASE_URL="커넥션 주소"
+```
+
+### 테이블 구성하기
+---
+다음과 같은 구조로 테이블을 구성해보겠습니다.
+
+`1. Restaurant`
+
+|컬럼|타입|설명|
+|------|---|---|
+|id|int|아이디(PK)|
+|name|string|레스토랑 이름|
+|main_img|string|레스토랑 전경|
+|description|string|레스토랑 설명|
+|images|string|음식 사진들|
+|open_time|string|오픈 시간|
+|close_time|string|클로즈 시간|
+|slug|string|레스토랑 url|
+|price|int|가격|
+|location_id|int|지역 아이디(FK : ref of Location Table id)|
+|cuisine_id|int|요리 아이디(FK : ref of Cuisine Table id)|
+
+`2.Items`
+
+|컬럼|타입|설명|
+|------|---|---|
+|id|int|아이디(PK)|
+|name|string|메뉴 이름|
+|price|string|메뉴 가격|
+|description|string|메뉴 설명|
+|restaurant_id|int|레스토랑 아이디(FK : ref of Restaurant Table id)|
+
+`3.Location`
+
+|컬럼|타입|설명|
+|------|---|---|
+|id|int|아이디(PK)|
+|name|string|지역 이름|
+
+`4.Cuisine`
+
+|컬럼|타입|설명|
+|------|---|---|
+|id|int|아이디(PK)|
+|name|string|요리 이름|
+
+위에 정의한 테이블을 `prisma`를 이용해 스키마를 정의하면 다음과 같은 코드로 만들 수 있습니다.
+```prisma
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// @id -> 기본키로 지정
+// @updatedAt -> 업데이트 때마다 변경할 수 있도록 제약
+// @default -> 기본값 지정
+// @unique -> 유니크값 지정
+// Item[] 여러 Item을 가짐.
+model Restaurant {
+  id            Int     @id     @default(autoincrement())
+  name          String
+  main_image    String
+  images        String[]
+  description   String
+  open_time     String
+  close_time    String
+  slug          String    @unique
+  price         PRICE
+  items         Item[]
+  location_id   Int
+  location      Location    @relation(fields: [location_id], references: [id])
+  cuisine_id    Int
+  cuisine       Cuisine     @relation(fields: [cuisine_id], references: [id])
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+// Restaurant (1) : Item (N)
+// restaurant    Restaurant  @relation(fields: [restaurant_id], references: [[id]])
+// Restaurant 테이블의 id값을 Item 필드의 restaurant_id가 참조
+model Item {
+  id            Int       @id     @default(autoincrement())
+  name          String
+  price         String
+  description   String
+  restaurant_id Int
+  restaurant    Restaurant  @relation(fields: [restaurant_id], references: [id])
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+// Restaurant (N) : Location (1)
+model Location {
+  id            Int       @id     @default(autoincrement())
+  name          String
+  restaurants   Restaurant[]
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+// Restaurant (N) : Cuisine (1)
+model Cuisine {
+  id            Int       @id     @default(autoincrement())
+  name          String
+  restaurants   Restaurant[]
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+// enum 을 추가해 특정 문자열만 입력되는 타입으로 사용할 수 있다.
+enum PRICE {
+  CHEAP
+  REGULAR
+  EXPENSIVE
+}
+```
+
+이후 마이그레이션을 위해 다음과 같이 명령을 실행합니다.
+```bash
+npx prisma db push
+```
+
+이후 실제 데이터베이스로 이동하면 테이블이 생성되어있을겁니다.
+
+### 더미 데이터 생성하기
+---
+테스트를 위해 생성된 테이블에 더미 데이터를 생성할 수 있습니다. `pages` 폴더내 seed 파일을 만들고 `/api/seed`를 요청하면 더미 데이터를 생성할 수 있습니다.
+[더미 데이터 생성하기 Prisma](https://www.prisma.io/docs/guides/database/seed-database) 참고
+
+### 서버 컴포넌트에 데이터 패칭
+---
