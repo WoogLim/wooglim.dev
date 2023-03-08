@@ -42,7 +42,7 @@ npx prisma init
 ...
 ```
 `env`파일에는 데이터베이스에 연결할 URL을 입력해줍니다. 현재 단계에서는 `Superbase`에서 생성한 데이터베이스의 커넥션 URL을 입력해주겠습니다.
-```conf
+```json
 # Environment variables declared in this file are automatically made available to Prisma.
 # See the documentation for more detail: https://pris.ly/d/prisma-schema#accessing-environment-variables-from-the-schema
 
@@ -97,7 +97,7 @@ DATABASE_URL="커넥션 주소"
 |name|string|요리 이름|
 
 위에 정의한 테이블을 `prisma`를 이용해 스키마를 정의하면 다음과 같은 코드로 만들 수 있습니다.
-```prisma
+```json
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
