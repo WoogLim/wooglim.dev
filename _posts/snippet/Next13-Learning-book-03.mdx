@@ -164,3 +164,87 @@ npx prisma db push
 
 ### 서버 컴포넌트에 데이터 패칭
 ---
+메인페이지에서 데이터가 정상적으로 조회되는지 확인해봅시다.
+
+우선 restaurant에서 조회할 값은 `id, name, main_image, cuisine, location, price`입니다.
+먼저 restaurant정보는 하위 `RestaurantCard`컴포넌트에 값을 전달해야하므로 인터페이스를 설정한 후 해당 인터페이스의 배열을 반환타입으로 설정하여 `prisma`를 이용해 데이터를 불러옵니다.
+```tsx
+// /app/page.tsx
+import Header from './components/Header'
+import RestaurantCard from './components/RestaurantCard'
+import { PrismaClient, Cuisine, Location, PRICE } from '@prisma/client'
+
+export interface RestaurantCardType {
+  id: number;
+  name: string;
+  main_image: string;
+  cuisine: Cuisine,
+  location: Location,
+  price : PRICE
+}
+
+const fetchRestaurants = async () : Promise<RestaurantCardType[]> => {
+  const restaurants = await prisma.restaurant.findMany({
+    select: {
+      id: true,
+      name: true,
+      main_image: true,
+      cuisine: true,
+      location: true,
+      price: true
+    }
+  });
+
+  return restaurants;
+}
+
+export default async function Home() {
+
+  const restaurants = await fetchRestaurants();
+
+  // 서버 컴포넌트이므로 브라우저에서 콘솔창을 열어도 보이지 읺음. 서버측에서만 보임.
+  console.log({restaurants});
+  return (
+    <main>
+      <Header/>
+      <div className="py-3 px-36 mt-10 flex flex-wrap justify-center">
+        {restaurants.map(restaurant => (
+          <RestaurantCard restaurant={restaurant}/>
+        ))}
+        {/* <RestaurantCard/> */}
+      </div>
+    </main>
+  )
+}
+```
+또한 하위 컴포넌트 `RestaurantCard`에서 `RestaurantCardType`타입을 전달받을 속성을 인터페이스로 정의한 후 해당 인터페이스를 타입으로 가질 객체를 받는다고 타입을 정의합니다.
+```tsx
+// /app/components/RestaurantCard.tsx
+"use client"
+
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+
+export default function SearchBar() {
+  const router = useRouter();
+  const [location, setLocation] = useState("");
+
+  return (
+    <div className="text-left text-lg py-3 m-auto flex justify-center">
+      <input
+        className="rounded  mr-3 p-2 w-[450px]"
+        type="text"
+        placeholder="State, city or town"
+        value={location}
+        onChange={(e) => setLocation(e.target.value)}
+      />
+      <button className="rounded bg-red-600 px-9 py-2 text-white" onClick={() => {
+        if(location === "banana") return;
+        router.push("/search");
+      }}>
+        Let's go
+      </button>
+    </div>
+  )
+}
+```
