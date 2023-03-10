@@ -1,0 +1,85 @@
+---
+title: "[항해] 항해 심화 주차 - 1"
+description: "협업 위한 규칙 세우기"
+language: "daliyreport"
+category: "Hanghae99"
+update: "2023-03-10"
+serisenumber: 17
+---
+
+### Prettier
+---
+코드 정렬 Extensions 을 적용해보자.
+
+#### 설정
+---
+Prettier 설정의 경우 [Prettier Playground](https://prettier.io/playground/)에서 간단히 설정해보고 설정값을 가져올 수 있다.  
+
+그리고 프로젝트 폴더에 `.prettierrc.js`파일을 생성합니다. 그리고 기본적으로 제공하는 규칙인 아래 코드를 붙여넣습니다.
+```js
+// .prettierrc.js
+module.exports = {
+  "printWidth": 80, //  줄 바꿈 할 폭 길이
+  "tabWidth": 2, // 탭 너비 
+  "singleQuote": true, // single 쿼테이션 사용 여부
+  "trailingComma": "all", // 여러 줄을 사용할 때, 후행 콤마 사용 방식
+}
+```
+
+이후 다음과 같이 명령어를 입력해 설정을 동기화합니다.
+```bash
+npm install prettier -D
+```
+
+이제 프리티어를 사용할 수 있도록 `package.json`파일에 스크립트를 추가합니다.
+```json
+"scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon app start",
+    "prettify": "prettier --write *.js **/*.js"
+},
+```
+이후 다음 명령을 실행하면 어떤 파일들이 `Prettier`가 적용됐는지 확인할 수 있습니다.
+```bash
+npm run prettify
+```
+
+VS code Extensions에서 `Prettier - code Fomatter`를 설치합니다. 해당 Extensions의 경우 단축키 입력만 해도 해당 파일이 `Prettier`이 적용됩니다.  
+VS code에서 우클릭하여 `Format Document With...`를 클릭하여 `Prettier - code Fomatter`기본 포맷 형식으로 지정합니다. 이후 코드를 수정한 후 우클릭한후 `Format Document`를 클릭하면 코드 정렬이 진행됩니다. 단축키를 이용하면 더 편리합니다. Mac 기준 `Shift + option + F`
+
+그럼 `.prettierrc.js`에 설정 가능한 값을 보도록 하겠습니다.
+
+> trailingComma: "es5"  
+- 코드 맨 뒤에 콤마(,)를 붙일수 있는 경우 콤마를 붙일지 말지 결정하는 규칙입니다!
+- `es5`라는 값은 JavaScript 버전중 하나인 ES5에서 허용되는 부분까지만 콤마를 뒤에 붙이는 규칙입니다.
+- `none`이라는 값은 가능한 모든 코드에서 코드 뒤에 붙은 콤마를 제거합니다. (에러가 나도록 다 제거하는것은 아닙니다!)
+- `all` 이라는 값은 ES8 이전의 버전까지 허용되는 모든 부분에 콤마를 붙이도록 합니다.
+- 아직 all 규칙에 해당하는 문법을 지원하지 않는 브라우저가 있기 때문에 현재 여러분에게 권장드리는 규칙은 "es5" 혹은 "none" 입니다.
+
+> tabWidth: 2  
+- 들여쓰기 한번에 얼만큼의 스페이스(여백)로 구성할지에 대한 설정입니다.
+- 최근 스크립트 언어들의 들여쓰기는 2개~4개로 하는것이 일반적인 관례입니다.
+- 만약 코드의 들여쓰기가 잘 구분이 안된다 하시면 4개, 코드가 길어지는게 싫다 하시면 2개를 권장합니다.
+
+> semi: true  
+- 코드 뒤에 세미콜론을 붙일지 말지 결정하는 규칙입니다. `true`인 경우 세미콜론을 항상 붙이도록 해줍니다.
+- 만약 이 설정을 false로 하는 경우 세미콜론이 모두 제거됩니다.
+
+> singleQuote: true  
+- 문자열을 표기하는 문법에서 외따옴표를 사용할지, 쌍따옴표를 사용할지의 여부를 설정하는 규칙입니다.
+- true로 설정해두어 외따옴표를 사용하는것을 권장드립니다. 키를 매번 입력하다보면 쉬프트 키를 매번 누르는것이 상당히 번거롭고, 외따옴표를 썼을때 단점이 특별히 없기 때문입니다
+
+> arrawParens: "always"  
+- Arrow function에서 파라메터 부분에 괄호를 항상 붙여주는 규칙입니다. 파라미터가 하나만 있더라도 괄호를 붙여줍니다.
+- 이 규칙은 항상 "always"로 해두시는걸 권장합니다. Arrow function이 아무리 편리하고 코드를 짧게 쓰도록 도와준다고 해도, 괄호가 있는것이 일관적인 코드를 작성하는것에 도움이 됩니다.
+
+`최종 권장 속성`
+```js
+module.exports = {
+  trailingComma: 'es5',
+  tabWidth: 2,
+  semi: true,
+  singleQuote: true,
+  arrowParens: 'always',
+};
+```
