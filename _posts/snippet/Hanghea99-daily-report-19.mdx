@@ -7,384 +7,252 @@ update: "2023-03-10"
 serisenumber: 19
 ---
 
-### 선행지식
+### Access Token, Refresh Token
 
-#### TCP
-- **서버와 클라이언트간 신뢰성 있는 데이터 송수신을 위해 만들어진 프로토콜입니다.**
-- **연결 지향성** 프로토콜이라고도 부릅니다.
-- 데이터를 나눠서 보낼수 있으며, 데이터를 받는쪽에서 나눠 받은 **데이터를 재조립**합니다.
-만약 **누락된 데이터**가 존재하면 **다시 요청**해서 받아와 완전한 데이터를 만듭니다.
-- TCP로 서버/클라이언트간 연결이 된 경우 데이터를 **양방향**으로 주고 받을수 있습니다.
-- 데이터의 순서가 뒤바뀌는 일 없이 **안정적**이라 **신뢰**가 가능합니다.
-- UDP에 비해 데이터 송수신 **비용(부담)이 크다**는 특성을 가졌습니다.
-- **UDP**보다 **전송 속도가 느립니다.**
+#### Access Token
+- Access Token은 사용자의 권한이 확인(ex: 로그인) 되었을 경우 해당 사용자를 인증하는 용도로 발급하게됩니다.
 
-#### UDP
-- TCP와 다르게 **비연결성** 프로토콜입니다.
-- 데이터를 보내고 제대로 받았는지 확인하지 않아, 데이터가 제대로 도착했는지 보장하지 않는 **신뢰도가 비교적 낮습니다.**
-- 데이터를 순차적으로 보내도 받는 쪽에서는 다른 순서로 전달받을 수 있습니다.
-- 데이터를 보내기만 하고 별 다른 처리를 하지 않기 때문에 **TCP에 비해 비용(부담)이 적다**는 특성을 가졌습니다.
-- **TCP**보다 **전송 속도가 빠릅니다.**
+이전 구현하였던 **Cookie**로 **jwt**를 발급하고 설정한 Expires 기간이 지날 때 인증이 만료되게 하는것 또한 Access Token이라고 부를 수 있습니다.
 
-### 소켓
+사용자가 Access Token을 가지고 인증을 요청할 경우 Token을 생성할 때 사용한 **비밀키(Secret Key)**를 가지고 인증하기 때문에, 복잡한 설계없이 코드를 구현할 수 있고, 여러 분기를 거치지 않아도 된다는 장점이 있습니다.
 
-#### I - 설명
-> 소켓의 **역할**  
-- 현실로 비유하자면 마치 벽에 있는 **콘센트 구멍**과 비슷합니다! 우리가 **전기**를 사용하기 위해 반드시 거쳐야 하는 **연결부**에 해당하죠!
-- 그럼 네트워크에서의 소켓은? 우리가 **네트워크**에서 데이터를 송수신하기 위해 반드시 거쳐야 하는 **연결부**에 해당합니다!
+Access Token의 경우 **Stateless(무상태)** 즉, Node.js 서버가 죽었다 살아나더라도 동일한 동작을하는 방식입니다. 즉, jwt를 이용해 사용자의 인증 여부는 확인할 수 있지만 처음 발급한 사용자 본인인지 확인할 수는 없습니다.
 
-> 소켓의 **종류**
-- 소켓의 역할은 언제나-  같지만 종류는 여러가지가 있습니다! 대표적으로 **TCP, UDP** 프로토콜을 사용하는 2가지의 소켓이 있는데요,
-- 아주 일반적으로는 **안정적인 데이터 송수신**을 위해 **TCP** 소켓을 사용하는 경우가 대부분이지만, 일부 패킷이 손실되어도 괜찮거나 **빠른 전송 속도**가 필요한 경우 **UDP** 소켓을 사용하기도 합니다.
+Access Token은 그 자체로도 사용자를 인증하는 **모든 정보를 가지고 있습니다.** 그렇기 때문에 토큰을 가지고 있는 시간이 늘어날 수록 탈취되었을 때는 피해가 더욱 커지게 됩니다.
 
-> **패킷**이란?
-- 네트워크 소켓이 현실의 콘센트와 비슷하다면, 패킷은 쉽게 말해 콘센트 배선에 흐르는 전기와 비슷합니다.
-- 소켓을 통해 송수신하는 데이터 덩어리 하나가 한개의 패킷이라고 표현합니다.
+만약 토큰이 탈취되었다고 인지하더라도 저희들은 해당 토큰이 탈취된 토큰인지 알 수 없고, 고의적으로 만료를 시킬 수도 없을 것 입니다. 그러므로 저희들은 언제든지 사용자의 토큰이 탈취될 수 있다고 생각을 하고, 피해를 최소화 할 수 있는 방향으로 개발을 진행해야합니다.
 
-#### II - 웹소캣
-- 실시간 웹 서비스를 제공하기 위해 만들어진 **Socket**이라고 생각하면 됩니다.
-- 최근 Google Docs 등 여러 협업툴이 실시간 공동 편집 기능, 웹 메신저 등에서 많이 사용되는 기술로 최근 점점 많이 사용하는 기술이지만 일부 브라우저들이 웹소켓을 지원하지 않기 때문에 모든 브라우저에서의 동작을 보장하지는 못합니다.
-- MDN에서 제공하는 웹소켓의 하위 호환성 [참고자료](https://developer.mozilla.org/ko/docs/Web/API/WebSockets_API)
+#### Refresh Token
+- Refresh Token은 Access Token 처럼 해당하는 사용자의 모든 인증 정보를 관리하는 것이 아닌, 특정한 사용자가 Access Token을 발급받기 위한 용도로만 사용됩니다.
+`redis 혹은 mongoDB`와 같이 접근이 빠른 NoSQL을 사용할 수 있죠.
 
-#### III - `socket.io`라이브러리
-- **자바스크립트**를 사용해 **웹소켓**을 사용하길 원한다면 **가장 많이 사용되는 라이브러리**입니다.
-그러나 이 라이브러리는 순수한 웹소켓 기술만 이용한 라이브러리가 아닙니다.
-- 위에서 말했듯 웹소켓 기술은 아직 모든 브라우저에서 동작하지는 못하기 때문에, 모든 사용자를 고려해야 하는 경우 실시간성 기능 구현에 어려움이 생기게 됩니다.
-- 이 어려움을 해결하기 위해 [socket.io](http://socket.io)는 **웹소켓을 사용할 수 없는 브라우저인 경우 서버에서 데이터를 일정 간격마다 받아오는 polling 기능으로 실시간 기능 구현**을 가능케 해줍니다.
+Refesh Token은 사용자의 인증정보를 **사용자**가 가지고 있는 것이 아닌, **서버**에서 해당 사용자의 정보를 **저장소** 또는 **별도의 DB**에 저장하여 관리합니다. 그렇기 때문에, 서버에서 특정 Token 만료가 필요할 경우 저장된 Token을 제거하여 **사용자의 인증 여부를 언제든지 제어가 가능**하다는 장점이 있습니다.
 
-#### IV - `socket.io`는 웹소캣과 다른가
-- 맞습니다. 엄밀히 따지면 `socket.io`는 **웹소켓을 포함**하여, 웹소켓을 사용하지 못하는 환경에서도 웹소켓과 비슷하게 사용이 가능하도록 구현해놓은 **라이브러리**입니다.
-- 그렇기 때문에 `socket.io`는 **웹소켓과 완전히 동일하다고 오해하지 않으시길 바랍니다!**
+그렇다면 어째서 바로 Access Token을 발급하지 않고, Refresh Token을 거쳐서 Access Token을 발급하는것일까요? 사용자에게 발급한 Token이 탈취당할 경우 피해를 최소화 하기 위해서 사용합니다.
 
-### `socket.io` 맛보기
-예제 폴더를 생성한 후 다음과 같은 구조를 만듭시다.
+저희가 실제 세계에서 사용하는 **OTP**와 같이 짧은 시간 내에서만 인증 정보를 사용할 수 있게하고, 주기적으로 재발급하여, 토큰이 유출되더라도 오랜 기간동안 피해를 입는것이 아닌, 짧은 기간동안만 사용가능하도록 하여 피해를 최소화할 수 있게 됩니다.
 
-```TEXT
+언제든지 토큰이 탈취될 수 있다는 것을 가정하고, 탈취를 막는것이 어렵다면, 우리는 탈취된 토큰자체를 사용할 수 있는 기간을 줄여서 피해를 막을 것 입니다.
 
-```
+### 프로젝트 구현
+- Refresh Token은 사용자가 서버와 최초 인증시에 발급을 받게되는데요. 이번 프로젝트에서는 하나의 파일에서 Refesh Token과 Access Token이 어떤식으로 동작하는지 확인해보겠습니다.
 
-그리고 `init`한 뒤 `socket.io`라이브러리를 설치합니다.
+- 개발할 API는 다음과 같습니다.
+`Refresh Token, Access Token 발급 : GET http://localhost:3002/set-token/:id`  
+`Token 인증 받기 : GET http://localhost:3002/get-token/`
 
+다음과 같이 프로젝트를 초기화하고 `express jsonwebtoken cookie-parser`를 설치합니다.
 ```bash
 npm init -y
-npm i socket.io -S
+npm install express jsonwebtoken cookie-parser -S
 ```
 
-`index.html`을 생성해 다음 클라이언트 코드를 복사합니다.
-
-```html
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <script src="https://cdn.socket.io/socket.io-3.0.1.min.js"></script>
-    <title>Hello Socket.io!</title>
-  </head>
-  <body>
-    <script>
-      const socket = io("ws://localhost:3000");
-      socket.on("connect", () => {
-        socket.send("Hello!");
-      });
-
-      socket.on("message", (data) => {
-        console.log(data);
-      });
-    </script>
-  </body>
-</html>
-```
-
-이번엔 `app.js`에 서버 코드를 복사합니다.
-
+우선 검증 이전에 사용자에게 전달할 토큰 코드는 다음과 같습니다.
 ```js
 // app.js
-const io = require("socket.io")(3000, { // 3000번 포트 사용
-  cors: {
-    origin: "*", // 어떤 사용자들에게만 서버 접근이 가능하도록 허용 * -> 모든 사람
-    methods: ["GET", "POST"], // GET, POST 요청만 허용
-  },
-});
-
-// 요청에 따른 연결을 한 경우 어떤식으로 연결할 것인가
-io.on("connection", (socket) => {
-  // 연결되면 서버 콘솔에 표시
-  console.log("새로운 소켓이 연결됐어요!");
-
-  // message 라는 소켓에 데이터가 들어온 경우
-  socket.on("message", (data) => {
-    console.log(data);
-  });
-});
-```
-이제 실행해본 후 브라우저로 접속해보면 서버 로그에 아래와 같은 메시지가 표시되는 것을 확인할 수 있습니다.
-```bash
-node app.js
-```
-이제 html 파일을 실행해보면 다음과 같이 서버 로그에 메시지가 출력됩니다.
-```log
-새로운 소켓이 연결됐어요!
-Hello!
-```
-브라우저 개발자도구에서 `Network`탭에서도 소켓 통신을 요청하는것을 확인할 수 있습니다.
-
-브라우저 코드를 봅시다.
-```html {3-8}
-<!-- index.html -->
- <script>
-  const socket = io("ws://localhost:3000");
-  // 설정한 url, 포트로 서버와 통신을 요청합니다.
-  socket.on("connect", () => {
-    // 서버에게 data로 "Hello"라는 문자열을 보냅니다.
-    socket.send("Hello!");
-  });
-
-  socket.on("message", (data) => {
-    // message 소캣은 기본값입니다. 커스텀 소켓이 아닌 서버로부터 데이터가 전송된다면
-    // 이 소켓이 작동하죠.
-    // 서버에서 data가 넘어온다면 data값을 출력합니다.
-    console.log(data);
-  });
-</script>
-```
-위와 같이 서버와의 통신을 요청해 서버 로그에 다음과 같은 로그가 표시됩니다.
-
-#### 프론트엔드에서의 이벤트 핸들링
-index.html(`클라이언트`) 파일에 커스텀 이벤트 핸들링 코드 추가해봅시다.  
-아래 코드를 index.html 파일 안의 script 태그 맨 아래에 넣어주세요.
-```html
-<!-- index.html -->
-<script>
-...
-// 소켓이 customEventName 이라는 소켓으로 데이터가 전송된 경우 작동
-socket.on("customEventName", (data) => {
-  console.log(data);
-});
-</script>
-```
-
-서버 측 코드는 다음과 같습니다.  
-`socket.emit("이벤트이름", "데이터")` 이렇게 함수를 호출하면 특정 이벤트에 특정 데이터를 보낼 수 있게 됩니다.
-
-```js
-// 요청에 따른 연결을 한 경우 어떤식으로 연결할 것인가
-io.on("connection", (socket) => {
-  // 연결되면 서버 콘솔에 표시
-  console.log("새로운 소켓이 연결됐어요!");
-
-  // customEventName 소켓 이름으로 this is custom event data 데이터 보냄 
-  socket.emit("customEventName", "this is custom event data");
-
-  // message 소캣은 기본값입니다. 클라이언트로부터 `sokect.send`가 전송된다면
-  // 작동됩니다.
-  socket.on("message", (data) => {
-    console.log(data);
-  });
-});
-```
-이제 서버를 재실행 한 후 클라이언트에서 접속하면 서버에서 커스텀 소켓으로 보낸 데이터가 출력됩니다.
-
-#### express를 이요한 http 모듈 방식 통신
-
-우선 `express`가 설치해줍니다.
-
-http 서버 객체를 이용해 expres 서버를 열어줍니다.
-
-```js
+const jwt = require("jsonwebtoken");
+const cookieParser = require("cookie-parser");
 const express = require("express");
-const { createServer } = require("http");
-
 const app = express();
-const http = createServer(app);
+const port = 3002;
+const SECRET_KEY = `HangHae99`;
 
-const io = require('socket.io')(http, {
-  cors: {
-    origin: "*",
-    methods: ["GET", "POST"],
-  },
-});
+app.use(cookieParser());
 
-http.listen(3000, () => {
-  console.log("서버가 요청을 받을 준비가 됐어요");
-});
-```
-`app` 객체는 **express**로 기존처럼 API을 개발하거나 프론트엔드 파일을 **서빙**하는 용도로 사용할 수 있고, `io` 객체도 기존처럼 **클라이언트와 데이터를 주고 받는 용도**로 사용이 가능합니다!
-
-### 실시간 구매 알림 기능 구현
-
-다음과 같이 누군가 쇼핑몰에서 구매를 진행하면 모든 사용자들에게 좌측 하단에 알림이 뜨도록 구현해봅시다.
-
-[그림 - 구매 알림]
-
-비즈니스 로직은 다음과 같습니다.  
-
-1️⃣  `socket.io`로 클라이언트와 서버가 **소켓 연결**을 해야합니다.  
-2️⃣  **클라이언트에서 사용자가 구매 버튼**을 누른 경우 서버로 "**구매했어요**"와 같은 데이터를 보내줘야만 접속중인 사용자들에게 알릴 수 있습니다!  
-3️⃣  **다른 사용자가 구매**를 한 경우 서버에서 모든 클라이언트에게 "**누군가 구매를 했어요**!"와 같은 데이터를 보내줘야 실시간 구매 알림을 띄울수 있습니다!  
-
-`1. 프로젝트 폴더 설정 후 프론트엔드쪽 구현은 다음과 같습니다.`    
-로그인을 하면 서버에 소켓 연결을 시도하도록 구현해두었습니다.
-연결을 시도하는 서버 주소는 위 프론트엔드 파일을 서빙하는 서버 주소로 지정되게 해놓았으니 이제부터는 html 파일을 직접 열지 않고 반드시 서버가 제공하는 주소(예: http://localhost:3000)로 접속해야 정상적으로 동작합니다!
-
-`2. "BUY_GOODS" 이벤트를 서버에게 수신받으면 실시간 구매 알림이 뜨도록 구현해두었습니다.`
-아래의 데이터 형식으로 받는 경우에만 정상적으로 동작합니다.
-```js
-{
-	nickname: '서버가 보내준 구매자 닉네임',
-	goodsId: 10, // 서버가 보내준 상품 데이터 고유 ID
-	goodsName: '서버가 보내준 구매자가 구매한 상품 이름',
-	date: '서버가 보내준 구매 일시'
-}
-```
-
-`3. 상품을 구매하면 "BUY" 이벤트를 아래 데이터 형식과 함께 서버로 보냅니다.`
-```js
-{
-	nickname: '로그인한 사용자 닉네임',
-	goodsId: 10, // 로그인한 사용자가 구매한 상품 고유 ID
-	goodsName: '로그인한 사용자가 구매한 상품 이름',
-}
-```
-
-구현에 앞서 `socket.io`를 설치합니다.
-```bash
-npm i socket.io
-```
-
-#### 소켓 연결 서버 코드 작성
-express 앱을 http 서버로 한번 감싼 뒤, socket.io 모듈에 http 서버 객체를 넘겨주면 socket.io 연결 준비는 끝납니다.
-```js
 // app.js
-const express = require("express"); // 1. Express 모델 불러오기
-const {Server} = require("http"); // 1. http모듈 불러오기
-const socketIo = require("socket.io") // 1. Scoket 모듈 불러오기
-const cookieParser = require("cookie-parser");
-const goodsRouter = require("./routes/goods.js");
-const usersRouter = require("./routes/users.js");
-const authRouter = require("./routes/auth.js");
-const connect = require("./schemas");
+let tokenObject = {}; // Refresh Token을 저장할 Object
 
-const app = express();
-const http = Server(app); // 2. express app을 http 서버로 감싸기
-const io = socketIo(http); // 3. http 객체를 Socket.io 모듈에 넘겨서 소켓 핸들러 생성
-const port = 3000;
+app.get("/set-token/:id", (req, res) => {
+  const id = req.params.id;
+  const accessToken = createAccessToken(id);
+  const refreshToken = createRefreshToken();
 
-connect(); // mongoose를 연결합니다.
+  // {
+  //   refreshToken: id
+  // }
+  // Refresh Token을 가지고 해당 유저의 정보를 서버에 저장합니다.
+  tokenObject[refreshToken] = id; 
+  // Access Token을 Cookie에 전달한다.
+  res.cookie('accessToken', accessToken); 
+  // Refresh Token을 Cookie에 전달한다.
+  res.cookie('refreshToken', refreshToken); 
 
-// Socket이 접속했을 때, 해당하는 콜백 함수가 실행
-io.on("connection", (sock) => {
-  console.log("새로운 소켓이 연결되었습니다.")
-
-  // 현재 접속한 Socket 클라이언트가 종료하였을 때 실행
-  sock.on("disconnect", () => {
-    console.log(`${sock.id} 에 해당하는 유저가 연결을 종료하였습니다.`)
-  })
+  return res.status(200).send({ "message": "Token이 정상적으로 발급되었습니다." });
 })
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
-app.use(express.static("assets"));
-app.use("/api", [goodsRouter, usersRouter, authRouter]);
+// Access Token을 생성합니다.
+function createAccessToken(id) {
+  const accessToken = jwt.sign(
+    { id: id }, // JWT 데이터
+    SECRET_KEY, // 비밀키로 암호화
+    { expiresIn: '10s' }) // Access Token이 10초 뒤에 만료되도록 설정합니다.
+                          // 10초가 지나면 Access Token을 발급받도록
+
+  return accessToken;
+}
+
+// Refresh Token을 생성합니다.
+function createRefreshToken() {
+  const refreshToken = jwt.sign(
+    {}, // JWT 데이터 - 데이터를 가지지 않음. 
+        // 해당하는 Refresh Token을 가진 경우 서버에 있는 Refresh Token을 사용할 것이므로 jwt가 존재하지 않음
+    SECRET_KEY, // 비밀키
+    { expiresIn: '7d' }) 
+    // Refresh Token이 7일 뒤에 만료되도록 설정합니다.
+    // Refresh Token의 경우 계속적으로 사용하면서 Access Token을 발급받기 위함.
+    // 사용 기간이 길더라도 실제 서버 인증을 받아야 Access Token을 발급받고 사용자 권한을 사용할 수 있기 때문에
+    // 기간 설정에 있어 문제가 크진 않으나 너무 길어도 문제가 있음
+
+  return refreshToken;
+}
 
 app.get("/", (req, res) => {
-  res.send("Hello World!");
-});
+  res.status(200).send("Hello Token!");
+})
 
-// express를 감싼 http로 listen
-http.listen(port, () => {
-  console.log(port, "포트로 서버가 열렸어요!");
-});
-```
-이제 프론트엔드가 "BUY_GOODS" 이벤트를 제대로 받아 동작하는지 확인해봅시다.
-
-프론트엔드가 제대로 동작하는지 확인하려면 서버에서 "BUY_GOODS" 이벤트로 데이터를 보내보면 됩니다.
-일단 테스트니까 소켓이 연결될 때마다 연결된 소켓에 데이터를 보내는걸로 해보겠습니다.
-
-`알림 테스트 코드`
-```js
-io.on("connection", (sock) => {
-  console.log("새로운 소켓이 연결되었습니다.") // 소켓 사용자 접속
-  
-  // 소켓 사용자가 접속했을 때, 바로 BUY_GOODS 소켓 이벤트 전달 
-  sock.emit("BUY_GOODS", {
-    nickname: '서버가 보내준 구매자 닉네임',
-    goodsId: 10, // 서버가 보내준 상품 데이터 고유 ID
-    goodsName: '서버가 보내준 구매자가 구매한 상품 이름',
-    date: '서버가 보내준 구매 일시'
-  })
-
-  // 클라이언트에서 BUY 소켓으로 데이터를 보내면 작동
-  sock.on("BUY", (data) => {
-    console.log("구매한 정보입니다.")
-    console.log(data)
-  })
-
-  // 현재 접속한 Socket 클라이언트가 종료하였을 때 실행
-  sock.on("disconnect", () => {
-    console.log(`${sock.id} 에 해당하는 유저가 연결을 종료하였습니다.`)
-  })
+app.listen(port, () => {
+  console.log(port, '포트로 서버가 열렸어요!');
 })
 ```
-이후 클라이언트에서 구매를 진행하면 서버 로그에 data가 표기됩니다.  
 
-이제 테스트코드가 아닌 실 작동 코드를 완성해봅시다.
-```js
-const express = require("express"); // 1. Express 모델 불러오기
-const {Server} = require("http"); // 1. http모듈 불러오기
-const socketIo = require("socket.io") // 1. Scoket 모듈 불러오기
+이제 사용자에게 토큰을 전달 받아 검증하는 코드를 작성해 완성해보겠습니다.
+```js {55-130}
+// app.js
+const jwt = require("jsonwebtoken");
 const cookieParser = require("cookie-parser");
-const goodsRouter = require("./routes/goods.js");
-const usersRouter = require("./routes/users.js");
-const authRouter = require("./routes/auth.js");
-const connect = require("./schemas");
-
+const express = require("express");
 const app = express();
-const http = Server(app); // 2. express app을 http 서버로 감싸기
-const io = socketIo(http); // 3. http 객체를 Socket.io 모듈에 넘겨서 소켓 핸들러 생성
-const port = 3000;
+const port = 3002;
+const SECRET_KEY = `HangHae99`;
 
-connect(); // mongoose를 연결합니다.
+app.use(cookieParser());
 
-// Socket이 접속했을 때, 해당하는 콜백 함수가 실행
-io.on("connection", (sock) => {
-  console.log("새로운 소켓이 연결되었습니다.") // 소켓 사용자 접속
+// app.js
+let tokenObject = {}; // Refresh Token을 저장할 Object NoSQL과 같은 DB에 저장한다고 가정.
 
-  // 클라이언트가 상품을 구매했을 때 발생하는 이벤트
-  sock.on("BUY", (data) => {
-    const {nickname, goodsId, goodsName} = data;
+app.get("/set-token/:id", (req, res) => {
+  const id = req.params.id;
+  const accessToken = createAccessToken(id);
+  const refreshToken = createRefreshToken();
 
-    const emitData = { // 2. emit 데이터 만들기
-      nickname,
-      goodsId,
-      goodsName,
-      date: new Date().toISOString()
-    }
+  // {
+  //   refreshToken: id
+  // }
+  tokenObject[refreshToken] = id; // Refresh Token을 가지고 해당 유저의 정보를 서버에 저장합니다.
+  res.cookie('accessToken', accessToken); // Access Token을 Cookie에 전달한다.
+  res.cookie('refreshToken', refreshToken); // Refresh Token을 Cookie에 전달한다.
 
-    // 클라이언트가 구매한 정보를 바탕으로 BUY_GOODS 메시지 전달
-    // 소켓에 접속한 모든 유저에게 전달 io.emit()
-    io.emit("BUY_GOODS", emitData);
-  })
-
-  // 현재 접속한 Socket 클라이언트가 종료하였을 때 실행
-  sock.on("disconnect", () => {
-    console.log(`${sock.id} 에 해당하는 유저가 연결을 종료하였습니다.`)
-  })
+  return res.status(200).send({ "message": "Token이 정상적으로 발급되었습니다." });
 })
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
-app.use(express.static("assets"));
-app.use("/api", [goodsRouter, usersRouter, authRouter]);
+// Access Token을 생성합니다.
+function createAccessToken(id) {
+  const accessToken = jwt.sign(
+    { id: id }, // JWT 데이터
+    SECRET_KEY, // 비밀키로 암호화
+    { expiresIn: '10s' }) // Access Token이 10초 뒤에 만료되도록 설정합니다.
+                          // 10초가 지나면 Access Token을 발급받도록
+
+  return accessToken;
+}
+
+// Refresh Token을 생성합니다.
+function createRefreshToken() {
+  const refreshToken = jwt.sign(
+    {}, // JWT 데이터 - 데이터를 가지지 않음. 
+        // 해당하는 Refresh Token을 가진 경우 서버에 있는 Refresh Token을 사용할 것이므로 jwt가 존재하지 않음
+    SECRET_KEY, // 비밀키
+    { expiresIn: '7d' }) // Refresh Token이 7일 뒤에 만료되도록 설정합니다.
+                         // Refresh Token의 경우 계속적으로 사용하면서 Access Token을 발급받기 위함.
+                         // 사용 기간이 길더라도 실제 서버 인증을 받아야 Access Token을 발급받고 사용자 권한을 사용할 수 있기 때문에
+                         // 기간 설정에 있어 문제가 크진 않으나 너무 길어도 문제가 있음
+
+  return refreshToken;
+}
+
+// app. js
+app.get("/get-token", (req, res) => {
+  // 1. 이전에 클라이언트에게 전달한 쿠키를 받음.
+  const accessToken = req.cookies.accessToken;
+  const refreshToken = req.cookies.refreshToken;
+
+  // 2. 전달했던 쿠키가 존재하지 않는다면 에러
+  if (!refreshToken) return res.status(400).json({ "message": "Refresh Token이 존재하지 않습니다." });
+  if (!accessToken) return res.status(400).json({ "message": "Access Token이 존재하지 않습니다." });
+
+  // 3. validation 체크 jwt.verify
+  const isAccessTokenValidate = validateAccessToken(accessToken);
+  const isRefreshTokenValidate = validateRefreshToken(refreshToken);
+
+  // 3-1. refreshToken 검증 실패
+  if (!isRefreshTokenValidate) return res.status(419).json({ "message": "Refresh Token이 만료되었습니다." });
+
+  // 3-2. accessToken 검증 실패
+  // refreshToken을 이용해(refreshToken은 validation true인 상태) accessToken 재발급
+  if (!isAccessTokenValidate) {
+    // 4. accessToken을 발급할 당시 당사자의 id를 DB에서 조회한다고 가정
+    const accessTokenId = tokenObject[refreshToken];
+
+    // accessToken의 id가 존재하지 않는 경우
+    // Refresh Token이 인증됐고, 비밀키도 정상이고, 만료시간도 정상인데 id가 존재하지 않는 경우.
+    // 대표적 사례 
+    // accessToken 혹은 refreshToken이 탈취당했다고 가정할 때
+    // refreshToken이 서버에서 자동적으로 만료를 고의적으로 시켜줄 수 있음.
+    // 5. 서버에 가지고 있는 refreshToken 토큰과 일치하지 않는 경우(탈취), 서버에서 고의로 삭제한 경우에 대한 검증
+    if (!accessTokenId) return res.status(419).json({ "message": "Refresh Token의 정보가 서버에 존재하지 않습니다." });
+
+    // 6. accessToken 재발급
+    const newAccessToken = createAccessToken(accessTokenId);
+    // 7. 똑같이 accessToken 키를 가진 newAccessToken 으로 대체
+    res.cookie('accessToken', newAccessToken);
+    return res.json({ "message": "Access Token을 새롭게 발급하였습니다." });
+  }
+
+  // accessToken도 만료기간이 지나지 않았고, refreshToken도 정상적인 경우
+  // 사용자 id를 가져옴
+  const { id } = getAccessTokenPayload(accessToken);
+	return res.json({ "message": `${id}의 Payload를 가진 Token이 성공적으로 인증되었습니다.` });
+})
+
+// Access Token을 검증합니다.
+function validateAccessToken(accessToken) {
+  try {
+    jwt.verify(accessToken, SECRET_KEY); // JWT를 검증합니다.
+    return true;
+  } catch (error) {
+    // 대표적 에러 1
+    // jwt 토큰과 설정한 비밀키가 일치하지 않은 경우
+    // 대표적 에러 2
+    // 만료기간이 지난 경우 
+    return false;
+  }
+}
+
+// Refresh Token을 검증합니다.
+function validateRefreshToken(refreshToken) {
+  try {
+    jwt.verify(refreshToken, SECRET_KEY); // JWT를 검증합니다.
+    return true;
+  } catch (error) {
+    return false;
+  }
+}
+
+// Access Token의 Payload를 가져옵니다.
+function getAccessTokenPayload(accessToken) {
+  try {
+    const payload = jwt.verify(accessToken, SECRET_KEY); // JWT에서 Payload를 가져옵니다.
+    return payload;
+  } catch (error) {
+    return null;
+  }
+}
 
 app.get("/", (req, res) => {
-  res.send("Hello World!");
-});
+  res.status(200).send("Hello Token!");
+})
 
-// express를 감싼 http로 listen
-http.listen(port, () => {
-  console.log(port, "포트로 서버가 열렸어요!");
-});
+app.listen(port, () => {
+  console.log(port, '포트로 서버가 열렸어요!');
+})
 ```
