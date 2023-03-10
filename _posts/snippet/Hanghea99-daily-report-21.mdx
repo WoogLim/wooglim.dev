@@ -1,628 +1,1010 @@
 ---
 title: "[항해] 항해 심화 주차 - 5"
-description: "Sequelize에서의 트랜잭션 적용"
+description: "객체 지향 프로그래밍"
 language: "daliyreport"
 category: "Hanghae99"
 update: "2023-03-10"
 serisenumber: 21
 ---
 
-## Transaction
+## 객체 지향
 
-### 트랜잭션의 정의
-> 트랜잭션(Transaction)은 작업의 완전성을 보장해주기 위해 사용되는 개념입니다. 특정한 작업을 전부 처리하거나, 전부 실패하게 만들어 데이터의 일관성을 보장해주는 기능입니다.
+### 개념
+- **객체 지향**은 소프트웨어의 핵심을 **기능**이 아닌 **객체**로 삼으며 “**누가 어떠한 일을 할 것인가?**”에 초점을 맞춥니다. 즉, **객체를 도출**하고 각각의 **역할을 정의**하는 것에 **초점**을 맞춥니다.
 
-> **트랜잭션(Transaction)**을 사용하는 대표적인 이유는 작업의 단위를 하나의 쿼리에 종속하는 것이 아닌, **여러개의 작업(쿼리)**을 묶어 **하나의 작업 단위**로 **그룹화**하여 처리하는 작업을 뜻합니다. 
-대부분의 데이터베이스가 트랜잭션의 특징을 이용하고 있으며, MySQL뿐만 아니라 [AWS DynamoDB](https://docs.aws.amazon.com/ko_kr/amazondynamodb/latest/developerguide/transaction-apis.html), [MongoDB](https://www.mongodb.com/docs/manual/core/transactions/), [CockroachDB](https://www.cockroachlabs.com/docs/stable/transactions.html#sql-statements) 등 다양한 데이터베이스에서도 트랜잭션의 개념을 확인할 수 있습니다.
+책임과 권한을 가진 객체들이 서로 메시지를 주고받으며 협력해서 필요한 기능을 수행하도록 시스템을 개발하는 것을 객체 지향이라고 합니다.
 
-> 예를들어 은행에서 계좌이체를 하게 될 경우 아래와 같은 상황이 발생하게 됩니다.
-1️⃣  **A 고객의 계좌에서 1,000원을 차감합니다.**  
-2️⃣  **B 고객의 계좌에 1,000원을 추가합니다.**  
-여기서 **1️⃣ 번 작업** 이후 **2️⃣ 번 작업**을 수행하던 중 에러가 발생하게 될 경우 **A** 고객의 계좌에서 **1,000**원만 **차감**되기만 하는 문제점이 발생하게됩니다. 만약 순서가 반대로 되었다면, **B** 고객의 계좌에 **1,000**원이 **증가**되기만 하는 문제가 발생하겠죠?  
-이런 **부분 업데이트(Partial Update)**와 같은 상황을 방지하기 위해 **트랜잭션(Transaction)**이라는 개념을 도입하게 되었습니다.   
-단순히 위와 같은 상황 외에도 작업한 내역을 저장하는 **로깅**작업, 영화관의 **예매 시스템**, 은행의 **결제 시스템** 등 **데이터의 일관성**을 유지해야하는 다양한 상황에서 사용하게 됩니다.
+**객체 지향적인 소프트웨어**의 구분
 
-- 결국, 트랜잭션(Transaction)을 이용한다면 사용자가 항상 프로그램 실행을 완료하도록 구성하고, 만약 실행을 중단할 만한 치명적인 오류가 발생하더라도, DB에 피해가 가지않아 더욱 안전하게 구성할 수 있게 됩니다.
+**절차지향**적인 소프트웨어와 **객체지향**적인 소프트웨어를 구분하는 방법은 아래의 기준을 만족할 경우 **객체지향**, 만족하지 않으면 **절차지향**적인 성격을 가집니다.
 
-### 특징(ACID)
-- 트랜잭션의 특징(ACID)은 데이터베이스 트랜잭션이 안전하게 수행된다는 것을 보장하기 위한 특징들을 나열해 놓은 개념입니다.
+- **캡슐화**, **다형성**, **클래스 상속**을 지원하는가?
+→ 여기서 **클래스(Class)**는 단순히, **클래스**라는 **틀**을 만들고, `new` 생성자 함수를 이용하여 **객체를 생성**하는 아주 단순한 **역할**을 가지고 있습니다.
+    
+- **데이터 접근 제한**을 걸 수 있는가?
 
-ACID는 트랜잭션을 이용하여 데이터베이스를 더욱 안전하게 구성할 수 있게 도와주는 트랜잭션 특징 4가지의 맨 앞단어를 하나씩 가져와 만든 것 입니다.
+#### 캡슐화 (Encapsulation)
+- 💡 개념적이나 물리적으로 객체 내부의 **세부적인 사항**을 **감추는 것**을 **캡슐화**라고 부릅니다. 즉, 캡슐화를 사용하는 가장 큰 이유는 **정보은닉**을 목적으로 합니다.
 
-[그림 - ACID]
+정보은닉은 객체에 대한 중요한 정보를 외부로 노출시키지 않도록 하기 위한 기법입니다.  
+캡슐화의 목적은 변경하기 쉬운 객체를 만드는 것입니다. 캡슐화를 통해 객체 내부의 접근을 제한하면 객체와 객체 사이의 결합도를 낮출 수 있기 때문에 설계를 좀 더 쉽게 변경할 수 있게 됩니다. -> 단순히 외부에 노출되어 있는 것을 사용
 
-**ACID**는 트랜잭션의 4가지 특징을 나타냅니다.
+`Javascript` 클래스는 멤버 변수를 숨길 수 없습니다. 그래서 개발자들은 멤버 변수 앞에 `_`를 붙여 클래스 내부의 변수를 숨긴 것 “**처럼**" 표시하겠다는 [규칙](https://stackoverflow.com/questions/4484424/is-the-underscore-prefix-for-property-and-method-names-merely-a-convention)을 만들었습니다. 
 
-- **원자성(Atomicity)**
-- **일관성(Consistency)**
-- **격리성(Isolation)**
-- **지속성(Durability)**
+하지만 `Javascript`를 실행했을 때에는 클래스의 멤버 변수가 숨겨지지 않으니, 예제는 `Typescript`로 확인해보도록 하겠습니다.
 
-#### 원자성(Atomicity)
-- 원자성(Atomicity)은 트랜잭션 내에서 실행되는 명령들을 하나의 묶음으로 처리하여, 내부에서 실행된 명령들이 전부 성공하거나, 아니면 모두 실패해야한다는 특징입니다.
+```ts
+/** Encapsulation **/
+class User {
+  // 접근 제어의 경우 typescript를 사용해 구현할 수 있다. 이후 자바스크립트로 변환하면서 스코프를 이용한다고함.
 
-원자성(Atomicity)은 트랜잭션의 가장 대표적인 특징입니다. 트랜잭션에서 실행되는 쿼리마다 하나의 작업 단위로 보지않고, 여러개의 작업들을 묶어 하나의 작업단위로 보게됩니다.
+  private name: string; // 현재 클래스 내에서만 사용 가능
+  private age: number; // private는 getter, setter로만 접근 가능하다.
+                       // this.name 등으로 접근 불가.
 
-> 📌 **계좌이체의 비즈니스 로직**  
-1. A 계좌의 금액을 차감합니다.  
-2. B 계좌의 금액을 증가 시킵니다.
+  constructor(name: string, age: number) {
+    this.name = name;
+    this.age = age;
+  }
 
-트랜잭션을 사용하게 될 경우 2단계로 구분된 비즈니스로직을 고객의 계좌 금액 차감, 금액 증가를 하나의 계좌이체라는 기능으로 묶어서 관리할 수 있게 될 것입니다.
+  setName(name: string) { // Private 속성을 가진 name 변수의 값을 변경합니다.
+    this.name = name;
+  }
+  getName() { // Private 속성을 가진 name 변수의 값을 조회합니다.
+    return this.name;
+  }
+  setAge(age: number) { // Private 속성을 가진 age 변수의 값을 변경합니다.
+    this.age = age;
+  }
+  getAge() { // Private 속성을 가진 age 변수의 값을 조회합니다.
+    return this.age;
+  }
+}
 
-원자성이라는 특징을 이용해 여러분들은 각각의 쿼리를 별도로 실행하는 것이 아니라, 동시에 실행해야하는 여러개의 쿼리를 묶어서 관리할 수 있게 될 것이고, 여러개의 비즈니스 로직을 상세하게 알지 않더라도 하나의 함수처럼 트랜잭션을 사용할 수 있게 될 것입니다.
-
-#### 일관성(Consistency)
-- 일관성(Consistency)은 트랜잭션 내부에서 처리되는 데이터의 일관성을 유지해야하는 특징입니다. 만약 작업이 성공할 경우 아무런 문제가 발생하지 않고, 실패하더라도 작업을 진행하던 도중 실패한 상태로 데이터를 방치하지 않는 특징입니다.
-
-일관성(Consistency)의 특징은 트랜잭션 내의 데이터는 일관되어야하며, 에러가 발생하더라도 데이터의 문제가 발생하면 안된다는 특징입니다. 만약 일관성이 지켜지지 않을 경우 여러분들은 트랜잭션을 이용하더라도 언제 데이터가 파손될 지 모르는 불안감을 가진 체 작업을 해야할 것 입니다.
-
-> 📌 **강의 등록의 비즈니스로직**
-1. **강의(Courses)** 테이블에서 강의를 생성합니다.  
-2. 생성된 강의 데이터를 참조하는 **강의 목록(CourseUnit)** 테이블에 강의 영상을 **업로드**합니다.  
-3. **강의 목록(CourseUnit)** 테이블에 모든 강의 영상을 업로드 하였다면 `COMMIT`
-
-첫번째 강의 테이블에 강의를 생성하는것은 성공하였지만 두번째 강의 목록 테이블에서 모든 강의 영상을 삽입하는데 실패하였다면, ROLLBACK이 실행되어 강의(Courses) 테이블과 강의 목록(CourseUnit) 테이블에는 트랜잭션에서 조작한 데이터가 아무것도 존재하지 않는 상태가 될 것입니다.
-
-이렇게 강의 자체가 생성되지 않거나, 모든 강의가 업로드 되는 상황이 발생하게 되어야, 데이터베이스를 믿고 작업을 진행할 수 있게 될 것 입니다.
-
-#### 격리성(Isolation)
-- 격리성(Isolation)은 트랜잭션의 경우 실행 전이나 실행 후의 데이터를 외부에서 참조할 수 있지만, 트랜잭션을 수행하는 중간 상태를 보거나 변경할 수 없도록 구성하는 특징입니다.
-
-격리성(Isolation)의 경우, MySQL에서는 사용중인 DB 오브젝트에 락(Lock)을 걸어 격리성을 구현하게 됩니다. 여기서 락(Lock)을 건 상태는 DB에 접속한 또다른 클라이언트가 해당하는 DB 오브젝트를 읽거나, 사용할 수 없도록 만든다는 개념입니다.  
-격리성이란 특징에서 동시성(Concurrency)과 격리 수준(Isolation Level)라는 개념이 나타나게되었습니다.
-
-##### 동시성(Concurrency)
-- **동시성(Concurrency)**은 여러명의 클라이언트가 하나의 데이터를 동시에 사용및 공유 하는 것을 뜻합니다.  
-
-> 📌 계좌이체를 하기 위해, 2개의 계좌이체가 발생한다고 가정해보겠습니다.  
-1. 1️⃣  **트랜잭션**에서 A 계좌에서 **천원을 차감**하여 `10,000` → `9,000`으로 수정하였습니다.  
-2. 2️⃣  **트랜잭션**에서 **수정된 데이터를 바탕**으로 A 계좌에서 **천원을 차감**하여 `9,000` → `8,000`으로 수정하였습니다.  
-3. 1️⃣  **트랜잭션**에서 에러가 발생하여, 트랜잭션을 `ROLLBACK`하게 되었습니다.  
-4. 2️⃣  **트랜잭션**에서 트랜잭션을 `COMMIT` 하게 되었습니다.
-
-2️⃣  트랜잭션은 수정 중인 1️⃣  트랜잭션의 잘못된 데이터를 참조하는 문제가 발생하였습니다. 잘못된 데이터를 바탕으로 2️⃣  트랜잭션이 비즈니스로직을 수행하여 9,000이 되어야할 계좌의 잔고가 8,000이 되었습니다.
-
-하나의 자원을 여러명이 사용하여 발생하는 문제를 동시성 문제(Concurrency Issues)라고 칭하게 됩니다.
-
-자원을 사용하는 하나의 클라이언트만 해당 자원을 점유할 수 있도록 하여, 다른 사용자가 접근할 수 없도록 만들어 자원을 공유하는 원인을 제거하면 됩니다. 이것을 자원 잠금(Resource Locking)라고 부르며, 락(Lock)이라는 개념이 나오게 된 것 입니다.
-
-#### 지속성(Durability)
-- 지속성(Durability)은 트랜잭션을 성공적으로 수행하면 수정된 데이터를 시스템에 영구적으로 적용하는 특징입니다. 트랜잭션의 중간 결과가 아니라 완성된 결과만 저장하여 데이터베이스에 이상이 생기더라도 자동 복구할 수 있는 특성을 가지고 있습니다.
-
-어플리케이션이 트랜잭션을 완료한 이후, DB에 COMMIT을 요청하였지만 변경사항이 반영되기 전에 DB가 비정상 종료될 경우, DB가 재시작 될 때 트랜잭션의 변경 사항을 다시 반영하게 되는데, 이러한 특징을 지속성(Durability)이라고 합니다.
-
-### MySQL 트랜잭션
-MySQL에서 트랜잭션은 아래와 같은 명령어를 사용합니다.
-```sql
--- 트랜잭션을 시작합니다.
-START TRANSACTION;
-
--- 성공시 작업 내역을 DB에 반영합니다.
-COMMIT;
-
--- 실패시 START TRANSACTION이 실행되기 전 상태로 작업 내역을 취소합니다.
-ROLLBACK;
+const user = new User('임건', 28); // user 인스턴스 생성
+user.setName("임꺽정");
+user.setAge(26);
+console.log(user.getName()); // 임꺽정
+console.log(user.getAge()); // 26
+// console.log(user.name); // Error: User클래스의 name 변수는 private로 설정되어 있어 바로 접근할 수 없습니다.
 ```
 
-#### COMMIT과 ROLLBACK
-우선 COMMIT과 ROLLBACK을 봅시다.
-```sql
--- SPARTA 테이블을 생성합니다.
-CREATE TABLE IF NOT EXISTS SPARTA
-(
-    spartaId      INT(11)      NOT NULL PRIMARY KEY AUTO_INCREMENT,
-    spartaName    VARCHAR(255) NOT NULL,
-    spartaAddress VARCHAR(255) NOT NULL
-);
+#### 상속 (Inheritance)
+- 💡 상속이란 이미 정의된 **상위** 클래스의 특징을 **하위** 클래스에서 물려받아 **코드의 중복을 제거**하고 **코드 재사용성을 증대**시킵니다. 즉, 하나의 클래스가 가진 **특징(함수, 변수 및 데이터)**을 다른 클래스가 그대로 **물려 받는 것**을 말합니다.
 
--- 1번째 트랜잭션을 실행합니다.
-START TRANSACTION;
+개별 클래스를 상속 관계로 묶음으로써 클래스 간의 체계화된 구조를 파악하기 쉬워집니다.  
+데이터와 메소드를 변경할 때 상위에 있는 것만 수정하여 전체적으로 일관성을 유지할 수 있습니다.  
 
--- SPARTA 테이블에 더미 데이터 3개를 삽입합니다.
-INSERT INTO SPARTA (spartaName, spartaAddress)
-VALUES ('SPARTA1', 'SEOUL'),
-       ('SPARTA2', 'BUSAN'),
-       ('SPARTA3', 'DAEGU');
-
--- 1번째 트랜잭션을 DB에 적용합니다.
-COMMIT;
-
-
--- 2번째 트랜잭션을 실행합니다.
-START TRANSACTION;
-
--- SPARTA 테이블에 더미 데이터 3개를 삽입합니다.
-INSERT INTO SPARTA (spartaName, spartaAddress)
-VALUES ('SPARTA4', 'SEOUL'),
-       ('SPARTA5', 'BUSAN'),
-       ('SPARTA6', 'DAEGU');
-
--- 2번째 트랜잭션을 롤백합니다.
-ROLLBACK;
-```
-예시 코드를 실행할 경우, 2번째 트랜잭션에서 수행하는 INSERT INTO가 ROLLBACK되었기 때문에 실제 SPARTA 테이블은 6개가 아닌, 3개의 데이터만 삽입되어 있는 상태로 존재하게 됩니다.
-
-#### 락(LOCK)
-- 락(Lock)은 동시성을 제어하기 위해 사용하는 기능입니다. 해당하는 데이터를 점유하여 다른 트랜잭션의 접근을 막아 동시성과 일관성의 균형을 맞추기 위해 사용합니다.
-
-하나의 데이터를 여러 사용자들이 동시에 변경하려고 할 때, 락이 존재하지 않다면, 한번에 여러번의 수정이 발생하게되고, 최종 수정된 결과값을 인지할 수 없게 되는 상황으로 인해 데이터베이스의 일관성이 깨지게 됩니다. 이런 상황을 방지하기 위해 데이터베이스에서는 **락(Lock)**이라는 기능을 지원하게 되었습니다.
-
-`락(Lock)의 종류`
-
-- **[공유 락(Shared Locks) | 읽기 락(READ Locks)](https://dev.mysql.com/doc/refman/8.0/en/innodb-locking.html#innodb-shared-exclusive-locks)**
-    - 다른 트랜잭션이 데이터를 **읽는 것은 허용**하지만, **수정하는 것을 금지**합니다.
-    - `**READ` 전용 락**이라고 불리기도 하며, 해당 락을 사용하는 트랜잭션이 모든 작업을 수행하였다면 공유 락은 해제됩니다.
-
-- **[배타 락(Exclusive Locks) | 쓰기 락(WRITE Locks)](https://dev.mysql.com/doc/refman/8.0/en/innodb-locking.html#innodb-shared-exclusive-locks)**
-    - 다른 트랜잭션이 데이터를 **읽거나, 수정하는 것을 금지**합니다.
-    - `**WRITE` 전용 락**이라고 불리며, 트랜잭션이 해당하는 데이터를 점유한 후 다른 트랜잭션이 해당 데이터에 **접근 할 수 없도록** 만듭니다.
-
-`락킹 수준(Locking Level)`
-
-- **[글로벌 락(Global Locks) | 데이터베이스 락(Database Locks)](https://dev.mysql.com/doc/refman/8.0/en/innodb-locking.html)**
-    - **데이터베이스의 모든 테이블에 락**을 걸어, 현재 트랜잭션을 제외한 나머지 트랜잭션들이 모든 테이블을 사용할 수 없도록 만듭니다.
-    - **가장 높은 수준의 락**을 가지고 있으며, **가장 큰 범위**를 가지고 있습니다.
-
-- **[테이블 락(Table Locks)](https://dev.mysql.com/doc/refman/8.0/en/innodb-locking.html)**
-    - 다른 사용자가 작업중인 **테이블**을 동시에 수정하지 못하도록 합니다.
-
-- **[네임드 락(Named Locks)](https://dev.mysql.com/doc/refman/8.0/en/locking-functions.html)**
-    - 테이블이나 테이블의 행과같은 DB 오브젝트가 아닌, **특정한 문자열**을 **점유**합니다.
-
-- **[메타데이터 락(Metadata Locks)](https://dev.mysql.com/doc/refman/8.0/en/metadata-locking.html)**
-    - 다른 사용자가 작업중인 테이블의 **동일한 행 및 동일한 데이터베이스의 객체**를 동시에 수정하지 못하도록 합니다.
-
-> 락은 다양한 락킹 수준(Locking Level)을 가지고 있는데, 잘못된 락 설정을 하게 될 경우 모든 API가 동작하지 않는 교착 상태(Dead Lock)가 발생하게 되어, 프로그램이 멈춰버리는 문제가 발생하게 될 수 있습니다.
-
-`교착 상태(Dead Lock)`
-
-> ❓ 교착 상태(Dead Lock)를 해결하기 위해선 어떻게 구성해야할까요?  
-교착 상태(Dead Lock)는 여러 테이블에 락(Lock)을 적용하여, 다른 작업이 처리되지 못하게 점유하고 있는 작업이 있을 때, 다른 작업을 끝나는 것을 무한정 기다리는것을 나타냅니다.
-
-[그림 - 교착 상태]
-
-> 💡 **교착 상태**의 경우 아래와 같은 2개의 트랜잭션이 동시에 실행된다고 가정해보겠습니다.  
- 1️⃣  A→ B 테이블을 순차적으로 사용하는 트랜잭션  
- 2️⃣  B→ A 테이블을 순차적으로 사용하는 트랜잭션
-
-1️⃣  은 처음 **A 테이블**을 점유하기 위해 **락**을 걸어놓을 것 입니다. 그리고 동시에 2️⃣  또한 **B 테이블**을 점유하기 위해 **락**을 걸어놓을 것 입니다.
-
-그러면 1️⃣ 은 **B 테이블**의 락이 풀리기를 기다리는 상태가 발생하게 될 것이고, 2️⃣  또한 **A 테이블**의 락이 풀리기를 기다리는 상태가 발생하게 될 것 입니다. 이처럼 리소스를 접근하려고 할 때, 서로가 서로의 리소스를 점유하고 있을 때 발생하는 것을 **교착 상태(Dead Lock)**이라고 부릅니다.
-
-해당하는 상황을 해결하기 위해 여러분들은 트랜잭션에서 사용하는 **락(Lock)**의 수준을 명확하게 이해하고, 적재적소에 필요한 락의 수준을 설정하여 트랜잭션을 구성해야합니다.
-
-`트랜잭션의 격리 수준 (Isolation Level)`
-- 트랜잭션의 격리 수준 (Isolation Level)은 여러 트랜잭션이 동시에 처리될 때 다른 트랜잭션에서 변경 및 조회하는 데이터를 읽을 수 있도록 허용하거나 거부하는 것을 결정하기 위해 사용하는 것 입니다.  
-
-트랜잭션의 격리 수준은 대표적으로 4가지로 나타냅니다.
-
-**`READ UNCOMMITTED`**
-
-- **커밋 되지 않은 읽기(Uncommitted Read)**를 허용하는 격리 수준입니다.
-- 가장 낮은 수준의 격리수준이며, 락을 걸지 않아 동시성이 높지만 일관성이 쉽게 깨질 수 있습니다.
-
-**`READ COMMITTED`**
-
-- **커밋 된 읽기(Committed Read)**만을 허용하고, `SELECT` 문을 실행할 때 공유락을 겁니다.
-- 다른 트랜잭션이 데이터를 **수정하고 있는 중**에는 **데이터를 읽을 수 없어** 커밋되지 않은 읽기현상이 발생하지 않습니다.
-
-**`REPEATABLE READ`**
-
-- 읽기를 마치더라도 **공유락**을 **풀지 않으며**, 트랜잭션이 **완전히 종료될 때 까지 락을 유지**합니다.
-- 공유락이 걸린 상태에서 데이터를 수정하는 것은 불가능하지만, 데이터를 삽입하는 것이 가능해집니다. 그로인해 **팬텀 읽기**가 발생할 수 있는 문제점이 있습니다.
-
-**`SERIALIZABLE`**
-
-- 데이터를 읽는 동안 다른 트랜잭션이 해당 데이터를 읽거나 삽입할 수 없고, 새로운 데이터를 추가하는 것 또한 불가능합니다.
-- **가장 높은 수준의 격리 수준**이므로, 동시성이 떨어지는 문제점이 존재합니다.
-
-> 💡 **커밋되지 않은 읽기(Uncommitted Read)** 
-**커밋되지 않은 읽기(Uncommitted Read)**는 다른 트랜잭션에 의해 작업중인 데이터를 읽게 되는 것을 나타냅니다. 만약 커밋되지 않은 읽기가 발생할 경우, **의도치 않은 데이터를 참조**하게 되어 데이터의 일관성이 깨지게 되는 상황이 발생하게됩니다.
-
-
-> 💡 **팬텀 읽기(Phantom Read)** 
-트랜잭션을 수행하던 중 다른 트랜잭션에 의해 삭제된 데이터를 팬텀행(Phantom Rows)이라고 합니다. 여기서, 팬텀행에 해당하는 데이터를 읽는 것을 팬텀 읽기(Phantom Read)라고 부릅니다.
-
-### Sequelize의 트랜잭션
-- Sequelize의 트랜잭션은 COMMIT, ROLLBACK을 수동으로 사용하여 트랜잭션을 관리하는 UnManaged 트랜잭션과 Sequelize가 자체적으로 트랜잭션의 성공과 실패를 관리하는 Managed 트랜잭션이 존재합니다.
-
-#### Managed 트랜잭션
 ```js
-const { sequelize } = require("../models/index.js");
+class Mother { // Mother 부모 클래스
+  constructor(name, age, tech) { // 부모 클래스 생성자
+    this.name = name;
+    this.age = age;
+    this.tech = tech;
+  }
+  getTech(){ return this.tech; } // 부모 클래스 getTech 메서드
+}
 
-// 콜백으로 함수를 할당하여 비즈니스로직을 처리합니다.
-const result = await sequelize.transaction( async(t) => {
-  // 에러가 발생하면 ROLLBACK
-  const user = await User.create({
-    firstName: '용우',
-    lastName: '이',
-  }, { transaction: t }); // 해당 쿼리에 트랜잭션을 적용합니다.
+class Child extends Mother{ // Mother 클래스를 상속받은 Child 자식 클래스
+  constructor(name, age, tech) { // 자식 클래스 생성자
+    super(name, age, tech); // 부모 클래스의 생성자를 호출
+  }
+}
 
-  return user;
-});
+const child = new Child("임꺽정", "28", "Node.js");
+console.log(child.name); // 임꺽정
+console.log(child.age); // 28
+console.log(child.getTech()); // 부모 클래스의 getTech 메서드 호출: Node.js
 ```
-Managed 트랜잭션은 모든 비즈니스 로직이 성공하거나 에러가 발생한 경우 Sequelize 자체적으로 COMMIT과 ROLLBACK을 하는 장점을 가지고 있습니다.
 
-#### UnManaged 트랜잭션
+#### 추상화 (Abstraction)
+- 💡 **객체에서 공통된 부분을 모아 상위 개념으로 새롭게 선언하는 것을 추상화라고 합니다.** 즉, **불필요한 부분을 생략**하고 객체 속성 중 **공통적**이고 **중요한 것**에만 중점을 두어 **모델화** 하는 것입니다.
+추상화는 객체들의 공통적인 특성을 파악하여 필요 없는 특성을 제거하는 과정입니다.  
+시스템을 구축하기 전에 시스템 구조 및 구성을 가시적으로 볼 수 있고, 해당 시스템과 유사한 모델을 만들어 여러가지 테스트를 할 수 있습니다.  
+복잡한 내부 구현에 신경쓰지 않고, 외부에 노출되어 있는 인터페이스만을 이용하여 코드를 작성할 수 있습니다.
+
+- 클래스를 설계할 때 공통적으로 묶일 수 있는 기능을 추상화 → 추상 클래스 → 인터페이스로 모델링해서 향후 다형성(Polymorphism)으로 확장할 수 있도록 설계합니다.
+
+여기서 인터페이스(Interface)란 클래스 정의할 때 메소드와 속성만 정의하여 인터페이스에 선언된 프로퍼티 또는 메소드의 구현을 강제하여 코드의 일관성을 유지할 수 있도록 만듭니다.
+
+```ts
+/** Abstraction **/
+interface Human {
+  name: string;
+  setName(name : string) : void;
+  getName() : string;
+}
+
+// 인터페이스에서 상속받은 프로퍼티와 메소드는 구현하지 않을 경우 에러가 발생합니다.
+class Employee implements Human{
+  // Human 인터페이스의 멤버 변수 초기화
+  // name: string;
+  constructor(
+    public name: string
+  ) {  }
+  
+  // Human 인터페이스에서 상속받은 메소드
+  // 구현부를 작성.
+  setName(name : string) { this.name = name; }
+  
+  // Human 인터페이스에서 상속받은 메소드
+  // 구현부를 작성.
+  getName() { return this.name; }
+}
+
+const employee = new Employee("");
+employee.setName("임건"); // Employee 클래스의 name을 변경하는 setter
+console.log(employee.getName()); // Employee 클래스의 name을 조회하는 getter
+```
+`Employee` 클래스는 `Human` 인터페이스에서 상속받은 `name` 멤버 변수와 `setName`, `getName` 추상 메소드를 강제로 구현하게 되었습니다.
+
+이제부터 **동일한 인터페이스**를 상속받은 **클래스**는 해당 인터페이스 내부에 선언되어 있는 **프로퍼티**와 **메소드**가 구현되어 있다는것을 인지할 수 있게 되었습니다.
+
+#### 다형성 (Polymorphism)
+- 💡 다형성이란 **객체(클래스)**가 **연산**을 수행하게 될 때 하나의 행위에 대해 각 객체가 가지고 있는 **고유한 특성**으로 **다른 여러 형태로 재구성 되는 것**을 말한다. 즉, **동일한 메소드의 이름**을 사용하지만 메소드에 대해 **클래스마다** **다르게 구현되는 개념**이 다형성입니다.
+
+다형성을 통해 **역할**(인터페이스)과 **구현**을 분리해서 **오버라이딩(Overriding)**을 통해 서비스의 구현기능을 유연하게 변경, 확장이 가능합니다.
+
+**Java**의 **오버로딩(Overloading)**, **오버라이딩(Overriding)**가 대표적인 다형성의 예시입니다.
+
 ```js
-const { sequelize } = require("../models/index.js");
+/** Polymorphism **/
+class Employee {
+  constructor(name) { this.name = name; }
 
-// Sequelize의 트랜잭션을 변수에 할당하여 트랜잭션을 시작합니다.
-const t = await sequelize.transaction();
+  buy() { console.log(`${this.constructor.name} 클래스의 ${this.name}님이 물건을 구매하였습니다.`); }
+}
 
-try {
-  const user = await User.create({
-    firstName: '용우',
-    lastName: '이',
-  }, { transaction: t }); // 해당 쿼리에 트랜잭션을 적용합니다.
+class User {
+  constructor(name) { this.name = name; }
 
-  // 분기마다 COMMIT, ROLLBACK이 가능하다.
+  buy() { console.log(`${this.constructor.name} 클래스의 ${this.name}님이 물건을 구매하였습니다.`); }
+}
 
-  // 트랜잭션을 사용한 모든 로직을 Commit, DB에 반영합니다.
-  await t.commit();
-} catch(transactionError) {
-  // 에러가 발생하였다면, 트랜잭션을 사용한 모든 쿼리를 Rollback, DB에 반영하지 않습니다.
-  await t.rollback();
+const employee1 = new Employee("이용우");
+const employee2 = new Employee("김창환");
+const user1 = new User("이태강");
+const user2 = new User("김민수");
+
+const polymorphismArray = [employee1, employee2, user1, user2];
+// polymorphismArray에 저장되어 있는 Employee, User 인스턴스들의 buy 메소드를 호출합니다.
+// 행위는 같지만 내부적으로 작동하는 코드는 다르다.
+polymorphismArray.forEach((polymorphism) => polymorphism.buy());
+
+// Employee 클래스의 이용우님이 물건을 구매하였습니다.
+// Employee 클래스의 김창환님이 물건을 구매하였습니다.
+// User 클래스의 이태강님이 물건을 구매하였습니다.
+// User 클래스의 김민수님이 물건을 구매하였습니다.
+```
+
+#### 의존성 (Dependency)
+- 의존성이란 객체(모듈 및 클래스)들이 협력하는 과정 속에서 해당 객체들이 다른 객체를 의존하게 되는 정도를 나타냅니다.
+- 의존성이라는 말속에는 어떤 객체가 **변경**될 때 그 객체에 의존하는 다른 객체도 **함께 변경**될 수 있다는 사실이 내포되어 있습니다.
+- 만약 하나의 객체가 변경될 경우 의존하고 있는 다른 객체 또한 변경이 이루어지게 됩니다.
+
+#### 결합도 (Coupling)
+- 결합도는 의존성의 정도를 나타내며 다른 모듈에 대해 얼마나 많은 의존성을 가지고 있는지를 나타냅니다.
+- **객체** 사이의 **의존성이 과한 경우**를 가리켜 **결합도**가 **높다**고 말한다.
+- **객체**들이 **합리적인 수준으로 의존**할 경우에는 **결합도**가 **낮다**고 말한다.
+- **두 객체** 사이의 **결합도**가 높으면 높을수록 함께 **변경될 확률**도 높아지기 때문에 **변경하기 어려워진다.**
+- 따라서 설계의 목표는 **객체 사이**의 **결합도를 낮춰** **변경이 용이한 설계**를 만드는 것이어야 한다.
+
+#### 응집도 (Cohesion)
+- 응집도는 모듈에 포함된 내부 요소들이 각각 연관되어 있는 관계의 정도를 나타냅니다.
+- 밀접하게 **연관된 작업만을 수행**하고 연관성 없는 작업은 다른 객체에 **위임**하는 객체를 가리켜 **응집도가 높다고** 말한다.
+- 1개의 메소드가 내부에서 변수를 많이 사용할 수록 해당 **메소드**와 **클래스**는 **응집도**가 높아지게됩니다.
+- 자신의 데이터를 **스스로** 처리하는 **자율적인 객체**를 만들면 **결합도를 낮출 수 있을뿐더러 응집도를 높일 수 있다.**
+- 객체의 응집도를 높이기 위해서는 객체는 스스로 **자신의 데이터를 책임**져야 합니다.
+
+### 프로그래밍 패러다임
+- 프로그래밍 패러다임은 무엇을 해야 할지를 말하기보다는 무엇을 해서는 안 되는지를 말해줍니다.
+
+**프로그래밍 패러다임**에는 대표적으로 3가지가 존재합니다.  
+1. **구조적 프로그래밍 (Structured Programming)**  
+2. **객체 지향 프로그래밍 (Object-Oriented Programming, OOP)**  
+3. **함수형 프로그래밍 (Functional Programming)**
+
+**구조적 프로그래밍**은 **제어 흐름**의 **직접적인 전환**에 대한 규칙을 제시합니다.
+
+- **구조적 프로그래밍**은 **기능**을 중심적으로 개발을 진행합니다.
+- **구조적 프로그래밍**은 프로그래밍이라는 기술이 시작되면서 가장 처음으로 **적용**된 패러다임입니다.
+
+**객체 지향 프로그래밍**은 **제어흐름**의 **간접적인 전환**에 대한 규칙을 제시합니다.
+
+- **객체 지향 프로그래밍**은 프로그램의 처리단위가 **객체**인 프로그래밍 방법입니다.
+- **객체 지향 프로그래밍**은 “**현실 세계를 모델링**”하는 대표적인 프로그래밍 패러다임입니다.
+
+**함수형 프로그래밍**은 **할당문**에 대한 규칙을 제시합니다.
+
+- **함수형 프로그래밍**은 **함수**를 중심적으로 개발을 진행합니다.
+- **함수형 프로그래밍**은 3가지의 패러다임 중 가장 처음 만들어졌지만 최근들어 겨우 도입되기 시작하는 패러다임 입니다.
+
+#### 객체 지향 프로그래밍
+- 데이터와 프로세스가 동일한 모듈 내부에 위치하도록 프로그래밍하는 방식을 객체지향 프로그래밍(Object-Oriented Programming)이라고 부릅니다.
+- **객체 지향 프로그래밍**은 **코드를 추상화**해 직관적으로 사고할 수 있기 때문에, **대표적인 프로그래밍 방법론**으로 적용되고 있습니다.
+- **객체 지향 프로그래밍**에서는 자동차, 동물, 사람 등과 같은 **현실 세계의 객체**를 유연하게 **표현**할 수 있습니다.
+- **객체**는 어떠한 **특성**을 가지고 있으며 특정 **기능을 수행**할 수 있습니다.
+- 자동차는 **객체**이고 출발, 정지, 운행 및 제동과 같은 **기능**을 수행할 수 있습니다.
+
+API를 만들 때 마다 복사 → 붙여넣기 방식으로 동일한 코드를 여러군데 분산을 시켜놓았을 때, 해당 로직을 수행하는 코드를 수정해야할 때 복사한 모든 코드를 일일히 찾아가며 수정을 해야하는 상황이 발생합니다.  
+
+로그래밍을 하면서 효율적으로 시간을 관리할 수 있어야합니다. 그렇게 하기 위해선 코드를 얼마나 깔끔하게 짜느냐도 중요하지만, 코드 변경점이 발생하더라도 최대한 코드를 적게 수정하여 더욱 많은 시간을 만들 수 있어야합니다.  
+
+발생한 문제 상황을 빠르게 인지하고, 어떤 코드에서 오류가 발생했는지 빠르게 찾아보며, 오류 사항을 빠르게 고쳐 개발에 사용하는 시간을 최대한으로 줄이는것을 목표로 삼아야합니다.  
+
+**객체지향 프로그래밍**은 **데이터와 프로세스를 하나의 단위**로 처리하는 특성을 가지고 있기 때문에 코드를 수정해야할 때 어떤 코드에서 문제가 발생했는지 개발자들이 **직관적으로 인지**할 수 있으며 여러곳에 분산된 모든 코드를 수정해야하는 것이 아닌 **해당 로직을 수행하는 코드만 수정**하더라도 문제가 해결될 수 있습니다. 🙂  
+
+##### 장점
+- **객체지향 프로그래밍**은 **의존성을 효율적으로 통제**할 수 있는 다양한 방법을 제공함으로써 **요구사항 변경에 좀 더 수월하게 대응**할 수 있는 가능성을 높여줍니다.
+- **동작**을 기준으로 프로그래밍을 진행하는 것보다 **데이터**를 중심으로 프로그래밍을 하게되면 코드의 덩치가 커지더라도 **일관성을 유지**하기 좋습니다.
+- 객체지향 코드는 **자신의 문제를 스스로 처리**해야 한다는 우리의 예상을 만족시켜주기 때문에 **이해하기 쉽고**, 객체 내부의 변경이 객체 외부에 파급되지 않도록 **제어**할 수 있기 때문에 **변경하기 수월합니다.**
+- 흔히 **데이터**와 **프로세스**를 **하나의 단위**로 통합해 놓는 방식으로 표현하기도 합니다.
+- **데이터**와 데이터를 사용하는 **프로세스**가 **동일한 객체** 안에 위치한다면 **객체지향 프로그래밍** 방식을 따르고 있을 확률이 높습니다.
+
+##### 설계
+- **좋은 설계**란 **요구하는 기능**을 **온전히 수행**하면서 추후의 **변경을** **매끄럽게 수용**할 수 있는 설계입니다.
+- **변경 가능한 코드**란 **이해하기 쉬운 코드**입니다. 만약 코드를 변경해야 하는데 그 코드를 이해할 수 없다면 변경에 유용하더라도 코드를 수정하겠다는 마음이 선뜻 들지는 않을 것입니다.
+- **변경하기 쉬운 설계**는 한 번에 **하나의 클래스만 변경**할 수 있는 설계입니다.
+- 훌륭한 **객체지향 설계**의 핵심은 **캡슐화**를 이용해 **의존성**을 적절히 **관리**함으로써 객체 사이의 **결합도를 낮추는 것**이다.
+
+### 객체지향 설계의 5원칙 (SOLID)
+- 객체 지향 프로그래밍 및 설계의 다섯가지 기본원칙을 SOLID라는 것으로 불리고 있습니다.
+
+**SOLID의 종류**
+
+- **단일 책임의 원칙 (Single Responsibility Principle, SRP)**
+- **개방-폐쇄 원칙 (Open-Closed Principle, OCP)**
+- **리스코프 치환 원칙 (Liskov substitution principle, LSP)**
+- **인터페이스 분리 원칙 (Interface segregation principle, ISP)**
+- **의존성 역전 원칙 (Dependency Inversion Principle, DIP)**
+
+#### 단일 책임의 원칙 (Single Responsibility Principle, SRP)
+**하나의 객체는 단 하나의 책임을 가져야 한다.**
+
+즉, **클래스**나 **모듈**을 **변경할 이유**가 **단 하나** 뿐이어야 한다는 원칙입니다.
+
+**SRP**는 **책임**이라는 개념을 정의하며 **적절한 클래스의 크기**를 제시합니다.
+
+**SRP**는 **객체 지향설계**에서 중요한 개념이고 이해하고 따르기 쉬운 개념이지만, 프로그래머가 가장 무시하는 규칙입니다. 일반적인 프로그래머는 “**깨끗하고 우아하게 작성된 소프트웨어**"보다 “**동작하기만 하는 소프트웨어**"에 초점을 맞추기 때문입니다.
+
+**SRP**를 이용해서 코드를 개선해봅시다
+
+아래의 `UserSettings` 클래스는 하나의 클래스가 가지는 **책임**이 여러개가 존재합니다.
+
+1. `changeSettings`: Settings를 변경한다.
+2. `verifyCredentials`: 인증을 검증한다.
+```js
+/** SRP Before **/
+class UserSettings {
+  constructor(user) { // UserSettings 클래스 생성자
+    this.user = user;
+  }
+
+  changeSettings(userSettings) { // 사용자의 설정을 변경하는 메소드
+    if (this.verifyCredentials()) {
+      //...
+    }
+  }
+
+  verifyCredentials() { // 사용자의 인증을 검증하는 메소드
+    //...
+  }
 }
 ```
-UnManaged 트랜잭션의 경우 명시적으로 트랜잭션을 관리하기 때문에, 트랜잭션의 관리현황을 명확하게 알 수 있고, 원하는 분기처리를 간단하게 구분할 수 있어 비즈니스로직을 있는 그대로 코드로 나타내기 쉽습니다.  
-COMMIT과 ROLLBACK을 실행해야만 트랜잭션을 종료할 수 있습니다.
+2가지의 책임을 가지고 있는 `UserSettings` 클래스를 어떻게 분리해 봅시다.
 
-### 트랜잭션 구현
-
-#### 회원가입 트랜잭션
-> 💡 **[게시판 프로젝트] 회원가입 API 비즈니스 로직**  
-1. `email`, `password`, `name`, `age`, `gender`, `profileImage`를 **body**로 전달받습니다.
-2. 동일한 `email`을 가진 사용자가 있는지 확인합니다.
-3. **Users** 테이블에 `email`, `password`를 이용해 사용자를 생성합니다.
-4. **UserInfos** 테이블에 `name`, `age`, `gender`, `profileImage`를 이용해 사용자 정보를 생성합니다.
-5. 회원가입을 완료 처리합니다.
-
-여기서 3️⃣  사용자 및 4️⃣  사용자 정보를 생성하는 로직에서, 에러가 발생하게 될 경우 문제가 발생할 수 있었습니다. 해당하는 로직을 별도로 실행하는 것이 아닌, 트랜잭션을 이용해 하나의 작업 단위로 수정하여, 비즈니스로직을 안전하게 구현해보도록 하겠습니다.
+1. 사용자의 **설정**을 **변경**하는 **책임**을 가진 `UserSettings` 클래스
+2. 사용자의 **인증**을 **검증**하는 **책임**을 가진 `UserAuth` 클래스
 
 ```js
-// 회원가입 API
-router.post('/users', async (req, res) => {
-  const { email, password, name, age, gender, profileIamge } = req.body;
-
-  // 1. 동일한 이용자가 있는지 확인
-  const isExistUser = await Users.findOne({
-    where: {
-      email,
-    },
-  });
-
-  // email과 동일 유저가 있는 경우 에러
-  if (isExistUser) {
-    return res.status(409).json({
-      message: '이미 존재하는 이메일입니다.',
-    });
+/** SRP After **/
+class UserAuth {
+  constructor(user) { // UserAuth 클래스 생성자
+    this.user = user;
   }
 
-  // 1. 트랜잭션 객체를 할당 Models에 있는 index.js에서 가져옴.
-  const t = await sequelize.transaction({
-    // 격리 수준 설정
-    isolationLevel: Transaction.ISOLATION_LEVELS.READ_COMMITTED,
-  });
+  verifyCredentials() { // 사용자의 인증을 검증하는 메소드
+    // 인자를 받지 않음. 멤버변수 this.user를 이용할것이므로
+    //...
+  }
+}
 
-  try {
-    // 사용자 테이블에 데이터 삽입
-    const user = await Users.create(
-      { email, password },
-      { transaction: t } // 트랜잭션 할당
-    );
-
-    // 사용자 정보 테이블에 데이터 삽입
-    // 어떤 사용자의 정보인지 내용이 필요
-    await UserInfos.create(
-      {
-        UserId: user.userId, // 현재 사용자 정보가 24번째 줄에서 생성된 사용자의 userId를 할당
-        name,
-        age,
-        gender,
-        profileIamge,
-      },
-      { transaction: t } // 트랜잭션 할당
-    );
-
-    // 모든 로직이 완료된 경우
-    await t.commit();
-  } catch (transactionError) {
-    // 트랜잭션 내 작업 실패한 경우
-    await t.rollback();
-    return res.status(400).json({ errorMessage: '유저 생성에 실패했습니다.' });
+class UserSettings {
+  constructor(user) { // UserSettings 클래스 생성자
+    this.userAuth = new UserAuth(user); // UserAuth를 새로운 객체로 정의한다.
   }
 
-  return res.status(201).json({ message: '회원가입이 완료되었습니다.' });
+  changeSettings(userSettings) { // 사용자의 설정을 변경하는 메소드
+    if (this.userAuth.verifyCredentials()) { // 생성자에서 선언한 userAuth 객체의 메소드를 사용한다.
+      //...
+    }
+  }
+}
+```
+이제 책임을 분리하여 개선된 코드는 클래스마다 단 1개의 책임을 가지게되었습니다!
+
+#### 개방-폐쇄 원칙 (Open-Closed Principle, OCP)
+**소프트웨어 엔티티 또는 개체(클래스, 모듈, 함수 등)는 확장에는 열려 있으나 변경에는 닫혀 있어야 한다.**
+
+- 즉, 소프트웨어 개체의 **행위**는 **확장**될 수 있어야 하지만, 개체를 **변경**해서는 **안됩니다.**
+- 조금 더 쉽게 설명하자면, **기존 코드**에 영향을 주지않고 소프트웨어에 **새로운 기능**이나 **구성 요소**를 **추가**할 수 있어야 한다는 것입니다.
+
+요구사항을 **조금** 확장하는 데 소프트웨어를 **엄청나게 수정**해야 한다면, 소모되는 **개발 코스트**또한 **엄청나게 증가**할 것입니다.
+
+그렇다면 **OCP**를 이용해서 코드를 개선해보도록 할까요?
+
+`calculator` 함수는 계산기의 역할을 하는 함수인데요, 현재는 **덧셈**, **뺄셈** 기능만 구현되어 있습니다.
+
+```js
+/** OCP Before **/
+function calculator(nums, option) {
+  let result = 0;
+  for (const num of nums) {
+    if (option === "add") result += num; // option이 add일 경우 덧셈 연산을 합니다.
+    else if (option === "sub") result -= num; // option이 sub일 경우 뺄셈 연산을 합니다.
+    // 새로운 연산(기능)을 추가 하기 위해서는 함수 내부에서 코드 수정이 필요합니다. 곱셉/ 나눗셈
+    // 테스트 코드를 작성하는 경우에도 매번 추가해야만하죠.
+  }
+  return result;
+}
+
+console.log(calculator([2, 3, 5], "add")); // 10
+console.log(calculator([5, 2, 1], "sub")); // -8
+```
+곱셈, 나눗셈, 제곱 연산 등 다양한 계산기의 기능을 추가하려면 calculator 함수 내부에서 코드 수정이 필요할 것이고, OCP 원칙중에서 “확장에는 열려 있으나 변경에는 닫혀 있어야 한다.”에 해당하는 원칙이 깨지게 됩니다.
+
+calculator 함수에서 전달받은 option파라미터를 Callback 함수로 변경하여 다른 조건이 추가되더라도 실제 calculator 함수에서는 어떠한 변화가 발생하지 않도록 구현 할 수 있습니다!
+
+```js
+/** OCP After **/
+function calculator(nums, callBackFunc) {
+  // option을 CallbackFunc로 변경
+  let result = 0;
+  for (const num of nums) {
+    result = callBackFunc(result, num); // option으로 분기하지 않고, Callback함수를 실행하도록 변경
+  }
+  return result;
+}
+
+const add = (a, b) => a + b; // 함수 변수를 정의합니다.
+const sub = (a, b) => a - b;
+const mul = (a, b) => a * b;
+const div = (a, b) => a / b;
+console.log(calculator([2, 3, 5], add)); // add 함수 변수를 Callback 함수로 전달합니다.
+console.log(calculator([5, 2, 1], sub)); // sub 함수 변수를 Callback 함수로 전달합니다.
+```
+
+#### 리스코프 치환 원칙 (Liskov substitution principle, LSP)
+- 프로그램의 객체는 프로그램의 정확성을 깨뜨리지 않으면서 하위 타입의 인스턴스로 바꿀 수 있어야 한다.
+
+- 부모 클래스와 자식 클래스가 있는 경우 서로를 바꾸더라도 해당 프로그램에서 잘못된 결과를 도출하지 않는 것입니다.
+
+그렇다면 **정사각형(Sqaure)**과 **직사각형(Rectagle)** 문제를 이용해서 **LSP**를 적용해보도록 하겠습니다!
+
+**정사각형(Sqaure)**의 특징은 무엇일까요? **높이와 너비가 동일**한 특성을 가지고 있습니다.
+
+정사각형과 다르게 **직사각형(Rectagle)**의 경우 **높이와 너비가 서로 독립적**으로 변경될 수 있는 특성을 가지고 있습니다.
+
+클래스를 구현해봅시다.
+```js
+/** LSP Before **/
+class Rectangle {
+  constructor(width = 0, height = 0) { // 직사각형의 생성자
+    this.width = width;
+    this.height = height;
+  }
+
+  setWidth(width) { // 직사각형은 높이와 너비를 독립적으로 정의한다.
+    this.width = width;
+    return this;
+  }
+
+  setHeight(height) { // 직사각형은 높이와 너비를 독립적으로 정의한다.
+    this.height = height;
+    return this;
+  }
+
+  getArea() { // 사각형의 높이와 너비의 결과값을 조회하는 메소드
+    return this.width * this.height;
+  }
+}
+
+class Square extends Rectangle { // 정사각형은 직사각형을 상속받습니다.
+  setWidth(width) { // 정사각형은 높이와 너비가 동일하게 정의된다.
+    this.width = width;
+    this.height = width;
+    return this;
+  }
+
+  setHeight(height) { // 정사각형은 높이와 너비가 동일하게 정의된다.
+    this.width = height;
+    this.height = height;
+    return this;
+  }
+}
+
+const rectangleArea = new Rectangle() // 35
+  .setWidth(5) // 너비 5
+  .setHeight(7) // 높이 7
+  .getArea(); // 5 * 7 = 35
+const squareArea = new Square() // 49
+  .setWidth(5) // 너비 5
+  .setHeight(7) // 높이를 7로 정의하였지만, 정사각형은 높이와 너비를 동일하게 정의합니다.
+  .getArea(); // 7 * 7 = 49
+```
+
+`Square`과 `Rectangle`클래스에서 동일한 메소드를 호출하였지만, 다른 결과값이 출력된 것을 확인하였습니다. 만약 **두 클래스**를 서로 **교체**하였을 때에도 **동일한 결과 값**이 **도출되지 않는 것**을 확인 할 수 있겠죠?
+
+위에서 확인한 결과로 **LSP**의 원칙 중에서 “**부모 클래스와 자식 클래스가 있는 경우 서로를 바꾸더라도 해당 프로그램에서 잘못된 결과를 도출하지 않는 것**”에 해당하는 원칙이 깨치게 된 것을 확인 할 수 있습니다.
+
+`Square`과 `Rectangle`클래스를 수정해야 **LSP**원칙에 위배되지 않게 구현할 수 있을까요?
+
+언뜻 보면 `Rectangle`이 `Square`를 포함하고 있는 것 처럼 보이지만 `setWidth`, `setHeigth`메소드처럼 다르게 동작해야하는 경우가 존재하기 때문에 `Square` 클래스는 `Rectangle`을 상속받는 것은 옳은 방법이 아닙니다.
+
+이럴 경우 **두 클래스**를 모두 포함하는 **인터페이스**를 구현해야합니다. 여기서는 `Shape`라는 부모 클래스를 만들어 **인터페이스**의 역할을 대체하도록 만들겠습니다.
+
+```js
+/** LSP After **/
+// ts의 경우에는 Interface로 생성
+class Shape { // Rectangle과 Square의 부모 클래스를 정의합니다.
+  getArea() { // getArea는 빈 메소드로 정의
+  }
+}
+
+class Rectangle extends Shape { // Rectangle은 Shape를 상속받습니다.
+  constructor(width = 0, height = 0) { // 직사각형의 생성자
+    super();
+    this.width = width;
+    this.height = height;
+  }
+
+  getArea() { // 직사각형의 높이와 너비의 결과값을 조회하는 메소드
+    return this.width * this.height;
+  }
+}
+
+class Square extends Shape { // Square는 Shape를 상속받습니다.
+  constructor(length = 0) { // 정사각형의 생성자
+    super();
+    this.length = length; // 정사각형은 너비와 높이가 같이 깨문에 width와 height 대신 length를 사용합니다.
+  }
+
+  getArea() { // 정사각형의 높이와 너비의 결과값을 조회하는 메소드
+    return this.length * this.length;
+  }
+}
+
+const rectangleArea = new Rectangle(7, 7) // 49
+  .getArea(); // 7 * 7 = 49
+const squareArea = new Square(7) // 49
+  .getArea(); // 7 * 7 = 49
+```
+
+Rectangle클래스와 Square클래스에서 상위 타입의 getArea 메소드를 호출하더라도 문제없이 원하는 결과값을 도출할 수 있게 되었습니다!
+
+#### 인터페이스 분리 원칙 (Interface segregation principle, ISP)
+- 특정 클라이언트를 위한 인터페이스 여러 개가 범용 인터페이스 하나보다 낫다.
+
+즉, 클라이언트가 **필요하지 않는 기능**을 가진 **인터페이스**에 의존해서는 안 되고, 최대한 **인터페이스**를 **작게** 유지해야합니다.
+
+조금 더 쉽게 설명하자면, 사용자가 **필요하지 않은 것**들에 **의존하지 않도록**, **인터페이스**를 **작게 유지**해야 한다는 것입니다.
+
+Javascript에서는 interface 기능을 제공하지 않으므로 이번 예제는 Typescript로 진행하도록 하겠습니다
+
+```ts
+/** ISP Before **/
+interface SmartPrinter { // SmartPrinter가 사용할 수 있는 기능들을 정의한 인터페이스 
+  print();
+
+  fax();
+
+  scan();
+}
+
+// SmartPrinter 인터페이스를 상속받은 AllInOnePrinter 클래스
+class AllInOnePrinter implements SmartPrinter {
+  print() { // AllInOnePrinter 클래스는 print, fax, scan 기능을 지원한다.
+    // ...
+  }
+
+  fax() { // AllInOnePrinter 클래스는 print, fax, scan 기능을 지원한다.
+    // ...
+  }
+
+  scan() { // AllInOnePrinter 클래스는 print, fax, scan 기능을 지원한다.
+    // ...
+  }
+}
+
+// SmartPrinter 인터페이스를 상속받은 EconomicPrinter 클래스
+class EconomicPrinter implements SmartPrinter {
+  print() { // EconomicPrinter 클래스는 print 기능만 지원한다.
+    // ...
+  }
+
+  fax() { // EconomicPrinter 클래스는 fax 기능을 지원하지 않는다.
+    throw new Error('팩스 기능을 지원하지 않습니다.');
+  }
+
+  scan() { // EconomicPrinter 클래스는 scan 기능을 지원하지 않는다.
+    throw new Error('Scan 기능을 지원하지 않습니다.');
+  }
+}
+```
+EconomicPrinter 클래스에서 SmarPrinter 인터페이스를 상속받아 사용할 경우 fax, scan 2가지의 기능을 예외 처리를 해줘야 하는 상황이 발생하게 됩니다.
+
+fax 기능을 추가로 사용하는 FacsimilePrinter 클래스가 SmartPrinter 인터페이스를 상속받을 경우 scan 기능을 예외 처리 해주는 상황이 발생하게 됩니다.
+
+SmartPrinter 인터페이스에 정의된 기능들을 Printer, Fax, Scanner 인터페이스로 분리하여 ISP 원칙에서 “클라이언트가 필요하지 않는 기능을 가진 인터페이스에 의존해서는 안 되고, 최대한 인터페이스를 작게 유지해야한다.”에 해당하는 원칙을 수행하는 코드로 개선해봅시다.
+```ts
+/** ISP After **/
+interface Printer { // print 기능을 하는 Printer 인터페이스
+  print();
+}
+
+interface Fax { // fax 기능을 하는 Fax 인터페이스
+  fax();
+}
+
+interface Scanner { // scan 기능을 하는 Scanner 인터페이스
+  scan();
+}
+
+
+// AllInOnePrinter클래스는 print, fax, scan 기능을 지원하는 Printer, Fax, Scanner 인터페이스를 상속받았다.
+class AllInOnePrinter implements Printer, Fax, Scanner {
+  print() { // Printer 인터페이스를 상속받아 print 기능을 지원한다.
+    // ...
+  }
+
+  fax() { // Fax 인터페이스를 상속받아 fax 기능을 지원한다.
+    // ...
+  }
+
+  scan() { // Scanner 인터페이스를 상속받아 scan 기능을 지원한다.
+    // ...
+  }
+}
+
+// EconomicPrinter클래스는 print 기능을 지원하는 Printer 인터페이스를 상속받았다.
+class EconomicPrinter implements Printer {
+  print() { // EconomicPrinter 클래스는 print 기능만 지원한다.
+    // ...
+  }
+}
+
+// FacsimilePrinter클래스는 print, fax 기능을 지원하는 Printer, Fax 인터페이스를 상속받았다.
+class FacsimilePrinter implements Printer, Fax {
+  print() { // FacsimilePrinter 클래스는 print, fax 기능을 지원한다.
+    // ...
+  }
+
+  fax() { // FacsimilePrinter 클래스는 print, fax 기능을 지원한다.
+    // ...
+  }
+}
+```
+🔥 필요없는 인터페이스를 분리하여 **ISP**원칙을 수행하는 코드를 구현할 수 있게 되었습니다.
+
+결국 **불필요한 짐**을 실은 **인터페이스**에 의존하게 된다면 **예상치도 못한 문제**에 빠질 수 있다는것을 알게 되었습니다!
+
+#### 의존성 역전 원칙 (Dependency Inversion Principle, DIP)
+**프로그래머는 추상화에 의존해야지, 구체화에 의존하면 안된다.**
+
+**즉**, **높은 계층의 모듈(도메인)이 저수준의 모듈(하부구조)에 의존해서는 안된다.**
+
+만약 추상화를 하지 않고 고수준 계층의 모듈이 저수준 계층의 모듈을 의존하고 있다면 어떤 상황이 발생할까요? 사소한 코드 변경에도 고수준 계층의 코드를 변경해야할 것이고, 소모되는 개발 코스트또한 엄청나게 증가할 것입니다.
+
+**DIP**를 이용해서 코드를 개선해봅시다.
+
+`ReportReader`클래스는 파일을 입력받아 확장자별로 파싱하여 **String** 형식으로 반환하는 클래스 입니다.
+
+```js
+/** DIP Before **/
+const readFile = require('fs').readFile;
+
+class XmlFormatter {
+  parseXml(content) {
+    // Xml 파일을 String 형식으로 변환합니다.
+  }
+}
+
+class JsonFormatter {
+  parseJson(content) {
+    // JSON 파일을 String 형식으로 변환합니다.
+  }
+}
+
+class ReportReader {
+
+  async read(path) {
+    const fileExtension = path.split('.').pop(); // 파일 확장자 제거
+
+    // 분기에 따른 행위가 똑같음.
+    if (fileExtension === 'xml') {
+      const formatter = new XmlFormatter(); // xml 파일 확장자일 경우 XmlFormatter를 사용한다.
+
+      const text = await readFile(path, (err, data) => data);
+      return formatter.parseXml(text); // xmlFormatter클래스로 파싱을 할 때 parseXml 메소드를 사용한다.
+
+    } else if (fileExtension === 'json') {
+      const formatter = new JsonFormatter(); // json 파일 확장자일 경우 JsonFormatter를 사용한다.
+
+      const text = await readFile(path, (err, data) => data);
+      return formatter.parseJson(text); // JsonFormatter클래스로 파싱을 할 때 parseJson 메소드를 사용한다.
+    }
+  }
+}
+
+const reader = new ReportReader();
+const report = await reader.read('report.xml');
+// or
+// const report = await reader.read('report.json');
+```
+
+**Xml** 파일을 파싱하기 위해 `XmlFormatter`클래스를 불러와 `parseXml` 메소드를 호출하고,
+
+**Json** 파일을 파싱하기 위해 `JsonFormatter`클래스를 불러와 `parseJson` 메소드를 호출합니다.
+
+서로 다른 파일 확장자 별로 파싱하는 방법이 달라 **다른 클래스**, **다른 메소드**를 호출하게 되었습니다.
+
+해당 상황을 **구체화에 의존되어 있는 상황**이라고 부르는데요, 그렇다면 어떻게 수정해야 **DIP** 원칙에 맞게끔 코드를 수정할 수 있는지 봅시다.
+
+`XmlFormatter`, `JsonFormatter` **클래스**를 동일한 인터페이스, `Formatter` **인터페이스**를 상속받도록 하여 파싱을 위한 `parse` 메소드를 선언하도록 합니다.
+
+그리고 `ReportReader` **클래스**에서 `Formatter` 인터페이스의 `parse` 메소드를 사용하도록 코드를 수정하도록 합니다.
+
+결과로 DIP원칙인 “높은 계층의 모듈(도메인)이 저수준의 모듈(하부구조)에 의존해서는 안된다.”에 해당하는 원칙을 지킬 수 있습니다.
+
+```js
+/** DIP After **/
+const readFile = require('fs').readFile;
+
+class Formatter { // 인터페이스지만, Javascript로 구현하기 위해 클래스로 선언합니다.
+  parse() {  }
+}
+
+class XmlFormatter extends Formatter {
+  parse(content) {
+    // Xml 파일을 String 형식으로 변환합니다.
+  }
+}
+
+class JsonFormatter extends Formatter {
+  parse(content) {
+    // JSON 파일을 String 형식으로 변환합니다.
+  }
+}
+
+class ReportReader {
+  constructor(formatter) { // 생성자에서 Formatter 인터페이스를 상속받은 XmlFormatter, JsonFormatter를 전달받습니다.
+    this.formatter = formatter;
+  }
+
+  async read(path) {
+    const text = await readFile(path, (err, data) => data);
+    return this.formatter.parse(text); // 추상화된 formatter로 데이터를 파싱합니다.
+  }
+}
+
+const reader = new ReportReader(new XmlFormatter());
+const report = await reader.read('report.xml');
+// or
+// const reader = new ReportReader(new JsonFormatter());
+// const report = await reader.read('report.json');
+```
+- DIP 원칙을 이용하여 저수준의 모듈을 수정하더라도 고수준의 모듈 코드를 더이상 수정하지 않도록 코드가 개선되었습니다
+
+### 소켓 프로그래밍 프로젝트 분리
+심화 주차 - 2 의 소켓프로그래밍 코드를 분리해봅시다.
+
+- 코드를 분리하는게 왜 필요할까요?
+    1. **가독성 향상**: 코드를 분리하면서 추상화가 자연스럽게 되기 때문에 코드를 읽기가 훨씬 수월해집니다.
+    2. **관리(유지보수)의 용이**: 어떤 함수가 어떤 **역할**을 갖는지 비교적 쉽게 파악할 수 있습니다.
+
+**추상화(Abstraction)**란, **함수**랑 비슷하다고 생각하시면 쉽습니다.
+
+만약 여러분이 "**지금 서버와 소켓으로 연결된 모든 클라이언트에 메세지를 보내는 기능**"을 구현하려면 어떻게 할까요?
+
+```js
+// 1. 함수 생성
+function sendMessageAll(message) {
+	// 2. 메세지를 보내기 위한 로직 작성
+	~~~
+	~~
+	~~~~
+}
+```
+내가 만든 `sendMessageAll` 이라는 기능을 사용하는 다른 개발자는 `sendMessageAll` 함수의 내부가 어떻게 작성됐는지 **굳이 알 필요가 없습니다.**
+
+**socket.io** 라이브러리를 이용해서 기능을 구현했든, 직접 **웹소켓**을 만들어서 기능을 구현했든 신경쓰지 않아도 되고 **동작**만 하면 되는것이죠.
+
+다른 사람들은 이제 단순히 `sendMessageAll` 이라는 **함수**를 호출하면 "**지금 서버와 소켓으로 연결된 모든 클라이언트에 메세지를 보내는 기능**"을 수행하는것만 유추할 수 있습니다.
+
+#### 코드 분리의 기준
+- 어떤 기준으로 코드를 분리하면 좋을까요?
+    
+    위에서 말했던것중 중요한 키워드가 몇개 있었는데요, 무엇일까요?
+    
+    - **추상화**
+    - **기능(함수)의 역할**
+    
+    위에 적어놓은 두개의 키워드를 꼽을수 있겠습니다.
+    
+    그럼, 두개의 키워드를 기준으로 코드를 분리하려면 어떻게 해야할지 고민하면서 바로 코드를 정리해봅시다.
+
+다음 세 가지 소켓을 분리해봅시다.
+```js
+// 4. 소켓 연결 이벤트 핸들링
+io.on("connection", (sock) => {
+  socketIdMap[sock.id] = null;
+  console.log("새로운 소켓이 연결됐어요!");
+
+  sock.on("CHANGED_PAGE", (data) => {
+    console.log("페이지가 바뀌었대요", data, sock.id);
+    socketIdMap[sock.id] = data; // 소켓 아이디와 페이지 url을 매핑
+
+    emitSamePageViewerCount();
+  });
+
+  sock.on("BUY", (data) => {
+    const payload = {
+      nickname: data.nickname,
+      goodsId: data.goodsId,
+      goodsName: data.goodsName,
+      date: new Date().toISOString(),
+    };
+
+    console.log("클라이언트가 구매한 데이터", data, new Date());
+    sock.broadcast.emit("BUY_GOODS", payload);
+  });
+
+  sock.on("disconnect", () => {
+    delete socketIdMap[sock.id];
+    console.log(sock.id, "연결이 끊어졌어요!");
+    emitSamePageViewerCount();
+  });
 });
 ```
-이후 서버 로그를 보시면 아래와 같이 표시됩니다.
-```log
-Executing (b839f436-3f3c-4c08-a633-a852b55f82c1): SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
-Executing (b839f436-3f3c-4c08-a633-a852b55f82c1): START TRANSACTION;
-Executing (b839f436-3f3c-4c08-a633-a852b55f82c1): INSERT INTO `Users` (`userId`,`email`,`password`,`createdAt`,`updatedAt`) VALUES (DEFAULT,?,?,?,?);
-Executing (b839f436-3f3c-4c08-a633-a852b55f82c1): INSERT INTO `UserInfos` (`userInfoId`,`UserId`,`name`,`age`,`gender`,`createdAt`,`updatedAt`) VALUES (DEFAULT,?,?,?,?,?,?);
-Executing (b839f436-3f3c-4c08-a633-a852b55f82c1): COMMIT;
-```
 
-도중에 에러가 발생한 경우 아래와 같이 표시됩니다.
-```log
-Executing (649f8232-6820-4cc2-b726-42842f22d79a): SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
-Executing (649f8232-6820-4cc2-b726-42842f22d79a): START TRANSACTION;
-Executing (649f8232-6820-4cc2-b726-42842f22d79a): INSERT INTO `Users` (`userId`,`email`,`password`,`createdAt`,`updatedAt`) VALUES (DEFAULT,?,?,?,?);
-Executing (649f8232-6820-4cc2-b726-42842f22d79a): ROLLBACK;
-```
-
-> Sequelize의 격리수준은 트랜잭션을 생성할 때, isolationLevel 프로퍼티를 정의함으로써 설정할 수 있습니다.
+다음과 같이 코드를 변경합니다.
 ```js
-const { Transaction } = require("sequelize");
+io.on("connection", (sock) => {
+  const { watchChangePage, watchBuying, watchByeBye } = initSocket(sock);
 
-const t = await sequelize.transaction({
-  isolationLevel: Transaction.ISOLATION_LEVELS.READ_COMMITTED, // 트랜잭션 격리 수준을 설정합니다.
+  watchChangePage();
+
+  watchBuying();
+
+  watchByeBye();
 });
 ```
-격리 수준(Isolation Level)을 설정할 때, 현재 구현하려는 API에는 어떠한 격리 수준이 필요한지 명확하게 이해하여야 효율적인 데이터베이스의 설계를 할 수 있고, 데이터의 일관성이 깨지지 않도록 구현할 수 있게 됩니다.
 
-#### 사용자 정보 수정 API 구현
+1. 서버에 소켓이 **새로 연결**되면,
+(`io.on('connection', ~~~~`)
+2. 서버에서 소켓 연결할때 필요한 **준비**를 하고,
+(`~~~ = initSocket(sock);`)
+3. **페이지가 변경되었는지 감시**하면서
+(`watchChangePage();`)
+4. **구매를 하는지 감시**하고
+(`watchBuying();`)
+5. **나가는지 감시**한다.
+(`watchByebye();`)
 
-사용자 이름 변경 API의 경우 결제시스템과 같이 높은 수준의 일관성을 요구하지 않기 때문에, READ_COMMITTED 격리 수준을 사용하였습니다.
-
-##### 사전 준비
-[그림 - userHistory]
-
-새롭게 **사용자 히스토리(UserHisotires)** 테이블이 생성되었습니다. 
-
-사용자의 이름을 변경하는 API를 구현하면서, 변경된 사용자 이름 정보를 **로깅(Logging)**하기 위해 **사용자 히스토리 테이블**에 데이터를 같이 생성하도록 구현해보겠습니다.
-
-`migration`파일은 다음과 같이 수정합니다. `createdAt, UpdatedAt`이 없으며, 외래키인 `userHistoyId`는 타입이 `Sequelize.UUID`로 되어 있습니다. 기본값은 `Sequelize.UUIDV4`입니다. UUID의 최댓값으로 타입을 지정하는 겁니다.
+나머지 `initSocket`함수는 다음과 같습니다.
 ```js
-await queryInterface.createTable('UserHistories', {
-      userHistoryId: {
-        allowNull: false, // NOT NULL
-        primaryKey: true, // Primary Key (기본키)
-        type: Sequelize.UUID, // UUID의 최댓값으로 타입을 지정합니다.
-        defaultValue: Sequelize.UUIDV4, // UUID를 기본 값으로 설정합니다.
-      },
-      UserId: {
-        allowNull: false, // NOT NULL
-        type: Sequelize.INTEGER,
-        references: {
-          model: 'Users', // Users 모델을 참조합니다.
-          key: 'userId', // Users 모델의 userId를 참조합니다.
-        },
-        onDelete: 'CASCADE', // 만약 Users 모델의 userId가 삭제되면, UserHistories 모델의 데이터가 삭제됩니다.
-      },
-      beforeName: {
-        allowNull: false, // NOT NULL
-        type: Sequelize.STRING,
-      },
-      afterName: {
-        allowNull: false, // NOT NULL
-        type: Sequelize.STRING,
-      }
-    });
-  },
-```
+// app.js
 
-model은 다음과 같이 수정합니다.
-```js
-// userhistories.js
-'use strict';
-const { Model } = require('sequelize');
-const Sequelize = require('sequelize');
-module.exports = (sequelize, DataTypes) => {
-  class UserHistories extends Model {
-    /**
-     * Helper method for defining associations.
-     * This method is not a part of Sequelize lifecycle.
-     * The `models/index` file will call this method automatically.
-     */
-    static associate(models) {
-      // define association here
+function initSocket(sock) {
+  socketIdMap[sock.id] = null;
+  console.log("새로운 소켓이 연결됐어요!");
 
-      // 1. UserHistories 모델에서
-      this.belongsTo(models.Users, { // 2. Users 모델에게 N:1 관계 설정을 합니다.
-        targetKey: 'userId', // 3. Users 모델의 userId 컬럼을
-        foreignKey: 'UserId', // 4. UserHistories 모델의 UserId 컬럼과 연결합니다.
+  // 특정 이벤트가 전달되었는지 감지할 때 사용될 함수
+  function watchEvent(event, func) {
+    sock.on(event, func);
+  }
+
+  // 연결된 모든 클라이언트에 데이터를 전달하는 함수
+  function notifyEveryone(event, data) {
+    sock.broadcast.emit(event, data);
+  }
+
+  // 특정한 클라이언트에 데이터를 전달하는 함수
+  function notifyTo(socketId, event, data) {
+    io.to(socketId).emit(event, data);
+  }
+
+  // 페이지가 변경되었을 때, 같은 페이지를 본 사용자 수를 전달하는 함수
+  function emitSamePageViewerCount() {
+    const urls = Object.values(socketIdMap);
+    const countByUrl = urls.reduce((value, url) => {
+      if (!url) return value; // detail 페이지가 아닌 사용자는 제외
+      return {
+        ...value,
+        [url]: value[url] ? value[url] + 1 : 1,
+      };
+    }, {});
+
+    for (const [socketId, url] of Object.entries(socketIdMap)) {
+      const count = countByUrl[url];
+      notifyTo(socketId, "SAME_PAGE_VIEWER_COUNT", count);
+    }
+  }
+
+  return {
+    watchChangePage: () => {
+      watchEvent("CHANGED_PAGE", (data) => {
+        console.log("페이지가 바뀌었대요", data, sock.id);
+        socketIdMap[sock.id] = data; // 소켓 아이디와 페이지 url을 매핑
+
+        emitSamePageViewerCount();
       });
-    }
-  }
-
-  UserHistories.init(
-    {
-      userHistoryId: {
-        allowNull: false, // NOT NULL
-        primaryKey: true, // Primary Key (기본키)
-        type: Sequelize.UUID, // UUID의 최댓값으로 타입을 지정합니다.
-        defaultValue: Sequelize.UUIDV4, // UUID를 기본 값으로 설정합니다.
-      },
-      UserId: {
-        allowNull: false, // NOT NULL
-        type: DataTypes.INTEGER,
-        references: {
-          model: 'Users', // Users 모델을 참조합니다.
-          key: 'userId', // Users 모델의 userId를 참조합니다.
-        },
-        onDelete: 'CASCADE', // 만약 Users 모델의 userId가 삭제되면, Comments 모델의 데이터가 삭제됩니다.
-      },
-      beforeName: {
-        allowNull: false, // NOT NULL
-        type: DataTypes.STRING,
-      },
-      afterName: {
-        allowNull: false, // NOT NULL
-        type: DataTypes.STRING,
-      }
     },
-    {
-      sequelize,
-      modelName: 'UserHistories',
-      timestamps: false, // createdAt, updatedAt 컬럼을 생성하지 않습니다.
-    }
-  );
-  return UserHistories;
-};
+
+    watchBuying: () => {
+      watchEvent("BUY", (data) => {
+        const payload = {
+          nickname: data.nickname,
+          goodsId: data.goodsId,
+          goodsName: data.goodsName,
+          date: new Date().toISOString(),
+        };
+
+        console.log("클라이언트가 구매한 데이터", data, new Date());
+        notifyEveryone("BUY_GOODS", payload);
+      });
+    },
+
+    watchByeBye: () => {
+      watchEvent("disconnect", () => {
+        delete socketIdMap[sock.id];
+        console.log(sock.id, "연결이 끊어졌어요!");
+        emitSamePageViewerCount();
+      });
+    },
+  };
+}
 ```
 
-sql은 다음과 같죠.
-```sql
-CREATE TABLE Users
-(
-    userId    int(11)             NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    email     varchar(255) UNIQUE NOT NULL,
-    password  varchar(255)        NOT NULL,
-    createdAt datetime            NOT NULL DEFAULT NOW(),
-    updatedAt datetime            NOT NULL DEFAULT NOW()
-);
+이렇게 코드를 읽기 쉽도록 원래 있던 코드를 분리하면서, 새로운 함수를 만들어 나가는 과정을 "**추상화**"한다고 표현합니다!
 
+이렇게 **추상화** 된 코드는 보통 역할에 맞는 **파일에 묶여서 관리**되는데요, 바로 해보겠습니다
 
-CREATE TABLE UserInfos
-(
-    userInfoId   int(11)        NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    UserId       int(11) UNIQUE NOT NULL, -- 1:1 관계 이므로 UNIQUE 조건을 삽입합니다.
-    name         varchar(255)   NOT NULL,
-    age          int(11)        NOT NULL,
-    gender       varchar(255)   NOT NULL,
-    profileImage varchar(255)   NULL,
-    createdAt    datetime       NOT NULL DEFAULT NOW(),
-    updatedAt    datetime       NOT NULL DEFAULT NOW()
-);
+현재는 `app.js`내 서버가 실행되고, 라우터 및 미들웨어를 설정하고, 소켓을 설정합니다. 분리해봅시다.
 
-ALTER TABLE UserInfos
-    ADD CONSTRAINT FK_UserInfos_Users
-        FOREIGN KEY (UserId) REFERENCES Users (userId) ON DELETE CASCADE;
-
-
-CREATE TABLE Posts
-(
-    postId    int(11)      NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    UserId    int(11)      NOT NULL,
-    title     varchar(255) NOT NULL,
-    content   varchar(255) NOT NULL,
-    createdAt datetime     NOT NULL DEFAULT NOW(),
-    updatedAt datetime     NOT NULL DEFAULT NOW()
-);
-
-ALTER TABLE Posts
-    ADD CONSTRAINT FK_Posts_Users
-        FOREIGN KEY (UserId) REFERENCES Users (userId) ON DELETE CASCADE;
-
-
-CREATE TABLE Comments
-(
-    commentId int(11)      NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    UserId    int(11)      NOT NULL,
-    PostId    int(11)      NOT NULL,
-    comment   varchar(255) NOT NULL,
-    createdAt datetime     NOT NULL DEFAULT NOW(),
-    updatedAt datetime     NOT NULL DEFAULT NOW()
-);
-
-ALTER TABLE Comments
-    ADD CONSTRAINT FK_Comments_Posts
-        FOREIGN KEY (PostId) REFERENCES Posts (postId) ON DELETE CASCADE;
-
-ALTER TABLE Comments
-    ADD CONSTRAINT FK_Comments_Users
-        FOREIGN KEY (UserId) REFERENCES Users (userId) ON DELETE CASCADE;
-
-
-CREATE TABLE UserHistories
-(
-    userHistoryId VARCHAR(36)  NOT NULL DEFAULT (UUID()) PRIMARY KEY,
-    UserId        int(11)      NOT NULL,
-    beforeName    varchar(255) NOT NULL,
-    afterName     varchar(255) NOT NULL
-);
-
-ALTER TABLE UserHistories
-    ADD CONSTRAINT FK_UserHistories_Users
-        FOREIGN KEY (UserId) REFERENCES Users (userId) ON DELETE CASCADE;
-```
-
-##### UUID
-- UUID(범용 고유 식별자)란 무엇일까요?
-
-> UUID(범용 고유 식별자)란 무엇일까요?  
-💡 **[UUID(Universally Unique Identifier, 범용 고유 식별자)](https://ko.wikipedia.org/wiki/%EB%B2%94%EC%9A%A9_%EA%B3%A0%EC%9C%A0_%EC%8B%9D%EB%B3%84%EC%9E%90)**는 총 4개의 정보를 **하이픈(`-`)** 으로 구분하여 순차적으로 저장한 데이터 타입입니다. **시간 정보를 포함**하고 있어 **생성된 순서대로 정렬**이 되는 특징을 가지고 있습니다. mongoDB의 ObjectId와 유사하다고 생각하면 될 것 같습니다.
-**[→ UUID 디코드 사용해보기](https://www.uuidtools.com/decode)**
-
-[그림 - UUID]
-
-**사용자 히스토리(UserHistories)** 테이블의 경우 현재는 **이름(`name`)컬럼**의 변경 내역만 저장하고 있지만, 이후 **사용자의 모든 변경사항**, **API 호출 내역** 등 다양한 정보를 저장하게 될 수 있습니다. 그럴 경우 테이블의 **컬럼을 최소화**하여 데이터를 **효율적으로** 저장 및 활용할 수 있게 되어야 합니다. 
-
-그렇기 때문에, 일반적인 다른 테이블과 같이 **`Integer` 타입의 기본키**와 **`createdAt`**, **`updatedAt`**과 같은 컬럼을 사용하는것 보단, **UUID**를 사용하여 컬럼을 **최소화** 하는것이 **로그 테이블**에서는 더욱 효율적인 설계가 될 것 입니다.
-
-##### 구현
-> 💡 **[게시판 프로젝트] 사용자 이름 변경 API 비즈니스 로직**  
-1. 게시글을 작성하려는 클라이언트가 로그인된 사용자인지 검증합니다.  
-2. 변경할 이름(`name`)을 **body**로 전달받습니다.  
-3. 사용자의 **현재 이름(**`name`**)**을 조회합니다.  
-4. **사용자 정보 테이블(UserInofes)**의 **사용자의 이름(**`name`**)**을 수정합니다.  
-5. 사용자의 이름이 변경된 이력을 **사용자 히스토리(UserHistories)** 테이블에 저장합니다.  
-6. 사용자 이름 변경 API를 완료합니다.
-
-사용자 이름 변경 API는 4️⃣  사용자 정보의 수정과 5️⃣  사용자 히스토리 데이터 삽입, 2개의 비즈니스 로직이 하나의 작업처럼 이루어져야합니다.  
-비즈니스 로직을 수행하던 중 오류가 발생하게 된다면 데이터의 일관성이 깨지게 될 것이고, 사용자 히스토리 테이블의 데이터들을 믿을 수 없게되는 상황이 발생하게 됩니다.
-
-이전 사전 준비 과정을 반영하기 위해 db를 다시 생성합니다.
-
-```bash
-npx sequelize db:drop
-
-npx sequelize db:create
-
-npx sequelize db:migrate
-```
-
-코드 완성
+`app.js`
 ```js
-// 사용자 이름 변경 API
-router.put('/users/name', authMiddleWare, async(req, res) => {
-  const {name} = req.body; // 변경할 이름
-  const {userId} = res.locals.user;
+// app.js
+const express = require("express");
+const cookieParser = require("cookie-parser");
+const { Server } = require("http"); // 1. 모듈 불러오기
 
-  const userInfo = await UserInfos.findOne({where: {userId}});
-  const beforeUserName = userInfo.name;
+const goodsRouter = require("./routes/goods.js");
+const usersRouter = require("./routes/users.js");
+const authRouter = require("./routes/auth.js");
+const connect = require("./schemas");
 
-  // 트랜잭션
-  const t = await sequelize.transaction({
-    isolationLevel: Transaction.ISOLATION_LEVELS.READ_COMMITTED,
-  });
+const app = express();
+const http = Server(app); // 2. express app을 http 서버로 감싸기
 
-  try{
-    // 사용자 정보 테이블에 있는 이름 변경
-    await UserInfos.update(
-      { name },
-      {
-        where: { userId },
-        transaction: t, // transaction을 사용합니다.
-      }
-    );
+connect(); // mongoose를 연결합니다.
 
-    // 변경된 이름 내역은 UserHistories 테이블에 삽입
-    await UserHistories.create(
-      {
-        UserId: userId,
-        beforeName: beforeUserName,
-        afterName: name,
-      },
-      { transaction: t } // transaction을 사용합니다.
-    );
-    await t.commit(); // 모든 로직 성공 시 DB에 반영
-  }catch(transactionError){
-    console.error(transactionError);
-    t.rollback();
-    return res.status(400).json({errorMessage:"유저 이름 변경에 실패하였습니다."})
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+app.use(cookieParser());
+app.use(express.static("assets"));
+app.use("/api", [goodsRouter, usersRouter, authRouter]);
+
+app.get("/", (req, res) => {
+  res.send("Hello World!");
+});
+
+module.exports = http;
+```
+
+`server.js`
+```js
+// server.js
+const http = require("./app.js")
+require("./socket.js")
+
+const port = 3000;
+
+http.listen(port, () => {
+  console.log(port, "포트로 서버가 열렸어요!");
+});
+```
+
+`socket.js`
+```js
+// socket.js
+const socketIo = require("socket.io"); // 1. 모듈 불러오기
+const http = require("./app.js") // http 가져오기
+const io = socketIo(http); // 3. http 객체를 Socket.io 모듈에 넘겨서 소켓 핸들러 생성
+
+const socketIdMap = {};
+
+// app.js
+
+function initSocket(sock) {
+  socketIdMap[sock.id] = null;
+  console.log("새로운 소켓이 연결됐어요!");
+
+  // 특정 이벤트가 전달되었는지 감지할 때 사용될 함수
+  function watchEvent(event, func) {
+    sock.on(event, func);
   }
-  return res.status(200).json({message:"유저 이름 변경에 성공하였습니다."})
-})
+
+  // 현재 사용자를 제외한 연결된 모든 클라이언트에 데이터를 전달하는 함수
+  function notifyEveryone(event, data) {
+    sock.broadcast.emit(event, data);
+  }
+
+  // 특정한 클라이언트에 데이터를 전달하는 함수
+  function notifyTo(socketId, event, data) {
+    io.to(socketId).emit(event, data);
+  }
+
+  // 페이지가 변경되었을 때, 같은 페이지를 본 사용자 수를 전달하는 함수
+  function emitSamePageViewerCount() {
+    const urls = Object.values(socketIdMap);
+    const countByUrl = urls.reduce((value, url) => {
+      if (!url) return value; // detail 페이지가 아닌 사용자는 제외
+      return {
+        ...value,
+        [url]: value[url] ? value[url] + 1 : 1,
+      };
+    }, {});
+
+    for (const [socketId, url] of Object.entries(socketIdMap)) {
+      const count = countByUrl[url];
+      notifyTo(socketId, "SAME_PAGE_VIEWER_COUNT", count); // 추상화된 notifyTo 함수 이용
+    }
+  }
+
+  return {
+    watchChangePage: () => {
+      watchEvent("CHANGED_PAGE", (data) => {
+        console.log("페이지가 바뀌었대요", data, sock.id);
+        socketIdMap[sock.id] = data; // 소켓 아이디와 페이지 url을 매핑
+
+        emitSamePageViewerCount();
+      });
+    },
+
+    watchBuying: () => {
+      watchEvent("BUY", (data) => {
+        const payload = {
+          nickname: data.nickname,
+          goodsId: data.goodsId,
+          goodsName: data.goodsName,
+          date: new Date().toISOString(),
+        };
+
+        console.log("클라이언트가 구매한 데이터", data, new Date());
+        notifyEveryone("BUY_GOODS", payload);
+      });
+    },
+
+    watchByeBye: () => {
+      watchEvent("disconnect", () => {
+        delete socketIdMap[sock.id];
+        console.log(sock.id, "연결이 끊어졌어요!");
+        emitSamePageViewerCount();
+      });
+    },
+  };
+}
+
+io.on("connection", (sock) => {
+  const { watchChangePage, watchBuying, watchByeBye } = initSocket(sock);
+
+  watchChangePage();
+
+  watchBuying();
+
+  watchByeBye();
+});
 ```
-아래 로그와 같이 출력됩니다.
-```log
-Executing (c03a9600-80df-4713-b8c3-2815a068755f): SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
-Executing (c03a9600-80df-4713-b8c3-2815a068755f): START TRANSACTION;
-Executing (c03a9600-80df-4713-b8c3-2815a068755f): UPDATE `UserInfos` SET `name`=?,`updatedAt`=? WHERE `userId` = ?
-Executing (c03a9600-80df-4713-b8c3-2815a068755f): INSERT INTO `UserHistories` (`userHistoryId`,`UserId`,`beforeName`,`afterName`) VALUES (?,?,?,?);
-Executing (c03a9600-80df-4713-b8c3-2815a068755f): COMMIT;
-```
+
+이제 `server.js`만 실행하면 정상적으로 소켓 및 라우팅이 진행되면서 이들을 포함한 서버도 실행됩니다.
