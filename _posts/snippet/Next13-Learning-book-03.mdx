@@ -174,13 +174,16 @@ import Header from './components/Header'
 import RestaurantCard from './components/RestaurantCard'
 import { PrismaClient, Cuisine, Location, PRICE } from '@prisma/client'
 
+const prisma = new PrismaClient();
+
 export interface RestaurantCardType {
   id: number;
   name: string;
   main_image: string;
-  cuisine: Cuisine,
-  location: Location,
-  price : PRICE
+  slug: string;
+  cuisine: Cuisine;
+  location: Location;
+  price : PRICE;
 }
 
 const fetchRestaurants = async () : Promise<RestaurantCardType[]> => {
@@ -191,7 +194,8 @@ const fetchRestaurants = async () : Promise<RestaurantCardType[]> => {
       main_image: true,
       cuisine: true,
       location: true,
-      price: true
+      price: true,
+      slug: true
     }
   });
 
@@ -200,6 +204,7 @@ const fetchRestaurants = async () : Promise<RestaurantCardType[]> => {
 
 export default async function Home() {
 
+  // restaurant 리스트 조회
   const restaurants = await fetchRestaurants();
 
   // 서버 컴포넌트이므로 브라우저에서 콘솔창을 열어도 보이지 읺음. 서버측에서만 보임.
@@ -209,6 +214,7 @@ export default async function Home() {
       <Header/>
       <div className="py-3 px-36 mt-10 flex flex-wrap justify-center">
         {restaurants.map(restaurant => (
+          // restaurants를 순회하여 하위 컴포넌트 RestaurantCard 애 props로 restaurant 할당
           <RestaurantCard restaurant={restaurant}/>
         ))}
         {/* <RestaurantCard/> */}
@@ -217,33 +223,276 @@ export default async function Home() {
   )
 }
 ```
-또한 하위 컴포넌트 `RestaurantCard`에서 `RestaurantCardType`타입을 전달받을 속성을 인터페이스로 정의한 후 해당 인터페이스를 타입으로 가질 객체를 받는다고 타입을 정의합니다.
+또한 하위 컴포넌트 `RestaurantCard`에서 `RestaurantCardType`타입을 전달받을 속성을 인터페이스로 정의한 후 해당 인터페이스를 타입으로 가질 객체를 받는다고 타입을 정의합니다.  
+이후 넘겨받은 restaurant속성으로 레스토랑 이름, 음식 이름, 주소, 이미지등을 카드마다 정의할 수 있습니다.
 ```tsx
 // /app/components/RestaurantCard.tsx
-"use client"
+import Link from "next/link";
+import { RestaurantCardType } from "../page";
+import Price from "./Price";
 
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+interface Props {
+  restaurant: RestaurantCardType;
+}
 
-export default function SearchBar() {
-  const router = useRouter();
-  const [location, setLocation] = useState("");
+export default function RestaurantCard({restaurant} : Props){
+  return (
+    <div className="w-64 h-72 m-3 rounded overflow-hidden border cursor-pointer">
+      <Link href={`/restaurant/${restaurant.slug}`}>
+        <img
+          src={restaurant.main_image}
+          alt=""
+          className="w-full h-36"
+        />
+        <div className="p-1">
+          <h3 className="font-bold text-2xl mb-2">{restaurant.name}</h3>
+          <div className="flex items-start">
+            <div className="flex mb-2">*****</div>
+            <p className="ml-2">77 reviews</p>
+          </div>
+          <div className="flex text-reg font-light capitalize">
+            <p className=" mr-3">{restaurant.cuisine.name}</p>
+            <Price price={restaurant.price} />
+            <p>{restaurant.location.name}</p>
+          </div>
+          <p className="text-sm mt-1 font-bold">Booked 3 times today</p>
+        </div>
+      </Link>
+    </div>
+  )
+}
+
+```
+조건부 렌더링이 필요한 `Price`서버 컴포넌트 또한 생성합니다.
+```tsx
+// /app/components/Price.tsx
+import { PRICE } from '@prisma/client' // 열거형 PRICE를 가져온다.
+import React from 'react'
+
+export default function Price({price}: {price: PRICE}) {
+
+  const renderPrice = () => {
+    if(price === PRICE.CHEAP){
+      return <>
+        <span>$$</span><span className="text-gray-400">$$</span>
+      </>
+    }
+    else if(price === PRICE.REGULAR){
+      return <>
+        <span>$$$</span><span className="text-gray-400">$</span>
+      </>
+    }
+    else{
+      return <>
+        <span>$$$$</span>
+      </>
+    }
+  }
+
+  return <p className="flex mr-3">{renderPrice()}</p>
+}
+```
+이제 특정 레스토랑의 `slug`를 이용해서 상세 정보 데이터를 가져와봅시다. 위치는 `app/restaurant/[slig]/page.tsx`를 바라보게 됩니다.  
+`slug`는 현재 `@unique`가 적용되어 있습니다. 따라서 가져오는 경우에도 `findUnique`를 사용합니다. 우선 이를 적용하기 위해서 `slug`값을 어떻게 추출할지 생각해봐야합니다.  
+현재 만일 특정 레스토랑으로 이동했다면 url주소는 다음과 같은 형식일 겁니다. `http://localhost:3000/restaurant/coconut-lagoon-ottawa`여기서 `coconut-lagoon-ottawa`가 `slug`입니다.
+아래와 같이 이 컴포넌트에 주어지는 속성 props를 일단 `any`타입으로 설정해 어떠한 결과들이 보이는지 확인합시다.
+```tsx
+// /app/restaurant/[slug]/page.tsx
+export default async function RestaurantDetails(props: any){
+  console.log((props));
+```
+이후 콘솔 로그를 본다면 다음과 같이 `slug`가 기본적으로 전해질 겁니다. 이 속성은 `[slug]`값 즉 현재 `url`에서 `next`에 의해 추출되어 값으로 전달됩니다.
+```log
+{ params: { slug: 'coconut-lagoon-ottawa' }, searchParams: {} }
+```
+다음과 같이 변경한다면 해당 `slug`의 고유 정보 `id, name, images, description, slug`를 조회할 수 있습니다.
+```tsx
+// /app/restaurant/[slug]/page.tsx
+const fetchRestaurantBySlug = async (slug: string) => {
+  const restaurant = await prisma.restaurant.findUnique({
+    where: {
+      slug
+    },
+    select: {
+      id: true,
+      name: true,
+      images: true,
+      description: true,
+      slug: true
+    }
+  })
+
+  return restaurant;
+}
+
+export default async function RestaurantDetails({params}: {params: {slug: string}}){
+  // console.log((params));
+  const restaurant = await fetchRestaurantBySlug(params.slug);
+
+  console.log({restaurant})
+```
+여기서 `prisma`를 이용해 데이터를 요청한다음 상세정보 를 저장하게될 `restaurant`변수의 jsdoc을 보면 다음과 같습니다.
+```js
+const restaurant: {
+    id: number;
+    name: string;
+    images: string[];
+    description: string;
+    slug: string;
+} | null
+```
+해당 slug의 정보가 존재하지 않으면 `null`을 가지게 되겠죠. 이는 원치 않은 값입니다. `Promise`를 이용해 반드시 상세정보의 타입만을 반환한다고 정리하고 만일 에러가 발생한다면 에러페이지를 호출하는게 좋죠. 따라서 `null`이 나와선 안됩니다. 다음과 같은 수정이 필요합니다.
+```tsx {15}
+const fetchRestaurantBySlug = async (slug: string): Promise<Restaurant> => {
+  const restaurant = await prisma.restaurant.findUnique({
+    where: {
+      slug
+    },
+    select: {
+      id: true,
+      name: true,
+      images: true,
+      description: true,
+      slug: true
+    }
+  })
+
+  return restaurant;
+}
+```
+하지만 위 코드를 봤을때 15번 라인에서 에러가 발생하게 됩니다. `restaurant`는 null도 가질 수 있기 때문이죠 그래서 반환 이전 에러를 `throw`하는 분기가 존재해야합니다.  
+일단 최종 코드는 다음과 같이 될겁니다.
+```tsx {35-37}
+// /app/restaurant/[slug]/page.tsx
+ import { PrismaClient } from "@prisma/client";
+import Description from "./components/Description";
+import Header from "./components/Header";
+import Images from "./components/Images"
+import Rating from "./components/Rating";
+import ReservationCard from "./components/ReservationCard";
+import RestaurantNavBar from "./components/RestaurantNavBar";
+import Reviews from "./components/Reviews";
+import Title from "./components/Title";
+
+const prisma = new PrismaClient();
+
+interface Restaurant {
+  id: number;
+  name: string;
+  images: string[];
+  description: string;
+  slug: string;
+}
+
+const fetchRestaurantBySlug = async (slug: string): Promise<Restaurant> => {
+  const restaurant = await prisma.restaurant.findUnique({
+    where: {
+      slug
+    },
+    select: {
+      id: true,
+      name: true,
+      images: true,
+      description: true,
+      slug: true
+    }
+  })
+  // null 에러 처리
+  if(!restaurant){
+    throw new Error();
+  }
+
+  return restaurant;
+}
+
+export default async function RestaurantDetails({params}: {params: {slug: string}}){
+  // console.log((params));
+  const restaurant = await fetchRestaurantBySlug(params.slug);
 
   return (
-    <div className="text-left text-lg py-3 m-auto flex justify-center">
-      <input
-        className="rounded  mr-3 p-2 w-[450px]"
-        type="text"
-        placeholder="State, city or town"
-        value={location}
-        onChange={(e) => setLocation(e.target.value)}
-      />
-      <button className="rounded bg-red-600 px-9 py-2 text-white" onClick={() => {
-        if(location === "banana") return;
-        router.push("/search");
-      }}>
-        Let's go
-      </button>
+    <>
+      <div className="bg-white w-[70%] rounded p-3 shadow">
+        <RestaurantNavBar slug={restaurant.slug}/>
+        <Title name={restaurant.name}/>
+        <Rating/>
+        <Description description={restaurant.description}/>
+        <Images images={restaurant.images}/>
+        <Reviews/>
+      </div>
+      <div className="w-[27%] relative text-reg">
+        <ReservationCard/>
+      </div>
+    </>
+  )
+}
+```
+이제 차례대로 데이터를 패칭시켜봅시다 하나만 예시로 본다면 위와 같이 속성을 하위 컴포넌트에 보내는 경우 하위컴포넌트는
+다음과 같은 코드일 겁니다.
+```tsx
+// /app/restaurant/[slug]/components/Images.tsx
+export default function Images({images} : {images:string[]}) {
+  return (
+    <div>
+      <h1 className="font-bold text-3xl mt-10 mb-7 border-b pb-5">
+        {images.length} photo{images.length === 1 ? '' : 's'}
+      </h1>
+      <div className="flex flex-wrap">
+        {images.map(image =>(
+          <img
+          className="w-56 h-44 mr-1 mb-1"
+          src={image}
+          alt=""
+        />
+        ))}
+      </div>
+    </div>
+  )
+}
+```
+`layout.tsx`에서도 변경이 필요합니다. 일단 `[slug]`값이 레스토랑 이름을 가리키니 이 값을 이용해봅시다.
+```tsx
+// /app/restaurant/[slug]/layout.tsx
+import Header from "./components/Header";
+
+export default function RestaurantLayout({
+  children,
+  params
+  // children은 타입이 React.ReactNode
+}: {
+  children: React.ReactNode;
+  params: {slug: string};
+}) {
+  return (
+    <main>
+      <Header name={params.slug}/>
+      <div className="flex m-auto w-2/3 justify-between items-start 0 -mt-11">
+        {children}
+      </div>
+    </main>
+  )
+}
+```
+다음으로 `Header`컴포넌트의 내용을 변경합니다.
+```tsx
+// /app/restaurant/[slug]/components/Header.tsx
+export default function Header({name}: { name: string }) {
+
+  const renderTitle = () => {
+    const nameArray = name.split("-");
+
+    // 마지막 문자
+    nameArray[nameArray.length -1] = `(${nameArray[nameArray.length -1]})`
+
+    return nameArray.join(" ")
+  }
+
+  return (
+    <div className="h-96 overflow-hidden">
+      <div className="bg-center bg-gradient-to-r from-[#0f1f47] to-[#5f6984] h-full flex justify-center items-center">
+        <h1 className="text-7xl text-white capitalize text-shadow text-center">
+          {renderTitle()}
+        </h1>
+      </div>
     </div>
   )
 }
