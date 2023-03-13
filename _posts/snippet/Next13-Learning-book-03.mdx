@@ -301,7 +301,7 @@ export default function Price({price}: {price: PRICE}) {
 export default async function RestaurantDetails(props: any){
   console.log((props));
 ```
-이후 콘솔 로그를 본다면 다음과 같이 `slug`가 기본적으로 전해질 겁니다. 이 속성은 `[slug]`값 즉 현재 `url`에서 `next`에 의해 추출되어 값으로 전달됩니다.
+이후 콘솔 로그를 본다면 다음과 같이 `slug`가 기본적으로 전해질 겁니다. 이 속성은 `[slug]`값 즉 현재 `url`에서 파라미터에 해당됩니다. `params` 값으로 전달됩니다.
 ```log
 { params: { slug: 'coconut-lagoon-ottawa' }, searchParams: {} }
 ```
@@ -496,4 +496,190 @@ export default function Header({name}: { name: string }) {
     </div>
   )
 }
+```
+
+#### Link를 통해 검색기능 구현
+`Next`의 `Link`테그에는 `href`속성으로 `pathname, query`를 가집니다. `pathname`이란 루트로부터의 경로이며, query는 파라미터 입니다. 이를 이용해 검색 기능도 구현할 수 있습니다. `slug`와 같이 `query`에 명시한 `키-값`도 파라미터이므로 해당 `pathname`으로 이동된 경우 파라미터로 전달되기 때문입니다.
+```tsx
+// /app/search/page.tsx
+import { PRICE, PrismaClient } from "@prisma/client";
+
+const prisma = new PrismaClient();
+
+interface SearchParams{
+  city?: string; // city 라는 변수가 넘어오면 있고, 없다면 없다.
+  cuisine?: string;
+  price?: PRICE;
+}
+
+const fetchRestaurantsByCity = (searchParams: SearchParams) => {
+
+  const where: any = {
+
+  }
+
+  if(searchParams.city){
+    const location = {
+      name: {
+        equals: searchParams.city.toLowerCase()
+      }
+    }
+    where.location = location
+  }
+
+  if(searchParams.cuisine){
+    const cuisine = {
+      name: {
+        equals: searchParams.cuisine.toLowerCase()
+      }
+    }
+    where.cuisine = cuisine
+  }
+  if(searchParams.price){
+    const price = {
+        equals: searchParams.price
+    }
+    where.price = price
+  }
+
+  const select = {
+    id: true,
+    name: true,
+    main_image: true,
+    price: true,
+    cuisine: true,
+    location: true,
+    slug:true,
+  }
+
+  // 검색할 city 문자열이 없다면 전체 조회
+
+  return prisma.restaurant.findMany({
+    where,
+    select,
+  })
+}
+```
+아래와 같이 `Link`태그를 이용해 조건에 따른 데이터를 가지고 올 수 있죠.
+```tsx
+// /app/search/page.tsx
+import { Cuisine, Location, PRICE } from "@prisma/client"
+import Link from "next/link"
+
+
+
+export default function SearchSideBar({
+  locations, 
+  cuisines, 
+  searchParams
+}: {
+  locations: Location[], 
+  cuisines: Cuisine[], 
+  searchParams: {
+  city?: string, cuisine?:string, price?: PRICE
+}}) {
+
+  const prices = [{
+    price: PRICE.CHEAP,
+    label: "$",
+    className: "border w-full text-reg text-center font-light rounded-l p-2"
+  },{
+    price: PRICE.REGULAR,
+    label: "$$",
+    className: "border w-full text-reg text-center font-light p-2"
+  },{
+    price: PRICE.EXPENSIVE,
+    label: "$$$",
+    className: "border w-full text-reg text-center font-light rounded-r p-2"
+  }]
+
+  return (
+    <div className="w-1/5">
+    <div className="border-b pb-4 flex flex-col">
+      <h1 className="mb-2">Region</h1>
+      {locations.map(location => (
+        <>
+          <Link href={{
+            pathname: "/search",
+            query: {
+              ...searchParams,
+              city: location.name,
+            }
+          }} className="font-light text-reg capitalize" key={location.id}>{location.name}</Link>
+        </>
+      ))}
+    </div>
+    <div className="border-b pb-4 mt-3 flex flex-col">
+      <h1 className="mb-2">Cuisine</h1>
+      {cuisines.map(cuisine => (
+        <>
+          <Link href={{
+            pathname: "/search",
+            query: {
+              ...searchParams,
+              cuisine: cuisine.name
+            }
+          }} className="font-light text-reg capitalize" key={cuisine.id}>{cuisine.name}</Link>
+        </>
+      ))}
+    </div>
+    <div className="mt-3 pb-4">
+      <h1 className="mb-2">Price</h1>
+      <div className="flex">
+        {prices.map(({price, label, className}) => (
+          <>
+            <Link href={{
+              pathname: "/search",
+              query: {
+                ...searchParams,
+                price
+              }
+            }}
+            className={className}>
+              {label}
+            </Link>
+          </>
+        ))}
+      </div>
+    </div>
+  </div>
+  )
+}
+```
+
+#### 테이블 추가하기
+이제 리뷰와 회원 테이블을 추가해봅시다.
+```json
+// prisma/schema.prisma
+model User {
+  id            Int       @id     @default(autoincrement())
+  first_name    String
+  last_name     String
+  city          String
+  password      String
+  email         String
+  phone         String
+  reviews       Review[]
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+// Review (N) : Restaurant (1)
+model Review {
+  id            Int       @id     @default(autoincrement())
+  first_name    String
+  last_name     String
+  text          String
+  rating        Float
+  restaurant_id Int
+  restaurant    Restaurant  @relation(fields: [restaurant_id], references: [id])
+  user_id       Int
+  user          User        @relation(fields: [user_id], references: [id])
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+```
+이제 반영해봅시다.
+```bash
+npx prisma db push
 ```
