@@ -1,0 +1,221 @@
+---
+title: "[node] 3 layerd Architecture와 Jest 적용"
+description: "3 layerd Architecture에서의 테스트 코드 작성 방법과 자동화"
+language: "Javascript"
+category: "Jest"
+update: "2023-03-26"
+serisenumber: 1
+---
+## 시작
+---
+node 백엔드 프로젝트에 Jest 도입과, 테스트 코드를 자동 생성하는 프로젝트를 구성해봅니다.
+
+### 기본 환경 구성
+---
+기본적인 환경 구성 방법, 테스트 방법을 아래와 같습니다.  
+
+1. npm 또는 yarn을 사용하여 프로젝트에 Jest를 설치합니다.
+```bash
+npm install --save-dev jest
+```
+yarn의 경우 다음과 같이 설치합니다.
+```bash
+yarn add --dev jest
+```
+
+2. 프로젝트 루트에 `tests`디렉토리를 생성합니다. `tests`디렉토리 내 테스트하려는 각 모듈 또는 구성요소에 대한 테스트 파일을 생성합니다. 예로, `user`모듈이 있는 경우 `user.test.js` 파일을 만들 수 있습니다.  
+**Jest**의 테스트 및 기대 기능을 사용해 테스트 케이스를 작성합니다. 아래는 예시 코드입니다.
+```js
+// 1. 'adds 1 + 2 to equal 3'라는 문자열을 출력하는 테스트를 생성
+test('adds 1 + 2 to equal 3', () => { 
+  // 2. 1 + 2의 결과가 3과 같은지 확인하는 테스트 코드 작성
+  expect(1 + 2).toBe(3); 
+});
+```
+
+3. `package.json` 파일에 스크립트를 추가해 테스트를 진행할 수 있습니다.
+```json
+"scripts": {
+  "test": "jest"
+}
+```
+이후 터미널을 실행해 해당 스크립트를 실행합니다.
+```bash
+npm run test
+```
+Jest는 tests 디렉토리의 모든 테스트를 실행하고 결과를 보고합니다. 특정 테스트만 실행하거나 코드 커버리지 보고서를 생성하도록 Jest를 구성할 수도 있습니다. Jest에 대한 자세한 내용은 공식 [Jest 문서](https://jestjs.io/docs/getting-started)를 참조하세요.
+
+### 3 layerd Architecture와 적용하기
+---
+3계층 아키텍처(컨트롤러, 서비스, 리포지토리)가 있는 Jest를 사용하여 테스트 코드를 작성하려면 각 모듈에 대한 별도의 테스트 파일을 만들고 해당 모듈 내의 각 기능에 대한 테스트를 작성할 수 있습니다.  
+
+다음은 디렉토리 구조의 예입니다.
+
+```text
+- controllers/
+  - authController.js
+  - userController.js
+- services/
+  - authService.js
+  - userService.js
+- repositories/
+  - authRepository.js
+  - userRepository.js
+- tests/
+  - controllers/
+    - authController.test.js
+    - userController.test.js
+  - services/
+    - authService.test.js
+    - userService.test.js
+  - repositories/
+    - authRepository.test.js
+    - userRepository.test.js
+```
+이 예에서 각 모듈은 "tests" 폴더 내의 해당 폴더에 자체 테스트 파일을 가지고 있습니다. 예를 들어 "authController.js" 모듈에는 "tests/controllers" 폴더에 해당하는 "authController.test.js" 파일이 있습니다.
+
+각 기능을 테스트하기 위해 Jest describe 및 test 기능을 사용하여 다음과 같이 개별 테스트를 그룹화하고 작성할 수 있습니다.
+```js
+// authService.js
+function getUserById(userId) {
+  // ...
+}
+
+// authService.test.js
+// getUserById에 대한 테스트 스위트 시작
+describe('getUserById', () => {
+  // 올바른 사용자를 반환하는지에 대한 테스트 시작
+  test('returns the correct user', async () => {
+    // 가짜 사용자 객체 생성
+    const mockUser = { id: 1, name: 'John Doe' };
+    // userRepository의 getUserById 메소드를 가로채서 mockUser를 반환하도록 설정
+    jest.spyOn(userRepository, 'getUserById').mockResolvedValueOnce(mockUser); 
+
+    // authService의 getUserById 메소드 호출
+    const user = await authService.getUserById(1); 
+    // 반환된 사용자 객체가 mockUser와 일치하는지 확인
+    expect(user).toEqual(mockUser); 
+  });
+
+  // 사용자를 찾을 수 없을 때 에러를 던지는지에 대한 테스트 시작
+  test('throws an error when user is not found', async () => { 
+    // userRepository의 getUserById 메소드를 가로채서 null을 반환하도록 설정
+    jest.spyOn(userRepository, 'getUserById').mockResolvedValueOnce(null); 
+    // authService의 getUserById 메소드 호출 시 에러가 발생하는지 확인
+    await expect(authService.getUserById(1)).rejects.toThrow(Error); 
+  });
+});
+```
+이 예제에는 "authService.js" 모듈의 getUserById 함수에 대한 두 가지 테스트가 있습니다. describe 함수는 이 함수에 대한 테스트를 그룹화하고 test 함수는 각 개별 테스트를 정의합니다.
+
+세 폴더의 변경 사항을 기반으로 테스트 코드를 자동으로 생성하려면 jest-watch-typeahead 또는 jest-watch-lerna-packages와 같은 도구를 사용할 수 있습니다. 이러한 도구는 코드베이스의 변경 사항을 모니터링하고 적절한 테스트를 자동으로 실행합니다. 그러나 새 기능이나 모듈에 대한 테스트 코드를 자동으로 생성하지는 않습니다.
+
+아래는 게시판 등록/수정/삭제에 관한 예시 코드 및 테스트 코드 작성 방법입니다.
+```js
+// boards.controller.js
+const boardService = require('./boards.service');
+
+exports.createBoard = async (req, res, next) => {
+  try {
+    const { title, content } = req.body;
+    const board = await boardService.createBoard(title, content);
+    res.status(201).json(board);
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.editBoard = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { title, content } = req.body;
+    const board = await boardService.editBoard(id, title, content);
+    res.json(board);
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.deleteBoard = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    await boardService.deleteBoard(id);
+    res.sendStatus(204);
+  } catch (err) {
+    next(err);
+  }
+};
+
+// boards.service.js
+const Board = require('./board.model');
+
+exports.createBoard = async (title, content) => {
+  const board = await Board.create({ title, content });
+  return board.toJSON();
+};
+
+exports.editBoard = async (id, title, content) => {
+  const board = await Board.findByPk(id);
+  if (!board) {
+    throw new Error('Board not found');
+  }
+  board.title = title;
+  board.content = content;
+  await board.save();
+  return board.toJSON();
+};
+
+exports.deleteBoard = async (id) => {
+  const board = await Board.findByPk(id);
+  if (!board) {
+    throw new Error('Board not found');
+  }
+  await board.destroy();
+};
+
+// boards.test.js
+const request = require('supertest');
+const app = require('./app');
+const boardService = require('./boards.service');
+
+describe('Boards API', () => { // Boards API에 대한 테스트 스위트 시작
+  let board; // board 변수 선언
+  beforeEach(async () => { // 각 테스트 케이스 실행 전 실행되는 함수
+    // create a board for testing
+    board = await boardService.createBoard('Test Board', 'Test Content'); // boardService를 이용하여 테스트용 board 생성
+  });
+
+  describe('POST /api/boards', () => { // POST /api/boards에 대한 테스트 스위트 시작
+    it('should create a new board', async () => { // 새로운 board 생성에 대한 테스트 케이스
+      const res = await request(app) // app을 이용하여 요청 보냄
+        .post('/api/boards') // POST /api/boards에 요청 보냄
+        .send({ title: 'New Board', content: 'New Content' }) // 요청 바디에 title과 content를 담아 보냄
+        .expect(201); // 응답 코드가 201이어야 함
+
+      expect(res.body.title).toEqual('New Board'); // 응답 바디의 title이 'New Board'와 같아야 함
+      expect(res.body.content).toEqual('New Content'); // 응답 바디의 content가 'New Content'와 같아야 함
+    });
+  });
+
+  describe('PUT /api/boards/:id', () => { // PUT /api/boards/:id에 대한 테스트 스위트 시작
+    it('should edit an existing board', async () => { // 기존 board 수정에 대한 테스트 케이스
+      const res = await request(app) // app을 이용하여 요청 보냄
+        .put(`/api/boards/${board.id}`) // PUT /api/boards/:id에 요청 보냄
+        .send({ title: 'Updated Board', content: 'Updated Content' }) // 요청 바디에 수정할 title과 content를 담아 보냄
+        .expect(200); // 응답 코드가 200이어야 함
+
+      expect(res.body.title).toEqual('Updated Board'); // 응답 바디의 title이 'Updated Board'와 같아야 함
+      expect(res.body.content).toEqual('Updated Content'); // 응답 바디의 content가 'Updated Content'와 같아야 함
+    });
+
+    it('should return a 404 error if board does not exist', async () => { // 존재하지 않는 board 수정에 대한 테스트 케이스
+      const res = await request(app) // app을 이용하여 요청 보냄
+        .put('/api/boards/12345') // 존재하지 않는 board의 id를 가진 PUT /api/boards/:id에 요청 보냄
+        .send({ title: 'Updated Board', content: 'Updated Content' }) // 요청 바디에 수정할 title과 content를 담아 보냄
+        .expect(404); // 응답 코드가 404이어야 함
+
+      expect(res.body.error).toEqual('Board not found'); // 응답 바디의 error가 'Board not found'와 같아야 함
+    });
+  });
+}
+```
