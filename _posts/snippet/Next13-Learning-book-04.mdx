@@ -1,0 +1,97 @@
+---
+title: "[Next.js V13] 정리 노트 - 4"
+description: "로딩 스켈레톤 및 에러페이지 구현하기"
+language: "Typescript"
+category: "NextJS"
+update: "2023-05-11"
+serisenumber: 4
+---
+## Intro
+---
+- 본 내용은 강의 제공 사이트 유데미 Laith Harb 강사님의 "The Next.js 13 Bootcamp - The Complete Developer Guide" 강의를 듣고 정리하였습니다.
+- [https://www.udemy.com/course/the-nextjs-13-bootcamp-the-complete-developer-guide/](https://www.udemy.com/course/the-nextjs-13-bootcamp-the-complete-developer-guide/)
+
+### 로딩 페이지 추가
+---
+Next.js에서 로딩페이지 구현은 아주 쉽습니다. app 폴더에서 시작해, 각 라우팅 페이지마다 **loading.tsx**, **error.tsx** 페이지를 추가하면 됩니다.
+만일 **Restaurant** 의 로딩페이지를 구현하고 싶다면. **app/restaurant/loading.tsx**와 같이 파일을 생성해주면 됩니다.
+```tsx
+// app/restaurant/loading.tsx
+import React from "react";
+import Header from "./components/Header";
+
+export default function Loading() {
+  return (
+    <main>
+      <Header />
+      <div className="py-3 px-36 mt-10 flex flex-wrap justify-center">
+        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((num) => (
+          <div
+            key={num}
+            className="animate-pulse bg-slate-200 w-64 h-72 m-3 rounded overflow-hidden border cursor-pointer"
+          ></div>
+        ))}
+      </div>
+    </main>
+  );
+}
+```
+
+### 400 에러 페이지 추가
+---
+사용자가 잘못된 URL로 접속한 경우 에러페이지를 보여줘야겠죠?  
+Next.js를 이용하면 로딩 페이지와 같이 손쉽게 구현할 수 있습니다. 똑같이 **error.tsx** 파일을 생성해주면 됩니다.  
+**server/restaurant/없는 레스토랑**와 같이 입력하여 **restaurant** 에러페이지를 표시하려면 **app/restaurant/error.tsx** 파일을 추가해주면 됩니다.
+```tsx
+// app/restaurant/error.tsx
+"use client";
+
+import Image from "next/image";
+import errorMascot from "../../public/icons/error.png"
+
+export default function Error({error} : {error: Error}) {
+  return (
+    <div className="h-screen bg-gray-200 flex flex-col justify-center items-center">
+      <Image src={errorMascot} alt="error" className="w-56 mb-8"/>
+      <div className="bg-white px-9 py-14 shadow rounded">
+        <h3 className="text-3xl font-bold">
+          Well, this is embarrassing
+        </h3>
+        <p>
+          {error.message}
+        </p>
+        <p className="mt6 text-sm font-light">Error Code: 400</p>
+      </div>
+    </div>
+  )
+}
+```
+
+### 404 에러 페이지 추가 
+---
+사실 **server/restaurant/없는 레스토랑** 와 같이 없는 자원으로 요청한 경우 `404 not found` 에러를 응답으로 내보내야 하죠. **error.tsx** 는 유연한 에러에 대해 사용해줘야 합니다. 또한 이에 대한 에러 메시지도 같이 클라이언트에게 표시해줘야 합니다.  
+`throw new Error("error message")`의 경우 해당 라우팅 경로에 **error.tsx** 파일을 클라이언트측에서 렌더링 했습니다. next.js 에서는 `next/navigation` 모듈에서 `notFound()` 메서드를 지원합니다. notFound를 발생시키면 해당 라우팅 경로의 **not-found.tsx** 파일을 표시해줍니다.
+```tsx
+// app/restaurant/not-found.tsx
+"use client";
+
+import Image from "next/image";
+import errorMascot from "../../public/icons/error.png"
+
+export default function Error({error} : {error: Error}) {
+  return (
+    <div className="h-screen bg-gray-200 flex flex-col justify-center items-center">
+      <Image src={errorMascot} alt="error" className="w-56 mb-8"/>
+      <div className="bg-white px-9 py-14 shadow rounded">
+        <h3 className="text-3xl font-bold">
+          Well, this is embarrassing
+        </h3>
+        <p>
+          We couldnt't find that restaurant
+        </p>
+        <p className="mt6 text-sm font-light">Error Code: 404</p>
+      </div>
+    </div>
+  )
+}
+```

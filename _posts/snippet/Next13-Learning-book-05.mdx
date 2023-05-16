@@ -1,0 +1,726 @@
+---
+title: "[Next.js V13] 정리 노트 - 5"
+description: "로그인 인증 구현하기"
+language: "Typescript"
+category: "NextJS"
+update: "2023-05-14"
+serisenumber: 5
+---
+## Intro
+---
+- 본 내용은 강의 제공 사이트 유데미 Laith Harb 강사님의 "The Next.js 13 Bootcamp - The Complete Developer Guide" 강의를 듣고 정리하였습니다.
+- [https://www.udemy.com/course/the-nextjs-13-bootcamp-the-complete-developer-guide/](https://www.udemy.com/course/the-nextjs-13-bootcamp-the-complete-developer-guide/)
+
+### Authentication(인증)
+---
+인증은 자격 증명 행위입니다. 간단히 말해 신원을 증명하는 프로세스이죠. 신원이 확인되면 데이터를 제공하죠. 인증 과정은 보통 회원가입 -> 로그인 순 입니다. 이와 같이 진행해보도록 하겠습니다.
+
+### UI 구성
+---
+먼저, 강의 내용에 따라 [Material Icons](https://mui.com/material-ui/material-icons/) 을 이용해서 모달 UI를 구현해보도록 하겠습니다.
+
+Material 관련 모듈을 사용하기 위해 다음과 같이 패키지도 설치해줍니다.
+```bash
+npm install @mui/material
+npm install @emotion/react
+npm install @emotion/styled
+```
+
+```tsx
+// components/NavBar.tsx
+
+import Link from "next/link"
+import LoginModal from "../LoginModal"
+
+export default function NavBar() {
+
+  return (
+    <nav className="bg-white p-2 flex justify-between">
+    <Link href="/" className="font-bold text-gray-700 text-2xl">
+      OpenTable{" "}
+    </Link>
+    <div>
+      <div className="flex">
+        <LoginModal isSignin={true}/>
+        <LoginModal isSignin={false}/>
+      </div>
+    </div>
+  </nav>
+  )
+}
+```
+이제 회원 모델을 다시 한번 봅시다. 어떠한 데이터를 받아야하는지 알고 가보겠습니다.
+```json
+model User {
+  id            Int       @id     @default(autoincrement())
+  first_name    String
+  last_name     String
+  city          String
+  password      String
+  email         String
+  phone         String
+  reviews       Review[]
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+```
+회원가입을 위한 UI를 그려봅시다. Modal은 `Material Icons`의 Modal Basic UI를 사용합니다.
+```tsx
+// app/AuthModal.tsx
+"use client";
+
+import { useState } from "react";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import Typography from "@mui/material/Typography";
+import Modal from "@mui/material/Modal";
+import AuthModalInputs from "./components/AuthModalInputs";
+
+const style = {
+  position: "absolute" as "absolute",
+  top: "50%",
+  left: "50%",
+  transform: "translate(-50%, -50%)",
+  width: 400,
+  bgcolor: "background.paper",
+  border: "2px solid #000",
+  boxShadow: 24,
+  p: 4,
+};
+
+export default function AuthModal({ isSignin }: { isSignin: boolean }) {
+  const [open, setOpen] = useState(false);
+  const handleOpen = () => setOpen(true);
+  const handleClose = () => setOpen(false);
+
+  const renderContent = (signinContent: string, signupContent: string) => {
+    // true로 넘어 온 경우 signinContent
+    return isSignin ? signinContent : signupContent;
+  };
+
+  const handleChangeInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setInputs({
+      ...inputs,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const [inputs, setInputs] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    city: "",
+    password: "",
+  });
+
+  return (
+    <div>
+      <button
+        onClick={handleOpen}
+        className={`${renderContent(
+          "bg-blue-400 text-white",
+          ""
+        )} border p-1 px-4 rounded mr-3`}
+      >
+        {renderContent("Sign in", "Sign up")}
+      </button>
+      <Modal
+        open={open}
+        onClose={handleClose}
+        aria-labelledby="modal-modal-title"
+        aria-describedby="modal-modal-description"
+      >
+        <Box sx={style}>
+          <div className="p-2 h-[500px]">
+            <div className="uppercase font-bold text-center pb-2 border-b mb-2">
+              <p className="text-sm">
+                {renderContent("Sign In", "Create Account")}
+              </p>
+            </div>
+            <div className="m-auto">
+              <h2 className="text-2xl font-light text-center">
+                {renderContent(
+                  "Log Into Your Account",
+                  "Create Your Opentable Account"
+                )}
+              </h2>
+
+              <AuthModalInputs
+                inputs={inputs}
+                handleChangeInput={handleChangeInput}
+                isSignin={isSignin}
+              />
+              <button className="uppercase bg-red-600 w-full text-white p-3 rounded text-sm mb-5 disabled:bg-gray-400">
+                {renderContent("Sign In", "Create Account")}
+              </button>
+            </div>
+          </div>
+        </Box>
+      </Modal>
+    </div>
+  );
+}
+```
+Sing in, Sign up 구분을 위해 조건부 렌더링으로 필요한 input만 보이도록 설계합니다.
+```tsx
+// app/components/AuthModal.tsx
+import React from "react";
+
+interface Props {
+  inputs: {
+    firstName: string,
+    lastName: string,
+    email: string,
+    phone: string,
+    city: string,
+    password: string
+  }
+  // 함수 타입이며 리턴은 void
+  handleChangeInput: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  isSignin: boolean;
+}
+
+export default function AuthModalInputs({inputs, handleChangeInput, isSignin}: Props) {
+  return (
+    <div>
+      {isSignin ? null : <div className="my-3 flex justify-between text-sm">
+        <input
+          type="text"
+          className="border rounded p-2 py-3 w-[49%]"
+          placeholder="First Name"
+          value={inputs.firstName}
+          onChange={handleChangeInput}
+          name="firstName"
+        />
+        <input
+          type="text"
+          className="border rounded p-2 py-3 w-[49%]"
+          placeholder="Last Name"
+          value={inputs.lastName}
+          onChange={handleChangeInput}
+          name="lastName"
+        />
+      </div>}
+      <div className="my-3 flex justify-between text-sm">
+        <input
+          type="text"
+          className="border rounded p-2 py-3 w-full"
+          placeholder="Email"
+          value={inputs.email}
+          onChange={handleChangeInput}
+          name="email"
+        />
+      </div>
+      {isSignin ? null : <div className="my-3 flex justify-between text-sm">
+        <input
+          type="text"
+          className="border rounded p-2 py-3 w-[49%]"
+          placeholder="Phone"
+          value={inputs.phone}
+          onChange={handleChangeInput}
+          name="phone"
+        />
+        <input
+          type="text"
+          className="border rounded p-2 py-3 w-[49%]"
+          placeholder="City"
+          value={inputs.city}
+          onChange={handleChangeInput}
+          name="city"
+        />
+      </div>}
+      <div className="my-3 flex justify-between text-sm">
+        <input
+          type="text"
+          className="border rounded p-2 py-3 w-full"
+          placeholder="Password"
+          value={inputs.password}
+          onChange={handleChangeInput}
+          name="password"
+        />
+      </div>
+    </div>
+  );
+}
+```
+이제 HTTP 요청을 통해 서버에 데이터를 전달해야합니다. 하지만 현재 이 모달은 클라이언트 구성 요소(부모 요소인 `AuthModal`이 클라이언트 요소)입니다. 상태값, 핸들러를 사용하고 있죠. 따라서 Prisma 및 데이터베이스에 접근할 수 없습니다. 따라서 엑세스 권한을 얻기 위해 서버에 HTTP 요청을 보내야 합니다.  
+우선 서버와의 통신으로 아래와 같은 동작이 존재해야합니다.
+- 회원가입시 유효성 검사(서버와의 통신은 불필요.)
+- 존재 여부 검사(이메일이 유효하며, 계정이 이미 서버에 존재하지 않은지)
+- 패스워드 암호화(데이터 베이스에 암호를 평문으로 저장해선 안된다.)
+- 유저 정보 저장
+- JWT 토큰 발급
+
+### 현재 프로젝트에 API 생성하기
+---
+다음과 같이 회원가입 api(`/api/auth/signup`)를 생성해보겠습니다. 현재는 Next.js프로젝트에 api도 같이 생성하고 있지만 별도의 서버를 구성해도 상관없습니다.  
+이제 Next.js 는 파일 기반 라우팅이므로 `/api/auth/signup`api를 요청하면 작동하도록 `pages/api/auth` 경로에 `signup.ts`를 생성합니다. 
+```ts
+// pages/api/auth/signup
+import { NextApiRequest, NextApiResponse } from "next";
+
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
+  // ...
+}
+```
+
+#### 유효성 검사 진행
+---
+유효성 검사를 진행해봅시다. 빠르게 진행하기 위해 유효성 검사 라이브러리 [npm-validator](https://www.npmjs.com/package/validator)
+```bash
+yarn add validator
+yarn add @types/validator
+```
+validator 의 메서드가 궁금하시다면 [npm-validator](https://www.npmjs.com/package/validator)를 참고하세요.
+```ts
+// pages/api/auth/signup
+import { NextApiRequest, NextApiResponse } from "next";
+import validator from "validator";
+
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
+  if (req.method === "POST") {
+    const { firstName, lastName, email, phone, city, password } = req.body;
+
+    const errors: string[] = [];
+
+    const validationSchema = [
+      {
+        valid: validator.isLength(firstName, { min: 1, max: 20 }),
+        errorMessage: "First name is invalid",
+      },
+      {
+        valid: validator.isLength(lastName, { min: 1, max: 20 }),
+        errorMessage: "Last name is invalid",
+      },
+      {
+        valid: validator.isEmail(email),
+        errorMessage: "Email is invalid",
+      },
+      {
+        valid: validator.isMobilePhone(phone),
+        errorMessage: "Phone Number is invalid",
+      },
+      {
+        valid: validator.isLength(city, { min: 1 }),
+        errorMessage: "City is invalid",
+      },
+      {
+        valid: validator.isStrongPassword(password),
+        errorMessage: "Password is not strong enough",
+      },
+    ];
+
+    validationSchema.forEach((check) => {
+      if (!check.valid) {
+        errors.push(check.errorMessage);
+      }
+    });
+
+    if (errors.length) {
+      return res.status(400).json({ errorMessage: errors[0] });
+    }
+
+    res.status(200).json({
+      hello: "pass",
+    });
+  }
+}
+```
+
+사진 1
+
+#### 존재 여부 검사
+---
+이제 회원가입시 입력한 이메일이 이미 존재하는지 검사하기 위해 데이터베이스에 접근해야합니다. 데이터베이스에서도 변경사항이 존재합니다. `email`컬럼에 `unique`제약조건을 추가해줘야 했습니다.
+```json
+model User {
+  // ...
+  email String @unique
+}
+```
+위와 같이 변경 후 변경사항을 Prisma를 이용해 DB에 반영합니다.
+```bash
+npx prisma db push
+```
+이제 Prisma를 이용해 입력한 이메일이 존재하는지 검증하는 코드를 추가합니다.
+```ts
+// pages/api/auth/signup
+import { NextApiRequest, NextApiResponse } from "next";
+import validator from "validator";
+import { PrismaClient } from "@prisma/client";
+
+const prisma = new PrismaClient();
+
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
+    // ... if (errors.length) {
+    //   return res.status(400).json({ errorMessage: errors[0] });
+    // }
+
+    const userWithEmail = await prisma.user.findUnique({
+      where: {
+        email,
+      },
+    });
+
+    if(userWithEmail){
+      return res.status(400).json({ errorMessage: "Email already exists" });
+    }
+
+    // res.status(200).json({ ...
+  }
+}
+```
+
+사진 2
+
+#### 패스워드 암호화(Hashing)
+---
+유효성 검사는 완료되었습니다. 이제 DB에 사용자 정보를 저장하는 일만 남았습니다. 하지만 그냥 저장해서는 안됩니다. 비밀번호의 경우 중요 정보이기 때문에 단방향 암호화를 설정해야합니다. DB가 탈취되더라도 비밀번호는 볼 수 없어야합니다.  
+암호화 알고리즘은 매번 값이 변경되는 `bcrypt`를, 보안을 좀 더 강화하기 위해 문자열을 덧붙이는 `salt`를 이용합니다.  
+Node.js의 `crypto`모듈을 사용해도 되지만 [bcrypt](https://www.npmjs.com/package/bcrypt)라이브러리를 이용해봅시다.  
+```bash
+yarn add bcrypt
+yarn add @types/bcrypt
+```
+이제 다음과 같이 코드를 추가합니다.
+```ts
+// pages/api/auth/signup
+    // if(userWithEmail){
+    //   return res.status(400).json({ errorMessage: "Email already exists" });
+    // }
+
+    // 2번째 인자의 경우 salt
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // res.status(200).json({...
+```
+
+#### 회원 정보 저장하기
+---
+유효성 검사, 패스워드 암호화가 끝났습니다. 이제 회원 정보를 저장합니다.
+```ts
+// pages/api/auth/signup
+    // ... const hashedPassword = await bcrypt.hash(password, 10);
+
+    const user = await prisma.user.create({
+      data: {
+        first_name: firstName,
+        last_name: lastName,
+        password: hashedPassword,
+        city,
+        phone,
+        email
+      }
+    });
+
+    res.status(200).json({
+      hello: user,
+    });
+```
+
+사진 3
+
+#### JWT 토큰 생성 후 클라이언트에 제공하기
+---
+클라이언트는 자신의 신원을 증명하기 위해 JWT 토큰을 서버에 보내죠. 유효한 사용자라면 서버에서 인가해줍니다. JWT토큰은 `.`기준으로 첫번째 문자열부터 `Header`, `Payload`, `Signature` 입니다.  
+이중 `Payload`, `Signature`가 중요합니다. `payload`는 이메일 혹은 ID 일종의 고유 식별자 정보가 있습니다. `Signature`는 일종의 서명으로, 서버에서 생성되어 클라이언트에 전송됩니다. JSON 웹 토큰을 조작하지 못하도록 서명을 추가하는겁니다.  
+예시는 [JWT.io](https://jwt.io/)에서 확인하세요.  
+
+JWT 라이브러리 [Jose](https://www.npmjs.com/package/jose) 설치해보겠습니다. `Jose`는 서버 측 렌더링 애플리케이션으로 JSON 웹 토큰을 생성하기 위한 좋은 라이브러리입니다.  
+주로 `jsonwebtoken` 라이브러리를 사용해왔는데, `jsonwebtoken`은 주로 JWT 생성, 서명을 처리하기 위한 라이브러리이고, `Jose`는 JWT만이 아닌, JWE, JWS와 같은 Json 웹 표준을 포괄적으로 다루는 라이브러리 입니다. 때문에 보다 다양한 JSON 웹 보안 기능을 활용할 수 있습니다. 더 자세한 내용은 다음에 다루도록 하겠습니다.
+```bash
+yarn add jose
+yarn add @types/jose
+```
+코드를 추가해봅시다.
+```ts
+// pages/api/auth/signup
+    // ...
+    //     email
+    //   }
+    // });
+
+    // HS256 해시 알고리즘을 JWT생성에 이용합니다.
+    const alg = "HS256"
+
+    // 16진법으로 인코딩이 필요.
+    const secret = new TextEncoder().encode(process.env.JWT_SECRET)
+
+    const token = await new jose.SignJWT({email: user.email}).setProtectedHeader({alg}).setExpirationTime("24h").sign(secret)
+
+    // ... res.status(200).json({
+    //   hello: token,
+    // });
+```
+
+사진 4
+
+### 로그인 구현하기
+---
+로그인의 경우도 HTTP 요청을 통해 서버에 데이터를 전달해야합니다. 다음과 같은 순서로 진행할 수 있겠습니다.
+- 사용자 입력의 유효성 검사
+- 입력한 계정이 존재하는 계정인지 검사는
+- 해시된 암호와 입력된 암호 비교
+- JWT토큰 발급
+
+대부분은 반복되는 코드일겁니다. api는 `api/auth/signin`로 구성합니다. 
+```ts
+// pages/api/auth/signin.ts
+import { NextApiRequest, NextApiResponse } from "next";
+import validator from "validator";
+import { PrismaClient } from "@prisma/client";
+import bcrypt from "bcrypt";
+import * as jose from "jose";
+
+const prisma = new PrismaClient();
+
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
+  if (req.method === "POST") {
+    const errors: string[] = [];
+    const { email, password } = req.body;
+
+    const validationSchema = [
+      {
+        valid: validator.isEmail(email),
+        errorMessage: "Email is invalid",
+      },
+      {
+        // 회원가입과 달리 강한 유효성 검사를 할 필요 없음.
+        valid: validator.isLength(password, { min: 1 }),
+        errorMessage: "Password is invalid",
+      },
+    ];
+
+    // 1. 사용자 입력의 유효성 검사
+    validationSchema.forEach((check) => {
+      if (!check.valid) {
+        errors.push(check.errorMessage);
+      }
+    });
+
+    if (errors.length) {
+      return res.status(400).json({ errorMessage: errors[0] });
+    }
+
+    // 2. 계정이 있는지 검사
+    const userWithEmail = await prisma.user.findUnique({
+      where: {
+        email,
+      },
+    });
+
+    if (!userWithEmail) {
+      // 응답코드 또한 상황에 맞게 보내줘야 합니다. 현재 서비스의 사용자가 아니라는것을 알려줘야겠죠.
+      return res
+        .status(401)
+        .json({ errorMessage: "email or password is invalid" });
+    }
+
+    // 3. 해시된 암호와 입력된 암호 비교
+    // 사용자가 입력한 암호, DB에 저장된 암호화된 비밀번호와 비교
+    const isMatch = await bcrypt.compare(password, userWithEmail.password);
+
+    if (!isMatch) {
+      return res
+        .status(401)
+        .json({ errorMessage: "email or password is invalid" });
+    }
+
+    // 4. JWT토큰 발급
+    // HS256 해시 알고리즘을 JWT생성에 이용합니다.
+    const alg = "HS256";
+
+    // 16진법으로 인코딩이 필요.
+    const secret = new TextEncoder().encode(process.env.JWT_SECRET);
+
+    const token = await new jose.SignJWT({ email: userWithEmail.email })
+      .setProtectedHeader({ alg })
+      .setExpirationTime("24h")
+      .sign(secret);
+
+    return res.status(200).json({ token });
+  }
+  return res.status(404).json("Unkown endpoint");
+}
+```
+
+사진 5
+
+### 인증 요청에 따른 인가 허용하기 
+---
+이제 JWT토큰을 가지고 있으니 권한이 필요한 페이지의 경우 신원을 서버에 인증해야겠죠? 그럼 서버는 신원을 확인하고 유효한 사람이라면 인가해주면 됩니다.  
+마이페이지를 추가해봅시다. api는 `api/auth/me`를 추가하도록 하죠. 순서는 다음과 같습니다. 토큰은 헤더에 담아 보낸다고 가정합니다.
+- 헤더에서 토큰을 추출합니다.
+- 토큰을 검증합니다.
+- 토큰을 디코딩하여 데이터를 얻습니다.
+- 사용자 정보를 DB에서 불러옵니다.
+- 클라이언트에게 정보를 전송합니다.
+
+```ts
+// pages/api/auth/me.ts
+import { NextApiRequest, NextApiResponse } from "next";
+import { PrismaClient } from "@prisma/client";
+import * as jose from "jose";
+
+const prisma = new PrismaClient();
+
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
+  // 1. 헤더에서 토큰을 추출합니다.
+  const bearerToken = req.headers["authorization"] as string;
+
+  if (!bearerToken) {
+    res.status(401).json({ message: "Unauthorized" });
+  }
+
+  // 2. 토큰을 검증합니다.
+  const token = bearerToken.split(" ")[1];
+
+  if (!token) {
+    res.status(401).json({ message: "Unauthorized" });
+  }
+
+  const secret = new TextEncoder().encode(process.env.JWT_SECRET);
+
+  try {
+    await jose.jwtVerify(token, secret);
+  } catch (e) {
+    res.status(401).json({ message: "Unauthorized" });
+  }
+
+  // 3. 토큰을 디코딩하여 데이터를 얻습니다.
+  const payload = jose.decodeJwt(token) as {email : string};
+
+  if(!payload.email) {
+    res.status(401).json({message: "Unauthorized"})
+  }
+
+  // 4. 사용자 정보를 DB에서 불러옵니다.
+  const user = await prisma.user.findUnique({
+    where: {
+      email: payload.email
+    },
+    select: {
+      id: true,
+      first_name: true,
+      last_name: true,
+      email: true,
+      city: true,
+      phone: true
+    }
+  });
+
+  // 5. 클라이언트에게 정보를 전송합니다.
+  return res.json({user});
+}
+```
+
+사진 6
+
+### 미들웨어 구성하기
+---
+`api/auth/me` api의 경우 토큰 유효성 검사 로직이 해당 코드내에 같이 존재합니다. 검증 로직은 매번 수행되어선 안되겠죠. 미들웨어로 구성하여 api에 도달하기 전 토큰을 검증하도록 해야합니다.  
+Next.js 에서는 미들웨어를 제공합니다. 루프 경로에 `middleware.ts`를 생성한 후 해당 파일에 미들웨어를 작성하면 Node.js 웹 서버를 구성했던것과 같이 미들웨어로 작동합니다. 단, 다른 요청이어도 매번 수행되므로 특정 api를 요청할 때 동작하게 하려면 수정이 필요합니다.  
+아래 두 단계를 미들웨어에서 작동시키도록 합니다.
+- 헤더에서 토큰을 추출합니다.
+- 토큰을 검증합니다.
+
+```ts
+// middleware.ts
+import { NextRequest, NextResponse } from "next/server";
+import * as jose from "jose";
+
+export async function middleware(req: NextRequest, res: NextResponse) {
+  // 1. 헤더에서 토큰을 추출합니다.
+  const bearerToken = req.headers.get("authorization") as string;
+
+  if (!bearerToken) {
+    return new NextResponse(
+      JSON.stringify({ errorMessage: "Unauthorized" }), {status: 401}
+    )
+  }
+
+  // 2. 토큰을 검증합니다.
+  const token = bearerToken.split(" ")[1];
+
+  if (!token) {
+    return new NextResponse(
+      JSON.stringify({ errorMessage: "Unauthorized" }), {status: 401}
+    )
+  }
+
+  const secret = new TextEncoder().encode(process.env.JWT_SECRET);
+
+  try {
+    await jose.jwtVerify(token, secret);
+  } catch (e) {
+    return new NextResponse(
+      JSON.stringify({ errorMessage: "Unauthorized" }), {status: 401}
+    )
+  }
+}
+
+// /api/auth/me api 요청시 위 미들웨어가 동작하도록 한다.
+export const config = {
+  matcher: ["/api/auth/me"],
+};
+```
+이제 검증 관련 코드는 제외하여 토큰 페이로드의 데이터를 이용해 필요한 정보를 제공하면 됩니다.
+```ts
+// pages/api/auth/me.ts
+import { NextApiRequest, NextApiResponse } from "next";
+import { PrismaClient } from "@prisma/client";
+import * as jose from "jose";
+
+const prisma = new PrismaClient();
+
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
+  const bearerToken = req.headers["authorization"] as string;
+  const token = bearerToken.split(" ")[1];
+
+  // 3. 토큰을 디코딩하여 데이터를 얻습니다.
+  const payload = jose.decodeJwt(token) as {email : string};
+
+  if(!payload.email) {
+    res.status(401).json({message: "Unauthorized"})
+  }
+
+  // 4. 사용자 정보를 DB에서 불러옵니다.
+  const user = await prisma.user.findUnique({
+    where: {
+      email: payload.email
+    },
+    select: {
+      id: true,
+      first_name: true,
+      last_name: true,
+      email: true,
+      city: true,
+      phone: true
+    }
+  });
+
+  // 5. 클라이언트에게 정보를 전송합니다.
+  return res.json({user});
+}
+```
+
+사진 7
