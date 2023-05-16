@@ -333,9 +333,7 @@ export default async function handler(
   }
 }
 ```
-
-사진 1
-
+![스크린샷 2023-05-16 오전 11 21 11](https://github.com/WoogLim/wooglim.dev/assets/51357635/aa555819-d8d2-4b69-9a12-39c530c421d4)
 #### 존재 여부 검사
 ---
 이제 회원가입시 입력한 이메일이 이미 존재하는지 검사하기 위해 데이터베이스에 접근해야합니다. 데이터베이스에서도 변경사항이 존재합니다. `email`컬럼에 `unique`제약조건을 추가해줘야 했습니다.
@@ -380,9 +378,7 @@ export default async function handler(
   }
 }
 ```
-
-사진 2
-
+![image](https://github.com/WoogLim/wooglim.dev/assets/51357635/7d563fa2-2c12-4618-9eed-6eeb0156e222)
 #### 패스워드 암호화(Hashing)
 ---
 유효성 검사는 완료되었습니다. 이제 DB에 사용자 정보를 저장하는 일만 남았습니다. 하지만 그냥 저장해서는 안됩니다. 비밀번호의 경우 중요 정보이기 때문에 단방향 암호화를 설정해야합니다. DB가 탈취되더라도 비밀번호는 볼 수 없어야합니다.  
@@ -427,9 +423,7 @@ yarn add @types/bcrypt
       hello: user,
     });
 ```
-
-사진 3
-
+![image](https://github.com/WoogLim/wooglim.dev/assets/51357635/d4d59a5b-15fb-41ac-9dc2-e7685ada572c)
 #### JWT 토큰 생성 후 클라이언트에 제공하기
 ---
 클라이언트는 자신의 신원을 증명하기 위해 JWT 토큰을 서버에 보내죠. 유효한 사용자라면 서버에서 인가해줍니다. JWT토큰은 `.`기준으로 첫번째 문자열부터 `Header`, `Payload`, `Signature` 입니다.  
@@ -462,9 +456,7 @@ yarn add @types/jose
     //   hello: token,
     // });
 ```
-
-사진 4
-
+![image](https://github.com/WoogLim/wooglim.dev/assets/51357635/ecf087cd-ebfb-4eaa-bb78-818a3baa3213)
 ### 로그인 구현하기
 ---
 로그인의 경우도 HTTP 요청을 통해 서버에 데이터를 전달해야합니다. 다음과 같은 순서로 진행할 수 있겠습니다.
@@ -556,9 +548,7 @@ export default async function handler(
   return res.status(404).json("Unkown endpoint");
 }
 ```
-
-사진 5
-
+![image](https://github.com/WoogLim/wooglim.dev/assets/51357635/2bece81d-1c74-4036-9bbb-20463e385a93)
 ### 인증 요청에 따른 인가 허용하기 
 ---
 이제 JWT토큰을 가지고 있으니 권한이 필요한 페이지의 경우 신원을 서버에 인증해야겠죠? 그럼 서버는 신원을 확인하고 유효한 사람이라면 인가해주면 됩니다.  
@@ -722,5 +712,4 @@ export default async function handler(
   return res.json({user});
 }
 ```
-
-사진 7
+![image](https://github.com/WoogLim/wooglim.dev/assets/51357635/ee5ceea1-543c-4351-ab07-eb7f99fa08ea)
