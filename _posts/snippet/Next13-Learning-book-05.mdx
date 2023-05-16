@@ -15,7 +15,7 @@ serisenumber: 5
 ---
 인증은 자격 증명 행위입니다. 간단히 말해 신원을 증명하는 프로세스이죠. 신원이 확인되면 데이터를 제공하죠. 인증 과정은 보통 회원가입 -> 로그인 순 입니다. 이와 같이 진행해보도록 하겠습니다.
 
-### UI 구성
+### 로그인 및 회원가입 UI 구성
 ---
 먼저, 강의 내용에 따라 [Material Icons](https://mui.com/material-ui/material-icons/) 을 이용해서 모달 UI를 구현해보도록 하겠습니다.
 
@@ -252,7 +252,7 @@ export default function AuthModalInputs({inputs, handleChangeInput, isSignin}: P
 - 유저 정보 저장
 - JWT 토큰 발급
 
-### 현재 프로젝트에 API 생성하기
+### 회원가입 API 구현하기
 ---
 다음과 같이 회원가입 api(`/api/auth/signup`)를 생성해보겠습니다. 현재는 Next.js프로젝트에 api도 같이 생성하고 있지만 별도의 서버를 구성해도 상관없습니다.  
 이제 Next.js 는 파일 기반 라우팅이므로 `/api/auth/signup`api를 요청하면 작동하도록 `pages/api/auth` 경로에 `signup.ts`를 생성합니다. 
@@ -378,7 +378,9 @@ export default async function handler(
   }
 }
 ```
+
 ![image](https://github.com/WoogLim/wooglim.dev/assets/51357635/7d563fa2-2c12-4618-9eed-6eeb0156e222)
+
 #### 패스워드 암호화(Hashing)
 ---
 유효성 검사는 완료되었습니다. 이제 DB에 사용자 정보를 저장하는 일만 남았습니다. 하지만 그냥 저장해서는 안됩니다. 비밀번호의 경우 중요 정보이기 때문에 단방향 암호화를 설정해야합니다. DB가 탈취되더라도 비밀번호는 볼 수 없어야합니다.  
@@ -423,7 +425,9 @@ yarn add @types/bcrypt
       hello: user,
     });
 ```
+
 ![image](https://github.com/WoogLim/wooglim.dev/assets/51357635/d4d59a5b-15fb-41ac-9dc2-e7685ada572c)
+
 #### JWT 토큰 생성 후 클라이언트에 제공하기
 ---
 클라이언트는 자신의 신원을 증명하기 위해 JWT 토큰을 서버에 보내죠. 유효한 사용자라면 서버에서 인가해줍니다. JWT토큰은 `.`기준으로 첫번째 문자열부터 `Header`, `Payload`, `Signature` 입니다.  
@@ -456,8 +460,10 @@ yarn add @types/jose
     //   hello: token,
     // });
 ```
+
 ![image](https://github.com/WoogLim/wooglim.dev/assets/51357635/ecf087cd-ebfb-4eaa-bb78-818a3baa3213)
-### 로그인 구현하기
+
+### 로그인 API 구현하기
 ---
 로그인의 경우도 HTTP 요청을 통해 서버에 데이터를 전달해야합니다. 다음과 같은 순서로 진행할 수 있겠습니다.
 - 사용자 입력의 유효성 검사
@@ -548,7 +554,9 @@ export default async function handler(
   return res.status(404).json("Unkown endpoint");
 }
 ```
+
 ![image](https://github.com/WoogLim/wooglim.dev/assets/51357635/2bece81d-1c74-4036-9bbb-20463e385a93)
+
 ### 인증 요청에 따른 인가 허용하기 
 ---
 이제 JWT토큰을 가지고 있으니 권한이 필요한 페이지의 경우 신원을 서버에 인증해야겠죠? 그럼 서버는 신원을 확인하고 유효한 사람이라면 인가해주면 됩니다.  
@@ -712,4 +720,5 @@ export default async function handler(
   return res.json({user});
 }
 ```
+
 ![image](https://github.com/WoogLim/wooglim.dev/assets/51357635/ee5ceea1-543c-4351-ab07-eb7f99fa08ea)
