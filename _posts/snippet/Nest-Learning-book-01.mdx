@@ -1,9 +1,9 @@
 ---
-title: "[Nest.js] 1. Nest.js 시작하기"
-description: "Nest.js 프로젝트 설정하기"
+title: "[Nest.js V9] 정리 노트 - 1"
+description: "Nest.js 기본 개념"
 language: "Typescript"
 category: "NestJS"
-update: "2023-01-30"
+update: "2023-05-18"
 serisenumber: 1
 ---
 ## Intro
@@ -17,9 +17,9 @@ serisenumber: 1
 npm init -y
 ```
 
-이후 다음과 같이 5개의 라비르러리 설치를 진행합니다. 버전은 강의를 따라갑니다.
+이후 다음과 같이 5개의 라비르러리 설치를 진행합니다. 버전은 강의의 경우 7버전이였지만 9버전으로 진행하겠습니다.
 ```bash
-npm install @nestjs/common@7.6.17 @nestjs/core@7.6.17 @nestjs/platform-express@7.6.17 reflect-metadata@0.1.13 typescript@4.3.2
+npm install @nestjs/common @nestjs/core @nestjs/platform-express reflect-metadata@0.1.13 typescript
 ```
 
 ```json {14-18}
@@ -36,11 +36,11 @@ npm install @nestjs/common@7.6.17 @nestjs/core@7.6.17 @nestjs/platform-express@7
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@nestjs/common": "^7.6.17",
-    "@nestjs/core": "^7.6.17",
-    "@nestjs/platform-express": "^7.6.17",
+    "@nestjs/common": "^9.4.1",
+    "@nestjs/core": "^9.4.1",
+    "@nestjs/platform-express": "^9.4.1",
     "reflect-metadata": "^0.1.13",
-    "typescript": "^4.3.2"
+    "typescript": "^5.0.4"
   }
 }
 ```
@@ -76,18 +76,24 @@ npm install @nestjs/common@7.6.17 @nestjs/core@7.6.17 @nestjs/platform-express@7
 
 ## III. Nest 모듈, 컨트롤러 만들기
 ---
-우선 서버에서 요청, 응답을 위한 처리는 다음과 같이 처리됩니다.(통상적으로)
+우선 일련의 서버는 서버는 들어온 요청에 대해 다음과 같은 수순으로 처리합니다.
+- 요청을 수신하고 데이터에 유효성 검증
+- 사용자가 인증되었거나 권한이 있는지 확인
+- 특정 기능으로 라우팅
+- 비즈니스 로직을 실행하여 데이터베이스에 접근
 
-여기에서 Nset 에서는 아래와 같은 도구들을 제공합니다.
+여기에서 Nest 에서는 아래와 같은 도구들을 제공합니다.
 
 `Pipe`는 들어오는 요청 데이터의 유효성을 검사할 수 있습니다.  
 `Guard`는 사용자가 요청이 가능한 사용자인지에 대한 인증, 권한이 있는지 확인합니다.  
 `Controller`는 라우팅 기능이 포함됩니다.  
 `Service`는 요청에 따른 작업을 어떻게 수행할 지에 대한 비즈니스 로직이 포함됩니다.  
+`Repository`는 데이터베이스에 접근합니다.
   
 이외에도 다음과 같은 도구들이 제공됩니다. 도구들은 프로젝트를 생성하면서 알아보도록 합시다.
+`Modules`, `Filters`, `Interceptors`
 
-우선 위의 도구 중 컨트롤러와 모듈을 구성해봅시다. 프로젝트 워크 스페이스에서 `src`폴더를 생성합니다. 그리고 안에 `main.ts`파일을 생성합니다.
+우선 위의 도구 중 `Controller`와 `Modules`을 구성해봅시다. 프로젝트 워크 스페이스에서 `src`폴더를 생성합니다. 그리고 안에 `main.ts`파일을 생성합니다.
 ```ts {29-35}
 import { Controller, Module, Get } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
@@ -150,4 +156,88 @@ Ok to proceed? (y) y
 이제 브라우저를 실행하고 3000포트로 GET요청을 해봅시다.
 
 요청에 따른 응답이 정상적으로 넘어온 것을 확인할 수 있습니다. 지금 상태에서 정상적으로 동작하지만, 프로젝트 관리를 위해 컨트롤러 클래스와 모듈을 별도의 파일로 구분하여 작업해보도록 합시다.  
-그 전에 우선 `명명 규칙`부터 알아보도록 합시다.
+그 전에 우선 `파일 네이밍 컨벤션`부터 알아보도록 합시다.
+
+위 코드를 보면 `bootstrap` 함수로 `AppModule`클래스를 인스턴스화 합니다. `AppModule`은 또한 `Controller`클래스를 인스턴스화 하여 내재하고 있구요. 지금은 하나에 파일에 합쳤지만 이를 구분한다면 다음과 같을겁니다.
+- `bootstrap` > main.ts
+- `AppModule` > app.module.ts
+- `Controller` > app.controller.ts
+
+정리하자면 다음과 같게 됩니다.
+
+```ts
+// app.controller.ts
+import { Controller, Get } from "@nestjs/common";
+
+// @Controller는 데코레이터입니다. 이 클래스는 컨트롤러를 담당한다고 명시합니다.
+// 이 클래스는 요청을 처리하고 라우팅을 진행합니다.
+@Controller()
+export class AppController {
+
+  // 누군가 요청(GET) 한다면 이 메서드로 라우팅 합니다. Get 모듈을 import 해줍니다.
+  @Get()
+  getRootRoute() {
+    return 'hi there!';
+  }
+}
+```
+
+```ts
+// app.module.ts
+import { Module } from '@nestjs/common'
+import { AppController } from './app.controller'
+
+// module 데코레이터는 구성 옵션이나 개체를 인자로 전달해야합니다.
+// 이제 애플리케이션이 시작될 때 이 AppModule 클래스를 불러올 것입니다.
+@Module({
+  // 컨트롤러를 설정하면 자동으로 인스턴스화가 진행되어 인스턴스를 생성합니다.
+  // 인자로 객체를 주고 controllers키에 인스턴스로 생성할 클래스들을 명시해줍니다. 지금은 AppController 클래스로 명시해줍니다.
+  // AppController의 인스턴스가 생성됩니다.
+  controllers: [AppController]
+})
+export class AppModule {}
+```
+
+
+```ts
+// main.ts
+import { NestFactory } from "@nestjs/core";
+import { AppModule } from "./app.module";
+
+// 비동기로 작동할 함수를 생성하고 실행합니다.
+async function bootstrap() {
+  // AppModule 을 인스턴스화 하기 위해 NestFactory.create 함수에 인자로 입력합니다.
+  const app = await NestFactory.create(AppModule);
+  
+  // 인스턴스를 생성한 다음 들러오는 요청을 3000번 포트로 수신하도록 지시합니다.
+  await app.listen(3000);
+  // await을 사용했기 때문에 app.listen()함수 수행이 끝나면 다음 구문이 실행됩니다.
+}
+
+bootstrap().then(()=> {
+  // server end
+});
+```
+
+이제 url 을 잠깐 조정해봅시다 `@Controller`, `@Get`은 인자로 스트링 문자열을 받습니다. 이를 이용해 url 을 조정할 수 있죠.
+```ts
+// app.controller.ts
+import { Controller, Get } from "@nestjs/common";
+
+// @Controller는 데코레이터입니다. 이 클래스는 컨트롤러를 담당한다고 명시합니다.
+// 이 클래스는 요청을 처리하고 라우팅을 진행합니다.
+@Controller('/app')
+export class AppController {
+
+  // 누군가 요청(GET) 한다면 이 메서드로 라우팅 합니다. Get 모듈을 import 해줍니다.
+  @Get('/hi')
+  getRootRoute() {
+    return 'hi there!';
+  }
+
+  @Get('/exit')
+  getByeThere() {
+    return 'byt there!';
+  }
+}
+```

@@ -1,0 +1,160 @@
+---
+title: "[Nest.js V9] 정리 노트 - 2"
+description: "Nest CLI를 이용해 프로젝트 생성하기"
+language: "Typescript"
+category: "NestJS"
+update: "2023-05-18"
+serisenumber: 2
+---
+## Intro
+---
+- [Stephen Grider 강사님의 NestJS: The Complete Developer's Guide 강의를 듣고 TIL 방식으로 정리한 글입니다.](https://www.udemy.com/course/nestjs-the-complete-developers-guide//)
+
+## I. 시작
+---
+우선 CLI를 전역으로 설치합니다.
+```bash
+sudo npm install -g @nestjs/cli
+```
+
+그리고 프로젝트를 생성해봅시다.
+```bash
+nest new messages
+```
+이후 사용할 패키지 매니저를 설정합니다. 그러면 프로젝트가 생성됩니다. 프로젝트에서는 JSON 파일에 저장된 메시지를 응답으로 받아보도록 하겠습니다.  
+요청 메서드에 따라 `Pipe`, `Guard`, `Controller`, `Service`, `Repository` 사용 여부가 결정됩니다.
+
+1. GET 요청
+---
+- Pipe와 Guard는 필요없을것 같습니다.
+- 이후 Controller > Service > Repository > Service > Controller 순으로 응답을 처리합니다.
+
+2. POST 요청
+---
+- Guard는 필요없을것 같습니다.
+- 우선 Pipe로 값을 한번 검증합니다. 메시지 내용이 길이 여부를 검증할 수 있습니다.
+- 이후 Controller > Service > Repository > Service > Controller 순으로 응답을 처리합니다.
+
+3. 특정 GET 요청
+---
+- Pipe와 Guard는 필요없을것 같습니다.
+- 이후 Controller > Service > Repository > Service > Controller 순으로 응답을 처리합니다.
+
+따라서 `Module`내에 `Pipe`, `MessageController`, `MessagesService`, `MessagesRepository`만 있으면 될 것 같습니다.
+
+프로젝트 생성 후 파일구조는 다음과 같을겁니다.
+```text
+MESSAGES
+├── dist
+├── node_modules
+├── src
+├── test
+.eslintrc.js
+.gitignore
+.prettierrc
+nest-cli.json
+package-lock.json
+package.json
+README.md
+tsconfig.build.json
+tsconfig.json
+```
+`.eslintrc.js`의 경우 문법의 오류 및 강조를 보조해줍니다. 다만 타입스크립트를 사용하고 있으므로 강하게 검증할 필요가 없다면 비활성화 합니다.
+
+```text
+MESSAGES
+├── dist
+├── node_modules
+├── src
+│   └── app.controller.spec.ts
+│       app.controller.ts
+│       app.module.ts
+│       app.service.ts
+│       main.ts
+├── test
+```
+`src`폴더 구조는 익숙할겁니다. 여기에서 main.ts를 남기고 나머지 파일은 구분해둡니다. 
+
+이제 다시 파일을 분리해봅시다. nest는 `nest generate`명령으로 이러한 파일들을 빠르게 만들 수 있습니다. 우선 `Module`을 생성해봅시다.
+```bash
+nest generate module messages
+```
+
+다음과 같이 생성됩니다.
+```text
+MESSAGES
+├── dist
+├── node_modules
+├── src
+│   └── messages
+│       └── messages.module.ts
+│   └── main.ts
+├── test
+```
+
+main.ts 파일도 다음과 같이 수정합니다.
+```ts
+// main.ts
+import { NestFactory } from '@nestjs/core';
+import { MessagesModule } from './messages/messages.module';
+
+async function bootstrap() {
+  const app = await NestFactory.create(MessagesModule);
+  await app.listen(3000);
+}
+bootstrap();
+```
+
+이제 `Controller`를 생성해봅시다. 아래 명령은 messages폴더 안에 messages 클래스 파일을 생성하고 해당 폴더내 controller폴더를 생성하지 않고 module에 자동으로 연결해주는 명령입니다.
+```bash
+nest generate controller messages/messages --flat
+```
+
+```text
+MESSAGES
+├── dist
+├── node_modules
+├── src
+│   └── messages
+│       └── messages.controller.spec.ts
+│       └── messages.controller.ts
+│       └── messages.module.ts
+│   └── main.ts
+├── test
+```
+
+```ts
+// messages/messages.module.ts
+
+import { Module } from '@nestjs/common';
+import { MessagesController } from './messages.controller';
+
+@Module({
+  controllers: [MessagesController]
+})
+export class MessagesModule {}
+```
+
+이제 실제로 컨트롤러를 작성해봅시다.
+```ts
+// messages/messages.controller.ts
+import { Controller, Get, Post } from '@nestjs/common';
+
+@Controller('messages')
+export class MessagesController {
+  @Get()
+  listMessages() {
+
+  }
+
+  @Post()
+  createMessages() {
+
+  }
+
+  @Get('/:id')
+  getMessage() {
+
+  }
+}
+```

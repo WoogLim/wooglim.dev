@@ -1,0 +1,116 @@
+---
+title: "[Nest.js V9] 정리 노트 - 3"
+description: "요청값 검증하기"
+language: "Typescript"
+category: "NestJS"
+update: "2023-05-19"
+serisenumber: 3
+---
+## Intro
+---
+- [Stephen Grider 강사님의 NestJS: The Complete Developer's Guide 강의를 듣고 TIL 방식으로 정리한 글입니다.](https://www.udemy.com/course/nestjs-the-complete-developers-guide//)
+
+## I. 시작
+---
+Nest/common 는 Get, Post와 같은 메서드 데코레이터 뿐 아니라, Body, Param과 같은 인수 데코레이터도 지원합니다. 아래와 같이 추출할 수 있죠.
+```ts
+import { Controller, Get, Post, Body, Param } from '@nestjs/common';
+
+@Controller('messages')
+export class MessagesController {
+  // @GET() @Post() -> 메서드 데코레이터
+  // Body, Param -> 인수 데코레이터
+
+  @Get()
+  listMessages() {
+
+  }
+
+  @Post()
+  createMessages(@Body() body: any) {
+    console.log(body); // 추출된 body 표시
+  }
+
+  @Get('/:id')
+  getMessage(@Param('id') id: string) {
+    console.log(id); // 추출된 Param 표시
+  }
+}
+```
+다음과 같이 Nest/common에서 지원하는 `ValidationPipe`를 이용해 데이터의 유효성을 검증할 수도 있습니다. 특정 핸들러에서도 작동시킬 수 있지만 전역으로 적용할 수 있습니다. `main.ts`에 적용하면 됩니다.
+```ts
+// main.ts
+import { NestFactory } from '@nestjs/core';
+import { ValidationPipe } from '@nestjs/common';
+import { MessagesModule } from './messages/messages.module';
+
+async function bootstrap() {
+  const app = await NestFactory.create(MessagesModule);
+  app.useGlobalPipes(new ValidationPipe());
+  await app.listen(3000);
+}
+bootstrap();
+```
+우선 데이터 전송 개체 `DTO`를 구성해야 합니다. `messages`폴더내 `dtos`폴더를 생성하고 `DTO`를 정의합니다. 일단 유효성 검증 시 사용할 라이브러리를 설치합니다.
+```bash
+npm install class-validator class-transformer
+```
+`DTO`를 작성합니다. [class-validator](https://github.com/typestack/class-validator)는 `validate-decorator`를 지원합니다. 인자의 유효성을 설정할 수 있습니다.
+```ts
+import { IsString } from "class-validator";
+
+export class CreateMessageDto {
+  @IsString()
+  content: string;
+}
+```
+이제 아래와 같이 인자 `body`의 타입으로 설정합니다.
+```ts
+// messages/messages.controller.ts
+  // ...}
+
+  @Post()
+  createMessages(@Body() body: CreateMessageDto) {
+    console.log(body); // 추출된 body 표시
+  }
+```
+[class-transformer](https://github.com/typestack/class-transformer)는 아래와 같이 요청 파라미터로 넘어오는 객체를 하나의 인스턴스로 변환해줍니다. body의 JSON 데이터를 타입으로 설정한 CreateMessageDto 인스턴스로 변환해줍니다.
+이제 다음과 같은 잘못된 데이터를 보내봅시다.
+```json
+// POST localhost:3000/messages
+{ "content": 3124 }
+```
+아래와 같이 에러를 발생시킵니다.
+```text
+{
+    "statusCode": 400,
+    "message": [
+        "content must be a string"
+    ],
+    "error": "Bad Request"
+}
+```
+파이프는 class-transformer를 이용해 요청 JSON 데이터를 인스턴스로 변환하고 해당 인스턴스에 실제 적용된 유효성 데코레이터로 값이 정상적인지 검증하고 검증이 된다면 내부 로직을 수행하게 됩니다.
+이런 데코레이터는 아래와 같은 설정을 적용함으로 자바스크립트로 변환되어 실행됩니다.
+```json
+// tsconfig.json
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+```
+실제로 `createMessage` 메서드는 아래와 같이 자바스크립트로 변환되어 실행됩니다.
+```js
+// Post 메소드 데코레이터를 사용하여 POST 요청을 처리하는 메소드를 등록한다.
+// common_1.Post는 NestJS에서 제공하는 HTTP 메소드 데코레이터이다.
+__decorate([
+    (0, common_1.Post)(),
+    // Body 메소드 데코레이터를 사용하여 요청 바디를 파싱한다.
+    // common_1.Body는 NestJS에서 제공하는 요청 바디 파싱 데코레이터이다.
+    __param(0, (0, common_1.Body)()),
+    // 메소드의 메타데이터를 설정한다.
+    __metadata("design:type", Function),
+    // 메소드의 파라미터 타입을 설정한다.
+    __metadata("design:paramtypes", [create_message_dto_1.CreateMessageDto]),
+    // 메소드의 반환 타입을 설정한다.
+    __metadata("design:returntype", void 0)
+], MessagesController.prototype, "createMessages", null);
+```
