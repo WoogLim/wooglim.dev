@@ -1,0 +1,186 @@
+---
+title: "알고리즘 - 문제 해결법"
+description: "문제 해결을 위한 접근 방법"
+language: "Javascript"
+category: "Javascript Algorithm"
+update: "2023-01-30"
+serisenumber: 2
+---
+
+## Intro
+
+---
+
+- [Colt Steele 강사님의 알고리즘 강의를 듣고 TIL 방식으로 정리한 글입니다.](https://www.udemy.com/course/js-algorithms-and-data-structures-masterclass/)
+
+## I. 문제 이해하기
+
+---
+
+문제를 완벽하게 이해해야 합니다. 문는 어떤 입력값을 가지며 어떤 출력값이 나와야하는지 분명히 하고 난 이후에 문제를 풀이해야합니다. 이를 위해선 질문도 서슴치 않아야합니다.
+
+## II. 구체적 예시 알아보기
+
+---
+
+예로, 문자의 수를 반환하는 문제를 해결해야 할 경우, 숫자 문자열은 포함하지 않는지 대 소문자 중복이 허용되는지, 인자로 빈 문자열이 들어갈 수 있는지 구체적 예시를 알아야합니다.
+
+## III. 문제 세분화하기
+
+---
+
+이전 과정에서 문자의 경우 모두 소문자로 변경하고 문자만 포함한다고 할 경우 문제를 주석으로 세분화 할 필요가 있습니다. 문제를 끝내지 못하더라도 세분화하면 문제를 이해하고 있다는 것을 증명할 수 있죠.
+
+```js
+charCount("Your PIN number is 1234!");
+
+function charCount(str) {
+  // 반환값은 문자별 카운트를 한 객체가 반환
+  // 문자를 순회
+  // 문자가 숫자/문자이며(공백X) 이미 존재하는 프로퍼티의 경우 +1, 없다면 프로퍼티를 새로 추가하고 값으로 1
+  // 공백 마침표 숫자라면 패스
+  // 리턴
+}
+```
+
+## IV. 쉬운 부분부터 시작하기
+
+---
+
+문제 해결시 복잡한 로직보다 이전 과정을 먼저 수행하는 것이 좋습니다.
+
+```js
+charCount("Your PIN number is 1234!");
+
+function charCount(str) {
+  // 반환값은 문자별 카운트를 한 객체가 반환
+  const result = {};
+  // 문자를 순회
+  for (let i = 0; i < str.length; i++) {
+    var char = str[i];
+    // 문자가 숫자/문자이며(공백X) 이미 존재하는 프로퍼티의 경우 +1, 없다면 프로퍼티를 새로 추가하고 값으로 1
+    if (result[char] > 0) {
+      result[char]++;
+    } else {
+      result[char] = 1;
+    }
+    // 공백 마침표 숫자라면 패스
+  }
+  // 리턴
+  return result;
+}
+```
+
+이제 함수는 문자별 카운트 정보를 가진 객체를 반환합니다.
+
+```js
+charCount("Your PIN number is 1234!");
+
+function charCount(str) {
+  // 반환값은 문자별 카운트를 한 객체가 반환
+  const result = {};
+  // 문자를 순회
+  for (let i = 0; i < str.length; i++) {
+    var char = str[i].toLowerCase();
+    // 문자가 숫자/문자이며(공백X) 이미 존재하는 프로퍼티의 경우 +1, 없다면 프로퍼티를 새로 추가하고 값으로 1
+    if (result[char] > 0) {
+      result[char]++;
+    } else {
+      result[char] = 1;
+    }
+    // 공백 마침표 숫자라면 패스
+  }
+  // 리턴
+  return result;
+}
+```
+
+이제 소문자로 변환할 수 있습니다. 이제 정규식을 추가해보면 될 것 같군요
+
+```js
+charCount("Your PIN number is 1234!");
+
+function charCount(str) {
+  // 반환값은 문자별 카운트를 한 객체가 반환
+  const result = {};
+  // 문자를 순회
+  for (let i = 0; i < str.length; i++) {
+    var char = str[i].toLowerCase();
+
+    if (!/[a-z]/.test(char)) {
+      continue;
+    }
+
+    // 문자가 숫자/문자이며(공백X) 이미 존재하는 프로퍼티의 경우 +1, 없다면 프로퍼티를 새로 추가하고 값으로 1
+    if (result[char] > 0) {
+      result[char]++;
+    } else {
+      result[char] = 1;
+    }
+    // 공백 마침표 숫자라면 패스
+  }
+  // 리턴
+  return result;
+}
+```
+
+## V. 문제를 다시 보고 리펙토링하기
+
+---
+
+문제를 해결했다면 시간 복잡도와 공간 복잡도를 생각하고 더 나은 성능을 위해 리펙토링해야합니다.
+
+일단 for 문을 통해 숫자를 증가하고 각 인덱스에 접근하고 있습니다. 이 부분은 문자를 바로 반환받는 `for...of`로 개선할 필요가 있습니다.
+
+```js
+charCount("Your PIN number is 1234!");
+
+function charCount(str) {
+  // 반환값은 문자별 카운트를 한 객체가 반환
+  const result = {};
+  // 문자를 순회
+  for (let char of str) {
+    var char = char.toLowerCase();
+
+    // 문자가 숫자/문자이며(공백X) 이미 존재하는 프로퍼티의 경우 +1, 없다면 프로퍼티를 새로 추가하고 값으로 1
+    if (/[a-z]/.test(char)) {
+      result[char] = ++result[char] || 1;
+    }
+    // 공백 마침표 숫자라면 패스
+  }
+  // 리턴
+  return result;
+}
+```
+
+정규식은 간편히 사용할 수 있지만 직접 비교할 수 있다면 더 빠른 속도를 가진 방법도 있을겁니다.
+
+```js
+charCount("Your PIN number is 1234!");
+
+function charCount(str) {
+  // 반환값은 문자별 카운트를 한 객체가 반환
+  const result = {};
+  // 문자를 순회
+  for (let char of str) {
+    var char = char.toLowerCase();
+
+    // 문자가 숫자/문자이며(공백X) 이미 존재하는 프로퍼티의 경우 +1, 없다면 프로퍼티를 새로 추가하고 값으로 1
+    if (isAlpha(char)) {
+      result[char] = ++result[char] || 1;
+    }
+    // 공백 마침표 숫자라면 패스
+  }
+  // 리턴
+  return result;
+}
+
+function isAlpha(char){
+  const code = char.charCodeAt(0); // 해당 문자의 코드 넘버를 반환
+  if (!(code > 64 && code < 91) && // [A-Z]
+      !(code > 96 && code < 123)) { // [a-z]
+      return false;
+    }
+  return true;
+}
+```
