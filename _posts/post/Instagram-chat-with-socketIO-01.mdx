@@ -15,7 +15,9 @@ stacks: ["javascript"]
 ## 시작
 ---
 전시 커뮤니티 [Muse-O](https://museoh.shop/)사이드 프로젝트에서 메시지 기능을 담당하게 되었습니다. 우선은 채팅 기능에 대한 적합한 모델을 찾아보기로 했습니다. 페이지도 구현하게될 것이므로 심플한 UI에 1:1 채팅 기능을 지원하는 모델을 찾아보고자 했고, 최종적으로 인스타그램의 메시지를 참고하기로 했습니다.  
-글이 길어질 것 같아 이번 장에서는 기능 설계를 주제로 진행하겠습니다. 순서는 기능 설계 > 백엔드 구현 > 프론트엔드 구현 순으로 진행하겠습니다.  
+
+글이 길어질 것 같아 이번 장에서는 기능 설계를 주제로 진행하겠습니다. 순서는 기능 설계 > 백엔드 구현 > 프론트엔드 구현 순으로 진행하겠습니다.
+
 우선 개발 환경은 다음과 같습니다.  
 1. Frontend
   - React, styled-component
@@ -45,16 +47,21 @@ stacks: ["javascript"]
 ### 필요 기능 정리하기
 ---
 우선 다음과 같이 기능을 정리하여 REST API를 설계하였습니다. (세부 로직은 다음 글에서 정리해보도록 하겠습니다.)
-1. `GET [serverURL]/api/chat/` 채팅방 목록 조회하기 - 내가 참여하고 있는 채팅방 목록 조회
-2. `GET [serverURL]/api/chat/search` 채팅 대상 검색하기 - 채팅을 시작할 대상자 검색
-3. `POST [serverURL]/api/chat/` 채팅방 생성하기 - 채팅 대상자 선택 후 채팅방을 개설. 채팅방에서는 나와 대상자가 참여자로 등록되고 채팅방은 고유의 UUID ID를 부여
-4. `GET [serverURL]/api/history` 이전 채팅 목록 불러오기 - 해당 채팅방의 이전 채팅 목록 조회
+1. `GET [serverURL]/api/chat/` 채팅방 목록 조회하기
+  - 내가 참여하고 있는 채팅방 목록 조회
+2. `GET [serverURL]/api/chat/search` 채팅 대상 검색하기
+  - 채팅을 시작할 대상자 검색
+3. `POST [serverURL]/api/chat/` 채팅방 생성하기 
+  - 채팅 대상자 선택 후 채팅방을 개설. 채팅방에서는 나와 대상자가 참여자로 등록되고 채팅방은 고유의 UUID ID를 부여
+4. `GET [serverURL]/api/history` 이전 채팅 목록 불러오기 
+  - 해당 채팅방의 이전 채팅 목록 조회
 
 위와 같은 API는 웹 서버(express 이용)에서 구현하고, 소켓 이벤트 처리는 socket.IO 서버에서 처리하기로 했습니다. 참고로 웹 서버와 별개로 소켓 서버도 존재합니다. 별도의 포트로 실행하거나, 같은 포트로 서버를 실행할 경우 하나의 http 서버에 express와 socket을 포함하여 같이 실행해야 합니다.
 
 ### 같은 포트로 express서버와 socket서버 실행하기
 ---
-이 프로잭트에서는 같은 포트로 express서버와 socket서버를 단일 포트에서 열어두기로 했습니다. 이 방법의 장점은 하나의 포트로 HTTP 서버와 소켓 서버를 실행하면 서버 구성이 단순해지며 클라이언트는 하나의 포트만 사용하여 서버에 연결하면 되어 관리하기 쉬운 장정이 있습니다. 또한 권한 인증 및 프록시 설정(Nginx)및 방화벽 설정이 간편하다는 장점도 존재합니다.  
+이 프로잭트에서는 같은 포트로 express서버와 socket서버를 단일 포트에서 열어두기로 했습니다. 이 방법의 장점은 하나의 포트로 HTTP 서버와 소켓 서버를 실행하면 서버 구성이 단순해지며 클라이언트는 하나의 포트만 사용하여 서버에 연결하면 되어 관리하기 쉬운 장정이 있습니다.  
+또한 권한 인증 및 프록시 설정(Nginx)및 방화벽 설정이 간편하다는 장점도 존재합니다.  
 같은 포트로 express서버와 socketIO서버를 실행하는 방법은 다음과 같습니다.
 ```js
 // app.js
@@ -79,7 +86,8 @@ server.listen(PORT, () => {
   logger.info(`${PORT} 포트 번호로 서버가 실행되었습니다.`);
 });
 ```
-위의 코드에서 `app`은 Express 앱을 생성하고 `server`는 http.createServer()를 사용하여 Express 앱을 기반으로 한 HTTP 서버를 생성합니다. 이후 `io`는 Socket.IO 서버를 생성하고 `server`를 이용해 연결합니다. 이와 같은 방법으로 `Express`앱과 `Socket.IO`서버는 같은 포트를 공유하면서 클라이언트와의 연결을 처리할 수 있습니다.
+위의 코드에서 `app`은 Express 앱을 생성하고 `server`는 http.createServer()를 사용하여 Express 앱을 기반으로 한 HTTP 서버를 생성합니다. 이후 `io`는 Socket.IO 서버를 생성하고 `server`를 이용해 연결합니다.  
+이와 같은 방법으로 `Express`앱과 `Socket.IO`서버는 같은 포트를 공유하면서 클라이언트와의 연결을 처리할 수 있습니다.
 
 ### 소켓 이벤트 정리하기
 ---
@@ -91,13 +99,16 @@ socket.on('처리할 이벤트 명', (msg) => {
 socket.emit('전송할 이벤트 명', (msg))
 ```
 위에서 설명한 방법은 모든 클라이언트에게 소켓 이벤트를 브로드캐스트하므로, 특정 채팅방에 참가한 사용자들에게만 메시지를 전달하기 위한 방법이 필요합니다. 이를 위해 [Room](https://socket.io/docs/v4/namespaces/) 기능을 활용하기로 했습니다.  
+
 현재 채팅방 개설시 채팅방 고유의 UUID ID가 부여됩니다. 해당 UUID를 이용해 `socket`에 조인(`join`)하여 해당 채팅방 Room에서만 참가자 간 메시지를 주고받을 수 있도록 해야합니다. `Room`은 기본적으로 다음과 같은 방식으로 동작합니다.
 ```js
 io.on("connection", (socket) => {
-
-  socket.on("joinChatRoom", async () => { // "joinChatRoom" 이벤트가 발생하면 콜백 함수 실행
-    socket.join("chatRoom UUID"); // 현재 소켓을 "chatRoom UUID"에 조인
-    io.to("chatRoom UUID").emit("hello"); // "chatRoom UUID"에 있는 모든 소켓에게 "hello" 이벤트 emit
+  // "joinChatRoom" 이벤트가 발생하면 콜백 함수 실행
+  socket.on("joinChatRoom", async () => { 
+    // 현재 소켓을 "chatRoom UUID"에 조인
+    socket.join("chatRoom UUID"); 
+    // "chatRoom UUID"에 있는 모든 소켓에게 "hello" 이벤트 emit
+    io.to("chatRoom UUID").emit("hello"); 
   });
 });
 ```
