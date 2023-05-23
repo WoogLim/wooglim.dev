@@ -27,18 +27,18 @@ stacks: ["javascript"]
 ### 참고 모델 분석하기
 ---
 먼저 인스타그램의 메시지 UI는 다음과 같은 모습입니다.
-![instagramChat-1](/posts/thumbnail/artcle/socket/instagramChat-1.png)
+![instagramChat-1](/posts/artcle/socket/instagramChat-1.png)
 
 만일 메시지를 보낼 대상을 검색하고자 한다면 다음과 같이 `메시지 보내기` 버튼을 클릭해 사용자를 검색하면 됩니다. 동시에 여러 대상자를 선택해 채팅방을 개설할 수 있는데, 이 부분에서 한 사용자만 선택하여 채팅방을 개설하는 기능만을 구현하기로 했습니다.
-![instagramChat-2](/posts/thumbnail/artcle/socket/instagramChat-2.png)
+![instagramChat-2](/posts/artcle/socket/instagramChat-2.png)
 
 다음은 대상자 선택 후 채팅방이 개설된 모습입니다. 채팅 메시지 및 사진 그리고 이모티콘을 입력할 수 있습니다. 이 부분에서 메시지 전송 기능만을 구현하기로 했습니다.
-![instagramChat-3](/posts/thumbnail/artcle/socket/instagramChat-3.png)
+![instagramChat-3](/posts/artcle/socket/instagramChat-3.png)
 
 ### 데이터 베이스 설계하기
 ---
 위와 같은 모델을 분석하여 다음과 같이 데이터 베이스를 설계하였습니다. 
-![instagramChatERD](/posts/thumbnail/artcle/socket/instagramChatERD.png)
+![instagramChatERD](/posts/artcle/socket/instagramChatERD.png)
 
 유저는 채팅 메시지 그리고 여러 채팅방의 참가자가 될 수 있으므로 1:N 관계, 한 채팅방에는 여러명의 참가자, 메시지 내역이 존재하므로 1:N 관계로 매핑하였습니다. 또한 추가 기능을 염두에 두어 각 테이블 마다 status, kind 컬럼을 추가하였습니다. 다만 현재로서는 추가 기능을 구현하지 않을 것이므로 해당 컬럼은 없다고 봐도 무방합니다. 
 
