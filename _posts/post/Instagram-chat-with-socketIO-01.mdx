@@ -27,18 +27,18 @@ stacks: ["javascript"]
 ### 참고 모델 분석하기
 ---
 먼저 인스타그램의 메시지 UI는 다음과 같은 모습입니다.
-![instagramChat-1](https://github.com/WoogLim/wooglim.dev/assets/51357635/ecd3296b-4f2a-4c0c-a023-d5a6472b561f)
+![instagramChat-1](https://imagedelivery.net/PuSDNnCRK2yfDJPo_9Wxrw/574d4ea2-6ee1-453d-7b11-5c2ff3169a00/public)
 
 만일 메시지를 보낼 대상을 검색하고자 한다면 다음과 같이 `메시지 보내기` 버튼을 클릭해 사용자를 검색하면 됩니다. 동시에 여러 대상자를 선택해 채팅방을 개설할 수 있는데, 이 부분에서 한 사용자만 선택하여 채팅방을 개설하는 기능만을 구현하기로 했습니다.
-![instagramChat-2](https://github.com/WoogLim/wooglim.dev/assets/51357635/dc715690-150f-4249-8712-3247ea08c9b5)
+![instagramChat-2](https://imagedelivery.net/PuSDNnCRK2yfDJPo_9Wxrw/2dd88a0d-e559-4ebb-6a59-453c443c2b00/public)
 
 다음은 대상자 선택 후 채팅방이 개설된 모습입니다. 채팅 메시지 및 사진 그리고 이모티콘을 입력할 수 있습니다. 이 부분에서 메시지 전송 기능만을 구현하기로 했습니다.
-![instagramChat-3](https://github.com/WoogLim/wooglim.dev/assets/51357635/b02bf419-05ca-45cb-846b-d8c197ecda55)
+![instagramChat-3](https://imagedelivery.net/PuSDNnCRK2yfDJPo_9Wxrw/30a1711f-5d35-4b09-4dc1-c593f769d600/public)
 
 ### 데이터 베이스 설계하기
 ---
 위와 같은 모델을 분석하여 다음과 같이 데이터 베이스를 설계하였습니다. 
-![instagramChatERD](https://github.com/WoogLim/wooglim.dev/assets/51357635/02e0ce09-dae3-4d51-a0c8-07ffebc73704)
+![instagramChatERD](https://imagedelivery.net/PuSDNnCRK2yfDJPo_9Wxrw/15f75599-fbe4-4fee-1d45-579ef53f8100/public)
 
 유저는 채팅 메시지 그리고 여러 채팅방의 참가자가 될 수 있으므로 1:N 관계, 한 채팅방에는 여러명의 참가자, 메시지 내역이 존재하므로 1:N 관계로 매핑하였습니다. 또한 추가 기능을 염두에 두어 각 테이블 마다 status, kind 컬럼을 추가하였습니다. 다만 현재로서는 추가 기능을 구현하지 않을 것이므로 해당 컬럼은 없다고 봐도 무방합니다. 
 
