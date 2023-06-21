@@ -11,7 +11,7 @@ export const Footer = () => {
   return (
     <BottomContainer>
       <FooterWrap className="dark:border-zinc-200">
-        <Copyright className="dark:text-zinc-100">© 2022 Geon Lim. All right reserved</Copyright>
+        <Copyright className="dark:text-zinc-100">© 2022 Woog. All right reserved</Copyright>
         <BlogLinks>
           <LinkButton href="https://github.com/WoogLim/woogLim.dev" className="dark:bg-zinc-200">
             <Image

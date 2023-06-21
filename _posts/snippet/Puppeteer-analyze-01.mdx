@@ -1,0 +1,35 @@
+---
+title: "Puppeteer Docs 주행"
+description: "Puppeteer Docs 흝어보기"
+language: "NodeJS"
+category: "NodeJS"
+update: "2023-06-21"
+serisenumber: 1
+---
+
+## Puppeteer란?
+- Puppeteer 라이브러리는 가상의 브라우저를 백그라운드로 실행하여 웹 페이지를 스크래핑하는 라이브러리이다. 라이선스는 `Apache License 2.0`을 사용한다. 기본적으로 다음과 같이 사용한다.
+```js
+  // Puppeteer를 사용하여 웹 페이지를 스크래핑하는 함수를 선언합니다.
+  async function scrapeWebsite(url) {
+  // Puppeteer 브라우저를 실행합니다.
+  const browser = await puppeteer.launch();
+  // 새로운 페이지를 생성합니다.
+  const page = await browser.newPage();
+
+  page.on('response', (response) => {
+    // 응답과 관련된 요청 정보 가져오기
+    console.log(response);
+  });
+
+  // 페이지가 로드될 때까지 기다립니다.
+  await page.goto(url);
+  // 페이지의 HTML을 가져옵니다.
+  const html = await page.content();
+  // 브라우저를 종료합니다.
+  await browser.close();
+  }
+```
+---
+
+###
