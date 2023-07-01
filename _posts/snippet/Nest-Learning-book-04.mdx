@@ -1,0 +1,246 @@
+---
+title: "[Nest.js V9] 정리 노트 - 4"
+description: "서비스와 리퍼지토리 그리고 에러핸들링"
+language: "Typescript"
+category: "NestJS"
+update: "2023-06-25"
+serisenumber: 4
+---
+## Intro
+---
+- [Stephen Grider 강사님의 NestJS: The Complete Developer's Guide 강의를 듣고 TIL 방식으로 정리한 글입니다.](https://www.udemy.com/course/nestjs-the-complete-developers-guide//)
+
+## I. 시작
+---
+이제 리퍼지토리를 연결해봅시다. 리퍼지토리는 데이터베이스에 엑세스하는 계층입니다. 우선 임시로 데이터베이스 대용으로 json파일을 생성합니다. 키를 통해 데이터를 가져오고, 생성하기 위해 readFile, writeFile 모듈을 사용합니다.
+
+### 서비스와 리퍼지토리 아키텍쳐
+```ts
+// message.repository.ts
+import { readFile, writeFile} from "fs/promises";
+
+export class MessagesRepository {
+  async findOne(id: string) {
+    const contents = await readFile('messages.json', 'utf8');
+    const messages = JSON.parse(contents);
+
+    return messages[id];
+  }
+
+  async findAll() {
+    const contents = await readFile('messages.json', 'utf8');
+    const messages = JSON.parse(contents);
+
+    return messages;
+  }
+
+  async create(content: string) {
+    const contents = await readFile('messages.json', 'utf8');
+    const messages = JSON.parse(contents);
+
+    const id = Math.floor(Math.random() * 999);
+
+    messages[id] = {id, content};
+
+    await writeFile('messages.json', JSON.stringify(messages));
+  }
+}
+```
+데이터베이스 대용으로 사용할 json파일입니다. 빈 객체를 입력해둡니다.
+```json
+// message.json
+{
+}
+```
+리퍼지토리와 연결될 서비스도 작성합니다.
+```ts
+// messages.service.ts
+import { MessagesRepository } from "./messages.repository";
+
+export class MessagesService {
+  messagesRepo: MessagesRepository;
+
+  constructor() {
+    // MessagesService는 MessagesRepository와 종속성 설정 -> Nest에서는 아래와 같이 인스턴스를 생성하지 않아도 사용할 수 있음. 차후 알아보도록 하자.
+    this.messagesRepo = new MessagesRepository();
+  }
+
+  findOne(id: string) {
+    return this.messagesRepo.findOne(id);
+  }
+
+  findAll() {
+    return this.messagesRepo.findAll();
+  }
+
+  create(content: string) {
+    return this.messagesRepo.create(content);
+  }
+}
+```
+서비스와 연결할 컨트롤러를 완성합니다.
+```ts
+// messages.controller.ts
+import { Controller, Get, Post, Body, Param } from '@nestjs/common';
+import { CreateMessageDto } from './dtos/create-message.dto';
+import { MessagesService } from './messages.service';
+
+@Controller('messages')
+export class MessagesController {
+  // @GET() @Post() -> 메서드 데코레이터
+  // Body, Param -> 인수 데코레이터
+
+  messagesService: MessagesService;
+
+  constructor() {
+    this.messagesService = new MessagesService();
+  }
+
+  @Get()
+  listMessages() {
+    return this.messagesService.findAll();
+  }
+
+  @Post()
+  createMessages(@Body() body: CreateMessageDto) {
+    return this.messagesService.create(body.content)
+  }
+
+  @Get('/:id')
+  getMessage(@Param('id') id: string) {
+    console.log(id); // 추출된 Param 표시
+    return this.messagesService.findOne(id);
+  }
+}
+```
+테스트 결과는 다음과 같습니다.
+
+- POST localhost:3000/messages
+
+Body Parameter에 다음과 같이 contents 값을 넘겨줍니다.
+```json
+{
+    "content": "3421"
+}
+```
+
+- GET localhost:3000/messages
+```json
+{
+    "25": {
+        "id": 25,
+        "content": "3421"
+    }
+}
+```
+
+- GET localhost:3000/messages/25
+```json
+{
+    "id": 25,
+    "content": "3421"
+}
+```
+
+분명 없는 값을 요청하는 경우도 있을겁니다. 예외를 추가해줍니다.
+```ts
+@Get('/:id')
+async getMessage(@Param('id') id: string) {
+  const message = await this.messagesService.findOne(id);
+
+  if (!message) {
+    throw new NotFoundException('message not found');
+  }
+}
+```
+
+- GET localhost:3000/messages/24
+- 결과
+```json
+{
+    "statusCode": 404,
+    "message": "message not found",
+    "error": "Not Found"
+}
+```
+
+예외의 종류는 예외 클래스 탭을 오른쪽 클릭하여 `Reveal in Explorer View`를 클릭하면 nestjs 모듈내 정의된 여러 익셉션 클래스를 확인할 수 있습니다.
+
+### 의존성과 종속성 이해하기
+서비스, 컨트롤러에 종속성을 주입하여 해당 계층의 메서드를 사용해왔습니다. 우선 서비스는 리퍼지토리에 의존하고 컨트롤러는 서비스에 의존합니다. 중간사이 어느 클래스가 존재하지 않는다면 동작하지 않습니다. 매우 명확한 종속성이 존재하죠.  
+종속성을 완화하고 테스팅에 유용하게 패턴을 바꿔봅시다.  
+
+현재 컨트롤러를 생성하기 위해 Nest DI Container는 MessagesService의 종속성에 MessagesRepository을 주입합니다. MessagesRepository는 아무것도 종속할 필요 없습니다. 이후 MessagesRepository, MessagesService의 인스턴스가 생성되고 컨트롤러 인스턴스를 생성하게됩니다.]
+
+### DI Container Flow
+DI Container의 의존성 주입은 다음과 같은 순서로 진행됩니다.
+- 1. 다양한 클래스를 모두 컨테이너에 등록
+- 2. 컨테이너는 다양한 클래스를 살펴본 후 각 클래스마다 필요한 종속성 파악
+- 3. 각 클래스는 인스턴스 생성 시점 종속성에 포함된 클래스 인스턴스 생성
+- 4. 컨테이너는 컨트롤러가 필요로하는 종속성 인스턴스 생성. 이후 컨트롤러 반환
+- 5. 컨테이너는 생성된 종속성을 유지.
+따라서 이미 생성된 인스턴스는 계속 재사용됩니다.
+
+### Dependency Injection으로 리펙터링
+특정 클래스에서 종속되는 클래스가 매번 다를 수 있습니다. 때문에 종속성에 따라 해당 클래스를 인스턴스화하지 않고도 사용할 수 있도록 DI Container를 사용합니다. 우선 해당 클래스가 어느 클래스의 주입되어 사용되는 경우 `@nestjs/common`모듈의 `Injectable`이라는 데코레이터를 붙여줍니다.
+```ts
+import { Injectable } from "@nestjs/common"; 
+import { MessagesRepository } from "./messages.repository";
+
+@Injectable()
+export class MessagesService {
+
+  // 접근 제어는 public으로 설정합니다. 다른 클래스에서 사용되는것을 허용합니다.
+  constructor(public messagesRepo: MessagesRepository) {}
+
+  findOne(id: string) {
+    return this.messagesRepo.findOne(id);
+  }
+
+  findAll() {
+    return this.messagesRepo.findAll();
+  }
+
+  create(content: string) {
+    return this.messagesRepo.create(content);
+  }
+}
+```
+현재 프로젝트에서는 서비스, 리퍼지토리 클래스에 @Injectable() 데코레이터를 붙여줍니다. 그리고 모듈에 `providers`에 배열로 추가해줍니다.
+```ts
+// messages.module.ts
+
+import { Module } from '@nestjs/common';
+import { MessagesController } from './messages.controller';
+import { MessagesService } from './messages.service';
+import { MessagesRepository } from './messages.repository';
+
+@Module({
+  controllers: [MessagesController],
+  // 다른 클래스에서 종속성으로 사용될 수 있는 클래스
+  providers: [MessagesService, MessagesRepository]
+})
+export class MessagesModule {}
+```
+
+`providers`에 포함된 클래스는 생성된 인스턴스를 재사용하게 됩니다. 실제로 다음과 같이 하나의 인스턴스를 재사용하는것을 확인할 수 있습니다.
+
+```ts
+// messages.controller.ts
+
+@Controller('messages')
+export class MessagesController {
+  // @GET() @Post() -> 메서드 데코레이터
+  // Body, Param -> 인수 데코레이터
+
+  constructor(
+    public messagesService: MessagesService,
+    public messagesService2: MessagesService,
+    public messagesService3: MessagesService) {
+      console.log(messagesService === messagesService2); // true
+      console.log(messagesService === messagesService3); // true
+    }
+  // ...
+})
+```
+이 장점을 이용한다면 인젝션 및 제어 기술의 전체 역전, 그리고 앱 테스트가 훨씬 쉬어지게 될 것입니다.

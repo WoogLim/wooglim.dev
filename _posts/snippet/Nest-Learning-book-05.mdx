@@ -1,0 +1,37 @@
+---
+title: "[Nest.js V9] 정리 노트 - 5"
+description: "Module 최적화하기"
+language: "Typescript"
+category: "NestJS"
+update: "2023-06-25"
+serisenumber: 5
+---
+## Intro
+---
+- [Stephen Grider 강사님의 NestJS: The Complete Developer's Guide 강의를 듣고 TIL 방식으로 정리한 글입니다.](https://www.udemy.com/course/nestjs-the-complete-developers-guide//)
+
+## I. 시작
+---
+컴퓨터의 구성요소에는 CPU, DISK, POWER 등이 있죠. 이 구성요소로 모듈을 구성해보도록 합시다. CPU, DISK는 POWER가 필요하죠. CPU, DISK가 결합되면 컴퓨터를 사용할 수 있게됩니다.
+
+우선 새로운 프로젝트를 생성합니다.
+```bash
+nest new di
+```
+그 후 각 모듈을 생성합니다.
+```bash
+nest g module computer
+nest g module cpu
+nest g module disk
+nest g module power
+```
+이후 각 모듈에 서비스를 생성합니다.
+```bash
+nest g service cpu
+nest g service power
+nest g service disk
+```
+그리고 각 모듈의 서비스를 이용할 컴퓨터 컨트롤러를 생성합니다.
+```bash
+nest g controller computer 
+```
