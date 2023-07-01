@@ -1,6 +1,6 @@
 ---
 title: "[node] 3 layerd Architecture와 Jest 적용"
-description: "3 layerd Architecture에서의 테스트 코드 작성 방법과 자동화"
+description: "3 layerd Architecture에서의 테스트 코드 작성 방법"
 language: "Javascript"
 category: "Jest"
 update: "2023-03-26"
@@ -177,44 +177,69 @@ exports.deleteBoard = async (id) => {
 const request = require('supertest');
 const app = require('./app');
 const boardService = require('./boards.service');
-
-describe('Boards API', () => { // Boards API에 대한 테스트 스위트 시작
-  let board; // board 변수 선언
-  beforeEach(async () => { // 각 테스트 케이스 실행 전 실행되는 함수
+ // Boards API에 대한 테스트 스위트 시작
+describe('Boards API', () => {
+  // board 변수 선언
+  let board;
+  // 각 테스트 케이스 실행 전 실행되는 함수
+  beforeEach(async () => { 
     // create a board for testing
-    board = await boardService.createBoard('Test Board', 'Test Content'); // boardService를 이용하여 테스트용 board 생성
+    // boardService를 이용하여 테스트용 board 생성
+    board = await boardService.createBoard('Test Board', 'Test Content'); 
   });
 
-  describe('POST /api/boards', () => { // POST /api/boards에 대한 테스트 스위트 시작
-    it('should create a new board', async () => { // 새로운 board 생성에 대한 테스트 케이스
-      const res = await request(app) // app을 이용하여 요청 보냄
-        .post('/api/boards') // POST /api/boards에 요청 보냄
-        .send({ title: 'New Board', content: 'New Content' }) // 요청 바디에 title과 content를 담아 보냄
-        .expect(201); // 응답 코드가 201이어야 함
+  // POST /api/boards에 대한 테스트 스위트 시작
+  describe('POST /api/boards', () => { 
+    // 새로운 board 생성에 대한 테스트 케이스
+    it('should create a new board', async () => { 
+      // app을 이용하여 요청 보냄
+      const res = await request(app) 
+        // POST /api/boards에 요청 보냄
+        .post('/api/boards') 
+        // 요청 바디에 title과 content를 담아 보냄
+        .send({ title: 'New Board', content: 'New Content' }) 
+        // 응답 코드가 201이어야 함
+        .expect(201); 
 
-      expect(res.body.title).toEqual('New Board'); // 응답 바디의 title이 'New Board'와 같아야 함
-      expect(res.body.content).toEqual('New Content'); // 응답 바디의 content가 'New Content'와 같아야 함
+      // 응답 바디의 title이 'New Board'와 같아야 함
+      expect(res.body.title).toEqual('New Board'); 
+      // 응답 바디의 content가 'New Content'와 같아야 함
+      expect(res.body.content).toEqual('New Content'); 
     });
   });
 
-  describe('PUT /api/boards/:id', () => { // PUT /api/boards/:id에 대한 테스트 스위트 시작
-    it('should edit an existing board', async () => { // 기존 board 수정에 대한 테스트 케이스
-      const res = await request(app) // app을 이용하여 요청 보냄
-        .put(`/api/boards/${board.id}`) // PUT /api/boards/:id에 요청 보냄
-        .send({ title: 'Updated Board', content: 'Updated Content' }) // 요청 바디에 수정할 title과 content를 담아 보냄
-        .expect(200); // 응답 코드가 200이어야 함
+  // PUT /api/boards/:id에 대한 테스트 스위트 시작
+  describe('PUT /api/boards/:id', () => { 
+    // 기존 board 수정에 대한 테스트 케이스
+    it('should edit an existing board', async () => { 
+      // app을 이용하여 요청 보냄
+      const res = await request(app) 
+        // PUT /api/boards/:id에 요청 보냄
+        .put(`/api/boards/${board.id}`) 
+        // 요청 바디에 수정할 title과 content를 담아 보냄
+        .send({ title: 'Updated Board', content: 'Updated Content' }) 
+        // 응답 코드가 200이어야 함
+        .expect(200); 
 
-      expect(res.body.title).toEqual('Updated Board'); // 응답 바디의 title이 'Updated Board'와 같아야 함
-      expect(res.body.content).toEqual('Updated Content'); // 응답 바디의 content가 'Updated Content'와 같아야 함
+      // 응답 바디의 title이 'Updated Board'와 같아야 함
+      expect(res.body.title).toEqual('Updated Board'); 
+      // 응답 바디의 content가 'Updated Content'와 같아야 함
+      expect(res.body.content).toEqual('Updated Content'); 
     });
 
-    it('should return a 404 error if board does not exist', async () => { // 존재하지 않는 board 수정에 대한 테스트 케이스
-      const res = await request(app) // app을 이용하여 요청 보냄
-        .put('/api/boards/12345') // 존재하지 않는 board의 id를 가진 PUT /api/boards/:id에 요청 보냄
-        .send({ title: 'Updated Board', content: 'Updated Content' }) // 요청 바디에 수정할 title과 content를 담아 보냄
-        .expect(404); // 응답 코드가 404이어야 함
+    // 존재하지 않는 board 수정에 대한 테스트 케이스
+    it('should return a 404 error if board does not exist', async () => { 
+      // app을 이용하여 요청 보냄      
+      const res = await request(app) 
+        // 존재하지 않는 board의 id를 가진 PUT /api/boards/:id에 요청 보냄      
+        .put('/api/boards/12345') 
+        // 요청 바디에 수정할 title과 content를 담아 보냄
+        .send({ title: 'Updated Board', content: 'Updated Content' }) 
+        // 응답 코드가 404이어야 함
+        .expect(404); 
 
-      expect(res.body.error).toEqual('Board not found'); // 응답 바디의 error가 'Board not found'와 같아야 함
+      // 응답 바디의 error가 'Board not found'와 같아야 함
+      expect(res.body.error).toEqual('Board not found'); 
     });
   });
 }

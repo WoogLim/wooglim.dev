@@ -1,6 +1,6 @@
 ---
-title: "스프링 입문"
-description: "스프링 입문 - 코드로 배우는 스프링 부트, 웹 MVC, DB 접근 기술 강의 정리 1일차"
+title: "[스프링 입문] 정리노트 - 1"
+description: "스프링 입문 - 코드로 배우는 스프링 부트, 웹 MVC, DB 접근 기술 강의"
 language: "Java"
 category: "Spring"
 update: "2023-06-30"
@@ -13,7 +13,7 @@ serisenumber: 1
 
 ## 프로젝트 환경설정
 ---
-맥북 M1 Pro 기준 환경설정 정리입니다.
+개발환경은 맥북 M1 Pro 입니다.
 
 ### JAVA 11 설치
 ---
@@ -29,7 +29,7 @@ export JAVA_HOME=$(/usr/libexec/java_home -v 11)
 
 ### InteliJ 설치
 ---
-InteliJ는 우선 무료버전인 커뮤니티 버전으로 진행한다.
+InteliJ는 우선 무료버전인 커뮤니티 버전으로 진행하겠습니다.
 
 ### 스프링 부트 프로젝트 생성
 ---
@@ -37,12 +37,13 @@ InteliJ는 우선 무료버전인 커뮤니티 버전으로 진행한다.
 
 ![Spring-Web-MVC-capture1](/snippets/springMVC/capture1.png)
 
-패키지는 Gradle Project가 대중적. 언어는 Java를 설정한다. 스프링 부트 버전은 강의상으론 `2.3.1`이지만 현재 시점 릴리즈된 기준 `3.1.1`버전을 사용하겠습니다.
+패키지는 Gradle Project가 대중적입니다. 언어는 Java를 설정하고 스프링 부트 버전은 강의상으론 `2.3.1`이지만 현재 시점 릴리즈된 기준 `3.1.1`버전을 사용하겠습니다.  
+
 프로젝트 메타데이터를 작성하고 디펜던시를 선택해 사용할 라이브러리를 주입합니다. 우선 `Spring Web` 그리고 `Thymeleaf`를 사용하겠습니다. 이후 `Generate`버튼을 눌러 프로젝트를 생성합니다.
 
 ![Spring-Web-MVC-capture2](/snippets/springMVC/capture2.png)
 
-이후 인텔리 J를 실행하여 `build.gradle`을 오픈합니다.
+이후 인텔리 J를 실행하여 Generate된 `zip`파일을 풀고 파일 내부에 `build.gradle`을 오픈합니다.
 
 `build.gradle`에는 스프링 프로젝트 버전 및 주입된 디펜던시를 볼 수 있습니다.
 ```json
@@ -187,3 +188,38 @@ public class HelloController {
 ```bash
 java -jar hello-spring-0.0.1-SNAPSHOT.jar
 ```
+
+#### 파라미터 받아 화면에 표시하기 MVC와 템플릿 엔진
+---
+viewResolver 를 통해 return 내용에 따라 정적 페이지를 렌더링하여 사용자에게 넘겨주는 특징을 이용해 `name`파라미터를 받아 `안녕하세요 [name]`을 출력하는 페이지를 만들어봅시다.
+
+우선 api를 새로 만듭니다.
+```java
+@GetMapping("hello-mvc")
+    public String helloMvc(@RequestParam(name = "name", required = false) String name, Model model) {
+        // @RequestParam(name = "name", required = false) String name
+        // required는 default가 true이다. 때문에 api 요청시 반드시 name이 파라미터로 넘어와야한다.
+        // command + P로 도움을 얻을 수 있다.
+        model.addAttribute("name", name);
+        return "hello-template";
+    }
+```
+그리고 `resources/tamplates`폴더에 `hello-template.html`파일을 생성합니다.
+```html
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+<body>
+<p th:text="'안녕하세요. ' + ${name}">안녕하세요. 손님</p>
+</body>
+</html>
+```
+이제 서버를 실행시키면 다음과 같이 파라미터로 전송된 name이 화면에 출력되는것을 볼 수 있습니다.
+
+![Spring-Web-MVC-capture6](/snippets/springMVC/capture6.png)
