@@ -12,7 +12,10 @@ serisenumber: 5
 
 ## I. 시작
 ---
-컴퓨터의 구성요소에는 CPU, DISK, POWER 등이 있죠. 이 구성요소로 모듈을 구성해보도록 합시다. CPU, DISK는 POWER가 필요하죠. CPU, DISK가 결합되면 컴퓨터를 사용할 수 있게됩니다.
+컴퓨터의 구성요소에는 CPU, DISK, POWER 등이 있죠. 이 구성요소로 모듈을 구성해보도록 합시다. CPU, DISK는 POWER가 필요하죠. CPU, DISK가 결합되면 컴퓨터를 사용할 수 있게됩니다.  
+컴퓨터 모듈은 CPU와 DISK 모듈에 의존하고 CPU와 DISK는 파워 모듈을 의존합니다. 의존성 관계 또한 주입시켜봅시다.
+
+각 모듈에는 `Service`가 존재할겁니다. 각 모듈마다 로직을 설계하고 이를 사용하는 컴퓨터에만 `Controller`를 구성합니다.
 
 우선 새로운 프로젝트를 생성합니다.
 ```bash
@@ -35,3 +38,85 @@ nest g service disk
 ```bash
 nest g controller computer 
 ```
+
+최종적으로 사용자와 함께 사용될 컴퓨터의 모듈을 `NestFactory`에 인자로 넘깁니다.
+
+```ts
+// main.ts
+import { NestFactory } from '@nestjs/core';
+import { ComputerModule } from './computer/computer.module';
+
+async function bootstrap() {
+  const app = await NestFactory.create(ComputerModule);
+  await app.listen(3000);
+}
+bootstrap();
+```
+
+파워 부터 상향식 접근으로 구현해봅시다. 파워는 CPU, DISK에 의해 사용될것입니다. 이제 `Power`를 생산할 `Service`를 설계하겠습니다.
+
+```ts
+// src/power/power.service.ts
+import { Injectable } from '@nestjs/common';
+
+@Injectable()
+export class PowerService {
+  supplyPower(watts: number) {
+    console.log(`Supplying ${watts} worth of power.`);
+  }
+}
+```
+
+이제 시 서비스를 가져와 CPU, DISK Module에서 사용해보겠습니다.  
+각 부품은 올바르게 작동하기 위해 `Power Service`를 호출해야합니다.
+
+이 서로 다른 모듈을 다른 방식으로 작동합니다. 종속성 주입에 대한 내용을 정의했었습니다. 메시지 구현시 하나의 모듈에서 컨트롤러, 서비스를 구성했습니다.  
+지금은 모듈이 각 부품마다 존재합니다.
+
+1. 싱글 모듈 환경을 예로 만일 파워서비스와 CPU 서비스가 같은 모듈내 존재할 경우 전원을 공유하려면 다음과 같은 단계를 거쳐야합니다.
+- 전원 서비스에 주입 가능한 `@Injectable`데코레이터를 추가합니다.
+- 해당 싱글 모듈 `providers` 목록에 전원 서비스를 추가합니다.
+- `CPU`서비스에서 생선자 메서드로 전원 메서드를 정의하고 전원을 사용합니다.
+
+2. 멀티 모듈 환경에서는 다음과 같이 작동되어야합니다. 이번에는 파워 모듈과 CPU모듈은 별개의 모듈로 존재합니다. 전원 서비스를 `CPU`서비스로 가져와야합니다.
+- 전원 모듈 데코레이터 중 `exports`라는 새 속성을 추가합니다. 
+```ts
+// power.module.ts
+import { Module } from '@nestjs/common';
+import { PowerService } from './power.service';
+
+@Module({
+  // power 모듈 생성시 서비스는 공급자 목록에 자동 추가됨.
+  providers: [PowerService],
+  // 서비스 중 다른 모듈에서 사용될 수 있도록 exports데코레이터에 서비스 추가.
+  // 기본적으로는 비공개 private상태.
+  exports: [PowerService],
+})
+export class PowerModule {}
+```
+- 그리고 파워 모듈을 CPU 모듈내 `import`데코레이터에 추가해줍니다. 모듈을 추가하면 해당 모듈의 `providers`에 명시한 서비스를 사용할 수 있습니다.
+```ts
+// src/cpu/cpu.module.ts
+import { Module } from '@nestjs/common';
+import { CpuService } from './cpu.service';
+import { PowerModule } from 'src/power/power.module';
+
+@Module({
+  // PowerModule
+  imports: [PowerModule],
+  providers: [CpuService],
+})
+export class CpuModule {}
+```
+- CPU 서비스에서 생성자로 전원 서비스를 가져와 사용합니다.
+```ts
+// src/cpu/cpu.service.ts
+import { Injectable } from '@nestjs/common';
+import { PowerService } from 'src/power/power.service';
+
+@Injectable()
+export class CpuService {
+  constructor(private powerService: PowerService) {}
+}
+```
+이렇게 서로 다른 모듈 간 종속성 주입을 설정할 수 있습니다.
