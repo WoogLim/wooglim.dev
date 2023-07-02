@@ -94,7 +94,7 @@ import { PowerService } from './power.service';
 })
 export class PowerModule {}
 ```
-- 그리고 파워 모듈을 CPU 모듈내 `import`데코레이터에 추가해줍니다. 모듈을 추가하면 해당 모듈의 `providers`에 명시한 서비스를 사용할 수 있습니다.
+- 그리고 파워 모듈을 CPU 모듈내 `import`데코레이터에 추가해줍니다. 모듈을 추가하면 해당 모듈의 `exports`에 명시한 서비스를 사용할 수 있습니다.
 ```ts
 // src/cpu/cpu.module.ts
 import { Module } from '@nestjs/common';
@@ -117,6 +117,100 @@ import { PowerService } from 'src/power/power.service';
 @Injectable()
 export class CpuService {
   constructor(private powerService: PowerService) {}
+
+  compute(a: number, b: number){
+    console.log('Drawing 10 watts of power from Power Service');
+    this.powerService.supplyPower(10);
+    return a + b;
+  }
 }
 ```
 이렇게 서로 다른 모듈 간 종속성 주입을 설정할 수 있습니다.
+
+DISK 모둘도 똑같이 완성한 후 최종적으로 사용될 Computer 모듈의 `Controller`에서 호출합니다.  
+
+다음과 같이 CPU, DISK 모듈내 서비스를 `exports`데코레이터에 추가합니다.
+
+- CPU 모듈
+```ts
+// cpu.module.ts
+
+import { Module } from '@nestjs/common';
+import { CpuService } from './cpu.service';
+import { PowerModule } from 'src/power/power.module';
+
+@Module({
+  imports: [PowerModule],
+  providers: [CpuService],
+  exports: [CpuService]
+})
+export class CpuModule {}
+```
+
+- DISK 모듈
+```ts
+// disk.module.ts
+
+import { Module } from '@nestjs/common';
+import { DiskService } from './disk.service';
+import { PowerModule } from 'src/power/power.module';
+
+@Module({
+  imports: [PowerModule],
+  providers: [DiskService],
+  exports: [DiskService]
+})
+export class DiskModule {}
+```
+
+그리고 Computer Module에 `imports` 목록에 추가합니다.
+
+```ts
+// computer.module.ts
+import { Module } from '@nestjs/common';
+import { ComputerController } from './computer.controller';
+import { CpuModule } from 'src/cpu/cpu.module';
+import { DiskModule } from 'src/disk/disk.module';
+
+@Module({
+  imports: [CpuModule, DiskModule],
+  controllers: [ComputerController]
+})
+export class ComputerModule {}
+```
+
+이후 컴퓨터 컨트롤러 생성자에 해당 서비스를 사용합니다.
+
+```ts
+// computer.controller.ts
+import { Controller, Get } from '@nestjs/common';
+import { CpuService } from 'src/cpu/cpu.service';
+import { DiskService } from 'src/disk/disk.service';
+
+@Controller('computer')
+export class ComputerController {
+  constructor(
+    private cpuService: CpuService,
+    private diskService: DiskService
+  ) {}
+
+  @Get()
+  run() {
+    return [
+      this.cpuService.compute(1,2),
+      this.diskService.getData()
+    ];
+  }
+}
+```
+
+이제 해당 API를 호출하면 `[3, "data!"]`가 제공될겁니다.
+
+지금까지 종속성 주입 방법을 알아봤습니다.
+
+순서는 다음고 같습니다. 각 모듈에는 DI Container가 만들어지는것을 기억합니다. 이 프로그램은 다음과 같이 동작합니다.
+
+- Power Module은 `providers`로 PowerService를 제공하죠. 서버가 실행되면 DI 컨테이너가 만들어지고 컨테이너내 다른 클래스와 종속성 목록을 불러옵니다. `Power Service`에는 따로 종속한 서비스가 존재하지 않습니다.  
+다만 `exports`를 통해 서비스를 외부 컨테이너에서 사용하도록 제공합니다.
+
+- CPU Module은 `providers`로 CpuService를 제공하죠. 그리고 `imports`로 PowerModule를 포함해 해당 모듈을 제공받습니다. 그리고 `Exports`데코레이터에 CpuService를 사용할 수 있도록 제공하죠.
