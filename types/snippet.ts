@@ -5,5 +5,6 @@ export interface SnippetI {
   category: string;
   update: string;
   slug: string;
+  hide?: boolean;
   serisenumber: number;
 }

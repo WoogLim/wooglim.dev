@@ -38,9 +38,11 @@ export const SnippetsListLayout = ({
 }: SnippetIndexProps) => {
   const [filteredSnippets, setFilteredSnippets] =
     useState<SnippetI[]>(snippets);
+
   const [snippetTitles, setSnippetTitles] = useState<string[]>(
     snippets.map((snippet: SnippetI) => snippet.title.toLowerCase())
   );
+
   const [postNumber, setPostNumber] = useState<number>(snippets.length);
 
   // 필터
@@ -77,7 +79,13 @@ export const SnippetsListLayout = ({
 
   useEffect(() => {
     const filteredSinppetsTitles: String[] = [...snippetTitles].filter(
-      (title: string) => title.indexOf(searchWord.trim().toLowerCase()) !== -1
+      (title: string) =>
+        title.includes(searchWord.trim().toLowerCase()) ||
+        snippets.find(
+          (snippet: SnippetI) =>
+            snippet.title.toLowerCase() === title &&
+            snippet.description.toLowerCase().includes(searchWord.trim().toLowerCase())
+        )
     );
 
     const filteredSnippets: SnippetI[] = [...snippets].filter(
@@ -86,7 +94,7 @@ export const SnippetsListLayout = ({
     );
 
     const filteredLanguage: SnippetI[] = filteredSnippets.filter(
-      (snippet: SnippetI) => category.includes(snippet.language)
+      (snippet: SnippetI) => category.includes(snippet.category)
     );
 
     if (category != "") {

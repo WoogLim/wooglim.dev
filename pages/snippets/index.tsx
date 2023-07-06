@@ -41,6 +41,7 @@ export const getStaticProps = async () => {
     "language",
     "category",
     "update",
+    "hide",
     "serisenumber",
     "slug",
   ]);

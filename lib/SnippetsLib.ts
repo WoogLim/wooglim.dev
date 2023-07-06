@@ -83,6 +83,7 @@ export function getAllSnippets(
   // 위 filePaths의 포스트를 날짜별로 sort하여 가져오기
   let snippets = filePaths
     .map((filePath) => getSnippetItems(filePath, fields))
+    .filter(snippet => !snippet.hide)
     .sort((post1, post2) => (post1.update < post2.update ? 1 : -1));
 
   if (reqCnt > 0) snippets = snippets.slice(0, reqCnt);
