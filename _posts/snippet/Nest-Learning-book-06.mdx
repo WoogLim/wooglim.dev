@@ -1,6 +1,6 @@
 ---
 title: "[Nest.js V9] 정리 노트 - 6"
-description: "모듈간 의존성 주입 그리고 DI Container 이해하기"
+description: "TypeORM 연동하기"
 language: "Typescript"
 category: "NestJS"
 update: "2023-07-06"
@@ -10,3 +10,230 @@ serisenumber: 6
 ## Intro
 ---
 - [Stephen Grider 강사님의 NestJS: The Complete Developer's Guide 강의를 듣고 TIL 방식으로 정리한 글입니다.](https://www.udemy.com/course/nestjs-the-complete-developers-guide//)
+
+### 시작
+---
+- 이번에는 실제 DB를 이용해 ORM으로 연동하여 데이터를 저장해봅시다. 우선 간단하게 데이터를 저장하기위해 파일 기반 데이터베이스 sqlite를 사용합니다. 이후 postgres로 바꿔보도록 하겠습니다.
+```bash
+npm isntall @nestjs/typeorm typeorm sqlite3
+```
+
+### AppModule에 import
+---
+- 전역에서 사용하기 위해 우선 root인 AppModule에 포함시켜야 합니다. 또한 데이터베이스 설정 및 모듈에서 전역적으로 해당 인스턴스를 사용하기 위해 `forRoot`옵션을 설정합니다.  
+```ts
+// app.module.ts
+import { Module } from '@nestjs/common';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
+import { UsersModule } from './users/users.module';
+import { ReportsModule } from './reports/reports.module';
+import { UsersController } from './users/users.controller';
+import { TypeOrmModule } from '@nestjs/typeorm';
+
+@Module({
+  imports: [TypeOrmModule.forRoot({
+    type: 'sqlite', // 데이터 베이스 종류
+    database: 'db.sqlite', // 데이터 베이스 이름
+    entities: [], // 사용될 엔티티
+    synchronize: true // 동기화
+    /**
+     * synchronize 속성은 개발 환경에서만 사용할 수 있습니다.
+     * 데이터베이스 구조(엔티티)가 변경된 경우 실제 데이터베이스에 마이그레이션 작동이 일어나도록 돕는 속성입니다.
+     */
+  }), ReportsModule, UsersModule],
+  controllers: [AppController, UsersController],
+  providers: [AppService],
+})
+export class AppModule {}
+```
+
+이제 서버를 실행시킵니다.
+```bash
+npm run start:dev
+```
+이후 다음과 같이 프로젝트 폴더내 `db.sqlite`가 생성된 것을 볼 수 있습니다.
+
+#### 엔티티 구성
+
+엔티티의 경우 `대상.entity.ts` 형식의 컨벤션으로 생성합니다.
+```ts
+// users/users.entity.ts
+import { Entity, Column, PrimaryGeneratedColumn } from "typeorm";
+
+@Entity()
+export class User {
+  // 사용자 속성
+
+  // PK
+  @PrimaryGeneratedColumn()
+  id: number;
+
+  @Column()
+  email: string;
+
+  @Column()
+  passowrd: string;
+}
+```
+위와 같이 생성한 엔티티는 해당 모듈에 추가합니다.
+```ts
+// users/users.module.ts
+import { Module } from '@nestjs/common';
+import { UsersController } from './users.controller';
+import { UsersService } from './users.service';
+
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { User } from './users.entity';
+
+@Module({
+  imports: [TypeOrmModule.forFeature([User])], // User 엔티티를 TypeOrmModule에 등록
+  controllers: [UsersController], // UsersController를 컨트롤러로 사용
+  providers: [UsersService] // UsersService를 프로바이더로 사용
+})
+export class UsersModule {}
+```
+또한 전역 `app.module.ts`에도 엔티티를 추가합니다.
+```ts
+// app.module.ts
+import { Module } from '@nestjs/common';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
+import { UsersModule } from './users/users.module';
+import { ReportsModule } from './reports/reports.module';
+import { UsersController } from './users/users.controller';
+import { TypeOrmModule } from '@nestjs/typeorm';
+
+import { User } from './users/users.entity'; 
+import { Report } from './reports/reports.entity';
+
+@Module({
+  imports: [TypeOrmModule.forRoot({
+    type: 'sqlite', // 데이터 베이스 종류
+    database: 'db.sqlite', // 데이터 베이스 이름
+    entities: [User, Report], // 사용될 엔티티
+    synchronize: true // 동기화
+    /**
+     * synchronize 속성은 개발 환경에서만 사용할 수 있습니다.
+     * 데이터베이스 구조(엔티티)가 변경된 경우 실제 데이터베이스에 마이그레이션 작동이 일어나도록 돕는 속성입니다.
+     */
+  }), ReportsModule, UsersModule],
+  controllers: [AppController, UsersController],
+  providers: [AppService],
+})
+export class AppModule {}
+```
+
+#### 마이그레이션
+서버가 실행되면 우선 실제 데이터베이스와 연결되면서 테이블이 존재하는지 확인하고 테이블내 컬럼이 생성되었는지 확인합니다.  
+데코레이터 `@PrimaryGeneratedColumn()`이 붙어있다면 해당 컬럼은 `PK`를 의미하고 `@Column`은 `Column`을 의미합니다.  
+만일 엔터티와 데이터베이스의 차이가 존재한다면 엔터티를 기준으로 데이터베이스를 마이그레이션 합니다. `synchronize`속성이 `true`이기 때문이죠. 
+
+```ts
+// app.module.ts
+@Module({
+  imports: [TypeOrmModule.forRoot({
+    type: 'sqlite', // 데이터 베이스 종류
+    database: 'db.sqlite', // 데이터 베이스 이름
+    entities: [User, Report], // 사용될 엔티티
+    synchronize: true // 동기화   
+``` 
+
+물론 이 과정에서 마이그레이션 전용 `Migrantion`파일을 작성해야 합니다. 또한 `Production`환경에서 작동되지 않도록 분기를 잘 줘야합니다.
+
+#### 사용자 가입 API
+Body 데이터의 유효성 검사를 위해 `Pipe`를 사용해야합니다. `app.ts`를 다음과 같이 `ValidationPipe`를 추가하여 수정합니다.
+```ts
+// main.ts
+import { NestFactory } from '@nestjs/core';
+import { AppModule } from './app.module';
+
+import { ValidationPipe } from '@nestjs/common';
+
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule);
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      /**
+       * whitelist
+       * dto에 작성되어 있는 요청 키-값만 허용합니다. 
+       * 만일 그외 키-값이 Body에 포함된다면 해당 속성은 서버에서 무시합니다.
+       */
+    }),
+  )
+  await app.listen(3000);
+}
+bootstrap();
+```
+
+이후 `DTO`를 구성합니다. users모듈에 `dtos`폴더를 생성한 후 dto파일을 작성합니다.
+```ts
+//user/dtos/create-user.dto.ts
+export class CreateUserDto {
+  email : string;
+  password: string;
+}
+```
+
+또한 유효성 검사를 위해 다음과 같이 `class-validator`를 설치합니다.
+```bash
+npm install class-validator class-transformer
+```
+다음과 같이 수정합니다.
+```ts
+import { IsEmail, IsString } from "class-validator";
+
+export class CreateUserDto {
+  @IsEmail()
+  email : string;
+
+  @IsString()
+  password: string;
+}
+```
+
+비즈니스 로직 및 데이터 엑세스를 위해 `Service`를 작성합니다.
+```ts
+// users.service.ts
+import { Injectable } from '@nestjs/common';
+import { Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
+import { User } from './users.entity';
+
+@Injectable()
+export class UsersService {
+  constructor(@InjectRepository(User) private repo: Repository<User>) {
+    // User 엔티티에 대한 Repository를 주입받아서 repo 변수에 할당하는 생성자 함수입니다.
+  }
+
+  create(email: string, password: string) {
+    const user = this.repo.create({email, password})
+
+    return this.repo.save(user);
+  }
+}
+```
+
+그리고 `Controller`를 작성합니다.
+```ts
+// users.controller.ts
+import { Body, Controller, Post } from '@nestjs/common';
+import { CreateUserDto } from './dtos/create-user.dto';
+import { UsersService } from './users.service';
+
+@Controller('users')
+export class UsersController {
+  
+  constructor(private usersService: UsersService) {}
+
+  // users/auth
+  @Post('/signup')
+  createUser(@Body() body: CreateUserDto) {
+    this.usersService.create(body.email, body.password);
+  }
+}
+```
+
+지금까지 전체적인 흐름을 보면 요청이 들어오면 `Dto`를 이용해 유효성 검사를 진행한 후 컨트롤러에게 전송됩니다. 이후 컨트롤러는 비즈니스 로직을 수행하는 서비스에게 전달하여 엔터티에 파라미터로 전달된 값을 저장하게됩니다.
+
