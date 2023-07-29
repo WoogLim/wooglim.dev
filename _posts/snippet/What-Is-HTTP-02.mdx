@@ -25,13 +25,14 @@ URI말고도 URL, URN 이라는것도 들어보셨을겁니다.
 
 URI는 자원 자체를 식별하는 방법이며 URL, URN 개념을 포함합니다.
 
-![HTTP--capture4](/snippets/http/http4.png)
+![HTTP-capture4](/snippets/http/http4.png)
+
 - URL(Resource Locator)는 리소스가 존재하는 위치
 - URN(Resource Name)는 리소스의 이름을 뜻합니다.
 
 단 URN만으로 실제 리소스를 찾을 방법이 보편화되지 않아, 보편적으로 URL을 사용하고 있습니다. 때문에 URI를 URL이라고도 보기도 합니다.
 
-![HTTP--capture5](/snippets/http/http5.png)
+![HTTP-capture5](/snippets/http/http5.png)
 
 - `scheme`: 주로 프로토콜(http, https, ftp) 통신 방식이 위치합니다.
 - `userInfo@`: URL에 사용자정보를 포함해 인증. 거의 사용하지 않습니다.  
@@ -47,17 +48,18 @@ URI는 자원 자체를 식별하는 방법이며 URL, URN 개념을 포함합�
 아래와 같은 URL이 있다고 가정합니다.
 - `https://www.google.com/search?q=hello&hl=ko`
 
-![HTTP--capture6](/snippets/http/http6.png)
+![HTTP-capture6](/snippets/http/http6.png)
+
 - 위 사진에서 프로토콜 HTTPS를 사용하므로 포트(443)은 생략됩니다.
 
 위에서 클라이언트가 서버에게 보내는 HTTP 요청 메시지는 다음 내용을 포함합니다.
 - GET /search?q=hello&hl=ko HTTP/1.1 Host: www.google.com
 
-![HTTP--capture7](/snippets/http/http7.png)
+![HTTP-capture7](/snippets/http/http7.png)
 
 - 요청 메시지는 패킷에 포함되어 다음과 같이 만들어집니다.
 
-![HTTP--capture8](/snippets/http/http8.png)
+![HTTP-capture8](/snippets/http/http8.png)
 
 요청 패킷을 서버가 받으면 TCP 패킷을 제거하고 요청 메시지를 분석합니다. 그리고 리소스를 찾고 클라이언트에게 `HTTP 응답 메시지`를 보내줍니다.
 - `HTTP/1.1 200 OK Content-Type: text/html;charset=UTF-8 Content-Length: 3423 <html> ... </html?>`
