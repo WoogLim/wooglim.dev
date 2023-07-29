@@ -28,7 +28,7 @@ serisenumber: 1
     - 출발지 IP
     - 목적지 IP
 
-![HTTP-capture1](/snippets/http/http1.png)
+![HTTP-capture1](/snippets/cshttp/http1.png)
 
 출발지 IP와 목적지 IP 그리고 전송데이터를 포함한 `패킷` 통신단위의 데이터를 목적지 IP에 보내게 됩니다. 인터넷 망에서 여러 노드를 거쳐가면서 목적지 IP를 찾고 목적지 서버에 도달하게 됩니다.  
 응답 또한 서버에서 클라이언트에게 보내야하는데, 출발지 IP를 찾아 마지막에는 출발지로 응답을 보내게 됩니다.
@@ -47,7 +47,7 @@ IP프로토콜의 한계는 다음과 같습니다.
 ---
 우선 알아보기 앞서 `인터넷 프로토콜 스택의 4계층`을 보고 갑시다.  
 
-![HTTP-capture2](/snippets/http/http2.png)
+![HTTP-capture2](/snippets/cshttp/http2.png)
 
 - 애플리케이션 계층 : HTTP, FTP
 - 전송 계층 : TCP, UDP
@@ -57,7 +57,7 @@ IP프로토콜의 한계는 다음과 같습니다.
 
 애플리케이션에는 `웹 브라우저`가 있겠죠. 친구에게 웹에서 채팅을 보낸다고 해봅시다. 패킷은 아래와 같이 전송하게 됩니다.
 
-![HTTP-capture3](/snippets/http/http3.png)
+![HTTP-capture3](/snippets/cshttp/http3.png)
 
 1. 사용자는 친구에게 `Hello, world!`메시지를 전송 데이터에 보낸다.
 2. Socket을 통해 전송 계층에 내려가고 전송데이터 외부에 `TCP` 정보가 래핑된다.
