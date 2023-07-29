@@ -1,0 +1,65 @@
+---
+title: "[HTTP 통신] 정리노트 - 1"
+description: "모든 개발자를 위한 HTTP 웹 기본 지식 - URI"
+language: "HTTP"
+category: "Computer science"
+update: "2023-07-28"
+hide: true
+serisenumber: 2
+---
+
+## 시작
+
+- [김영한 강사님의 모든 개발자를 위한 HTTP 웹 기본 지식 강의를 듣고 TIL 방식으로 정리한 글입니다.](https://www.inflearn.com/course/lecture?courseSlug=http-%EC%9B%B9-%EB%84%A4%ED%8A%B8%EC%9B%8C%ED%81%AC&unitId=61388&tab=curriculum)
+
+### URI(Uniform Resource Identifier)
+---
+URI의 뜻은 다음과 같습니다.
+- `U`niform: 리소스 식별하는 통일된 방식
+- `R`esource: 자원, URI로 식별할 수 있는 모든 것
+- `I`dentifier: 다른 항목과 구분하는데 필요한 정보
+
+URI말고도 URL, URN 이라는것도 들어보셨을겁니다.
+
+`URI`는 로케이터(`l`ocator), 이름(`n`ame) 또는 둘다 추가로 분류될 수 있습니다.
+
+URI는 자원 자체를 식별하는 방법이며 URL, URN 개념을 포함합니다.
+
+![HTTP--capture4](/snippets/http/http4.png)
+- URL(Resource Locator)는 리소스가 존재하는 위치
+- URN(Resource Name)는 리소스의 이름을 뜻합니다.
+
+단 URN만으로 실제 리소스를 찾을 방법이 보편화되지 않아, 보편적으로 URL을 사용하고 있습니다. 때문에 URI를 URL이라고도 보기도 합니다.
+
+![HTTP--capture5](/snippets/http/http5.png)
+
+- `scheme`: 주로 프로토콜(http, https, ftp) 통신 방식이 위치합니다.
+- `userInfo@`: URL에 사용자정보를 포함해 인증. 거의 사용하지 않습니다.  
+- `host`: 호스트, 도메인
+- `port`: 포트
+- `/path`: 리소스가 존재하는 경로
+  - 계층적 구조로 명시 `/home/file1.png`
+- `?query`: key와 value형태로 되어있음. &를 이용해 추가 쿼리파라미터(혹은 쿼리스트링) 추가 가능.
+- `#fragment`: 거의 사용하지 않음. html내부 북마크에 이용되며 서버에는 사용하지 않습니다.
+
+### 웹 브라우저 요청 흐름
+---
+아래와 같은 URL이 있다고 가정합니다.
+- `https://www.google.com/search?q=hello&hl=ko`
+
+![HTTP--capture6](/snippets/http/http6.png)
+- 위 사진에서 프로토콜 HTTPS를 사용하므로 포트(443)은 생략됩니다.
+
+위에서 클라이언트가 서버에게 보내는 HTTP 요청 메시지는 다음 내용을 포함합니다.
+- GET /search?q=hello&hl=ko HTTP/1.1 Host: www.google.com
+
+![HTTP--capture7](/snippets/http/http7.png)
+
+- 요청 메시지는 패킷에 포함되어 다음과 같이 만들어집니다.
+
+![HTTP--capture8](/snippets/http/http8.png)
+
+요청 패킷을 서버가 받으면 TCP 패킷을 제거하고 요청 메시지를 분석합니다. 그리고 리소스를 찾고 클라이언트에게 `HTTP 응답 메시지`를 보내줍니다.
+- `HTTP/1.1 200 OK Content-Type: text/html;charset=UTF-8 Content-Length: 3423 <html> ... </html?>`
+
+이후 응답 데이터로 전송된 HTML을 웹 브라우저에서 렌더링하여 클라이언트에게 보여지게 됩니다.
