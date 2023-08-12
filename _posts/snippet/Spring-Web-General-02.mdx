@@ -35,3 +35,394 @@ IntelliJ를 사용한다면 환경설정 - Gradle - Gradle Project내 core 에�
 - 할인 정책은 변경 가능성이 높다. 회사의 기본 할인 정책을 아직 정하지 못했고, 오픈 직전까지 고민을 미루고 싶다. 최악의 경우 할인을 적용하지 않을 수 있다.
 
 위 요구사항을 보면 회원 데이터, 할인 정책 같은 부분은 지금 결정하기 어려운 부분이다. 인터페이스를 만들고 구현체를 언제든 갈아끼울 수 있도록 설계하면 된다.
+
+### 회원 도메인 설계
+---
+회원 도메인 요구사항
+- 회원 가입 후 조회할 수 있다.
+- 회원은 일반/VIP 등급 존재
+- 회원 데이터는 자체 DB를 구축할 수 있고, 외부 시스템과 연동 가능
+
+#### 구현
+---
+![Spring-Web-General-capture1](/snippets/springGeneral/capture1.png)
+회원 서비스: MemberServiceImpl
+
+우선 메모리 공간에 회원 정보를 저장하고 잘 구동되면 DB를 연동하도록하자.
+
+Grade Enum
+```java
+package hello.core.member;
+
+public enum Grade {
+    BASIC,
+    VIP
+}
+```
+
+Member Class
+```java
+package hello.core.member;
+
+public class Member {
+    private Long id;
+    private String name;
+    private Grade grade;
+
+    public Member(Long id, String name, Grade grade) {
+        this.id = id;
+        this.name = name;
+        this.grade = grade;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public Grade getGrade() {
+        return grade;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setGrade(Grade grade) {
+        this.grade = grade;
+    }
+}
+```
+
+MemberRepository 인터페이스
+```java
+package hello.core.member;
+
+public interface MemberRepository {
+    void save(Member member);
+
+    Member findById(Long memberId);
+}
+```
+
+MemoryMemberRepository MemberRepository 메모리 저장 구현체
+```java
+package hello.core.member;
+
+import java.util.HashMap;
+import java.util.Map;
+
+public class MemoryMemberRepository implements MemberRepository{
+
+    private static Map<Long, Member> store = new HashMap<>(); // 향후 동시성 문제로 인해 ConcurrentMap 를 사용하는 것이 좋다.
+
+    @Override
+    public void save(Member member) {
+        store.put(member.getId(), member);
+    }
+
+    @Override
+    public Member findById(Long memberId) {
+        return store.get(memberId);
+    }
+}
+```
+
+MemberService Interface
+```java
+package hello.core.member;
+
+public interface MemberService {
+
+    void join(Member member);
+
+    Member findMember(Long memberId);
+}
+```
+
+MemberServiceImpl
+```java
+package hello.core.member;
+
+public class MemberServiceImpl implements MemberService {
+
+    private final MemberRepository memberRepository = new MemoryMemberRepository();
+
+    @Override
+    public void join(Member member) {
+        memberRepository.save(member);
+    }
+
+    @Override
+    public Member findMember(Long memberId) {
+        return memberRepository.findById(memberId);
+    }
+}
+```
+
+테스트
+```java
+package hello.core;
+
+import hello.core.member.Grade;
+import hello.core.member.Member;
+import hello.core.member.MemberService;
+import hello.core.member.MemberServiceImpl;
+
+public class MemberApp {
+
+    public static void main(String[] args){
+        MemberService memberService = new MemberServiceImpl();
+        Member member = new Member(1L, "memberA", Grade.VIP);
+        memberService.join(member);
+
+        Member findMember = memberService.findMember(1L);
+        System.out.println("new member = " + member.getName());
+        System.out.println("find Member = " + findMember.getName());
+    }
+}
+```
+
+```bash
+new member = memberA
+find Member = memberA
+
+Process finished with exit code 0
+```
+
+이번에는 junit을 이용한 테스트코드를 작성합니다. 테스트코드는 빌드시 제외됩니다.
+
+```java
+package member;
+
+import hello.core.member.Grade;
+import hello.core.member.Member;
+import hello.core.member.MemberService;
+import hello.core.member.MemberServiceImpl;
+import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.Test;
+
+public class MemberServiceTest {
+
+    MemberService memberService = new MemberServiceImpl();
+
+    @Test
+    void join(){
+        // given
+        Member member = new Member(1L, "memberA", Grade.VIP);
+
+        // when
+        memberService.join(member);
+        Member findMember = memberService.findMember(1L);
+
+        // then
+        Assertions.assertThat(member).isEqualTo(findMember);
+    }
+}
+```
+
+##### 회원 도메인 설계의 문제점
+---
+- 다른 저장소로 변경할 때 OCP/DIP 원칙을 잘 준수하는가?
+- 의존관계가 인터페이스 뿐 아닌 구현체까지 모두 의존하는 문제가 존재하고 있음.
+
+MemberServiceImpl
+```java {3-5}
+package hello.core.member;
+
+public class MemberServiceImpl implements MemberService {
+
+    private final MemberRepository memberRepository = new MemoryMemberRepository();
+
+    ...
+```
+MemberServiceImpl 는 인터페이스(MemberRepository) 뿐 아니라 실제 할당하는 구현체(MemoryMemberRepository)를 의존한다. 추상화/구현체 둘다 의존하고 있기 때문에 DIP를 위반하고 있다.
+
+### 주문과 할인 도메인 설계
+---
+도메인 요구사항
+- 회원은 상품을 주문할 수 있다.
+- 회원 등급에 따라 할인 정책을 적용할 수 있다.
+- 할인 정책의 경우 VIP는 1000원을 할인해주고 고정 금액 할인을 적용해준다.
+- 할인 정책은 변경 가능성이 높다. 회사의 기본 할인 정책을 아직 정하지 못했고, 오픈 직전까지 고민을 미루고 싶다. 최악의 경우 할인을 적용하지 않을 수 있다.
+
+![Spring-Web-General-capture2](/snippets/springGeneral/capture2.png)
+
+![Spring-Web-General-capture3](/snippets/springGeneral/capture3.png)
+
+![Spring-Web-General-capture4](/snippets/springGeneral/capture4.png)
+
+![Spring-Web-General-capture5](/snippets/springGeneral/capture5.png)
+
+![Spring-Web-General-capture6](/snippets/springGeneral/capture6.png)
+
+#### 구현
+---
+우선 정액 할인 정책으로 설계하여 개발해보도록하자.
+
+order 클래스
+```java
+package hello.core.order;
+
+public class Order {
+
+    private Long memberId;
+    private String itemName;
+    private int itemPrice;
+    private int discountPrice;
+
+    public Order(Long memberId, String itemName, int itemPrice, int discountPrice) {
+        this.memberId = memberId;
+        this.itemName = itemName;
+        this.itemPrice = itemPrice;
+        this.discountPrice = discountPrice;
+    }
+
+    public int calculatePrice() {
+        return itemPrice - discountPrice;
+    }
+
+    public Long getMemberId() {
+        return memberId;
+    }
+
+    public void setMemberId(Long memberId) {
+        this.memberId = memberId;
+    }
+
+    public String getItemName() {
+        return itemName;
+    }
+
+    public void setItemName(String itemName) {
+        this.itemName = itemName;
+    }
+
+    public int getItemPrice() {
+        return itemPrice;
+    }
+
+    public void setItemPrice(int itemPrice) {
+        this.itemPrice = itemPrice;
+    }
+
+    public int getDiscountPrice() {
+        return discountPrice;
+    }
+
+    public void setDiscountPrice(int discountPrice) {
+        this.discountPrice = discountPrice;
+    }
+
+    @Override
+    public String toString() {
+        return "Order{" +
+                "memberId=" + memberId +
+                ", itemName='" + itemName + '\'' +
+                ", itemPrice=" + itemPrice +
+                ", discountPrice=" + discountPrice +
+                '}';
+    }
+}
+```
+
+OrderService Interface
+```java
+package hello.core.order;
+
+public interface OrderService {
+    Order createOrder(Long memberId, String itemName, int itemPrice); // Order 반환
+}
+```
+
+OrderServiceImpl
+```java {16-18}
+package hello.core.order;
+
+import hello.core.discount.DiscountPolicy;
+import hello.core.discount.FixDiscountPolicy;
+import hello.core.member.Member;
+import hello.core.member.MemberRepository;
+import hello.core.member.MemoryMemberRepository;
+
+public class OrderServiceImpl implements OrderService{
+
+    private final MemberRepository memberRepository = new MemoryMemberRepository();
+    private final DiscountPolicy discountPolicy = new FixDiscountPolicy();
+
+    @Override
+    public Order createOrder(Long memberId, String itemName, int itemPrice) {
+        // 단일 책임 원칙에 의해 discount 정책을 조회하려면 discountPolicy 객체를 사용하면 된다.
+        Member member = memberRepository.findById(memberId);
+        int discountPrice = discountPolicy.discount(member, itemPrice);
+
+        return new Order(memberId, itemName, itemPrice, discountPrice);
+    }
+}
+```
+
+orderApp
+```java
+package hello.core;
+
+import hello.core.member.Grade;
+import hello.core.member.Member;
+import hello.core.member.MemberService;
+import hello.core.member.MemberServiceImpl;
+import hello.core.order.Order;
+import hello.core.order.OrderService;
+import hello.core.order.OrderServiceImpl;
+
+public class OrderApp {
+
+    public static void main(String[] args) {
+        MemberService memberService = new MemberServiceImpl();
+        OrderService orderService = new OrderServiceImpl();
+
+        Long memberId = 1L;
+        Member member = new Member(memberId, "memberA", Grade.VIP);
+        memberService.join(member); // 메모리 저장
+
+        Order order = orderService.createOrder(memberId, "itemA", 10000);
+
+        System.out.println("order = " + order);
+    }
+}
+```
+
+junit Test
+```java
+import hello.core.member.Grade;
+import hello.core.member.Member;
+import hello.core.member.MemberService;
+import hello.core.member.MemberServiceImpl;
+import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.Test;
+
+public class OrderServiceTest {
+
+    MemberService memberService = new MemberServiceImpl();
+    OrderService orderService = new OrderServiceImpl();
+
+    @Test
+    void createOrder() {
+        Long memberId = 1L;
+        Member member = new Member(memberId, "memberA", Grade.VIP);
+        memberService.join(member);
+
+        Order order = orderService.createOrder(memberId, "itemA", 10000);
+        Assertions.assertThat(order.getDiscountPrice()).isEqualTo(1000);
+    }
+}
+```
+
+```bash
+
+```
