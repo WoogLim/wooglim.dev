@@ -1,0 +1,467 @@
+---
+title: "[스프링 핵심 원리] 기본편 - 4"
+description: "스프링 핵심 원리 - 스프링 컨테이너와 스프링 빈"
+language: "Java"
+category: "Spring Basic"
+update: "2023-07-27"
+hide: true
+serisenumber: 4
+---
+
+## 시작
+
+- [김영한 강사님의 스프링 핵심 원리 - 기본편 강의를 듣고 작성한 글입니다.](https://www.inflearn.com/course/%EC%8A%A4%ED%94%84%EB%A7%81-%ED%95%B5%EC%8B%AC-%EC%9B%90%EB%A6%AC-%EA%B8%B0%EB%B3%B8%ED%8E%B8/dashboard)
+
+### 스프링 컨테이너 생성
+스프링 컨테이너는 아래와 같이 생성된다.
+```java
+ApplicationContext applicationContext = new AnnotationConfigApplicationContext(AppConfig.class);
+```
+- `ApplicationContext`를 스프링 컨테이너라 한다.
+- `ApplicationContext`는 인터페이스이다.
+- 스프링 컨테이너는 XML을 기반으로 만들 수 있고 에노테이션 기반의 자바 설정 클래스로 만들 수 있다.
+- 직전에 `AppConfig`를 사용했던 방식이 에노테이션 기반의 자바 설정 클래스로 스프링 컨테이너를 만든 것이다.
+
+- 더 정확히는 스프링 컨테이너를 부를 때 `BeanFactory`, `ApplicationContext`로 구분해 얘기한다. 다만 `BeanFactory`를 직접 사용하는 경우는 거의 없으므로 일반적으로 `ApplicationContext`를 스프링 컨테이너라 한다.
+
+### 스프링 컨테이너 생성 과정
+
+![Spring-Web-General-capture1](/snippets/springGeneral/section4/capture1.png)
+
+#### 스프링 빈 등록
+
+![Spring-Web-General-capture2](/snippets/springGeneral/section4/capture2.png)
+
+빈 이름  
+- 빈 이름은 메서드 이름을 사용
+- 빈 이름을 직접 부여할 수 있다.
+  - `@Bean(name="memberService2")`
+- `주의` 빈 이름은 항상 다른 이름을 부여해야 한다. 다른 빈이 무시되거나 기존 빈을 덮어버리거나 설정에 따라 오류가 발생함.
+
+#### 빈 의존 관계 설정
+
+![Spring-Web-General-capture3](/snippets/springGeneral/section4/capture3.png)
+
+- 스프링은 빈을 생성학도, 의존관계를 주입하는 단계가 나누어져 있다. 이렇게 자바 코드로 스프링 빈을 등록하면 생성자를 호출하면서 의존관계 주입도 한번에 처리된다.
+- 스프링 컨테이너를 생성/설정하고 스프링 빈도 등록하고 의존관계도 설정했다. 이제 스프링 컨테이너에서 데이터를 조회해보자.
+
+### 컨테이너에 등록된 빈 조회
+스프링 컨테이너에 실제 스프링 빈이 등록되어 있는지 확인해보자.
+
+```java
+package hello.core.beanfind;
+
+import hello.core.AppConfig;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+
+public class ApplicationContextInfoTest {
+
+    AnnotationConfigApplicationContext ac = new AnnotationConfigApplicationContext(AppConfig.class);
+
+    @Test
+    @DisplayName("모든 빈 출력하기")
+    void findAllBean() {
+        String[] beanDefinitionNames = ac.getBeanDefinitionNames();
+        for (String beanDefinitionName : beanDefinitionNames) {
+            Object bean = ac.getBean(beanDefinitionName);
+            System.out.println("name = " + beanDefinitionName + " object = " + bean);
+        }
+    }
+
+    @Test
+    @DisplayName("애플리케이션 빈 출력하기")
+    void findApplicationBean() {
+        // ac.getBeanDefinitionNames() : 스프링에 등록된 모든 빈 정보를 출력
+        String[] beanDefinitionNames = ac.getBeanDefinitionNames();
+        for (String beanDefinitionName : beanDefinitionNames) {
+            // 빈 메타데이터
+            BeanDefinition beanDefinition = ac.getBeanDefinition(beanDefinitionName);
+
+            if(beanDefinition.getRole() == BeanDefinition.ROLE_APPLICATION) {
+                // 애플리케이션에서 등록한 빈만 가져옴.
+                // ac.getBean : 빈 이름으로 빈 객체를 조회
+                Object bean = ac.getBean(beanDefinitionName);
+                System.out.println("name = " + beanDefinitionName + " object = " + bean);
+            }
+        }
+    }
+}
+```
+`애플리케이션 빈 출력하기`를 수행 한 결과
+```bash
+name = appConfig object = hello.core.AppConfig$$SpringCGLIB$$0@7e276594
+name = memberService object = hello.core.member.MemberServiceImpl@3401a114
+name = memberRepository object = hello.core.member.MemoryMemberRepository@5066d65f
+name = orderService object = hello.core.order.OrderServiceImpl@4233e892
+name = discountPolicy object = hello.core.discount.RateDiscountPolicy@77d2e85
+```
+아래와 같이 특정 빈 이름, 타입으로 검색할 수 있다.
+```java
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+public class ApplicationContextBasicFindTest
+{
+
+    AnnotationConfigApplicationContext ac = new AnnotationConfigApplicationContext(AppConfig.class);
+
+    @Test
+    @DisplayName("빈 이름으로 조회")
+    void findBeanByName() {
+        MemberService memberService = ac.getBean("memberService", MemberService.class);
+//        System.out.println("memberService = " + memberService);
+//        System.out.println("memberService.getClass() = " + memberService.getClass());
+
+        assertThat(memberService).isInstanceOf(MemberServiceImpl.class);
+    }
+
+    @Test
+    @DisplayName("이름 없이 타입으로 조회")
+    void findBeanByType() {
+        MemberService memberService = ac.getBean(MemberService.class);
+        assertThat(memberService).isInstanceOf(MemberServiceImpl.class);
+    }
+
+    @Test
+    @DisplayName("구현체 타입으로 조회")
+    void findBeanByName2() {
+        // 구현체에 의존하므로 추천하지는 않음.
+        MemberServiceImpl memberService = ac.getBean("memberService", MemberServiceImpl.class);
+        Assertions.assertThat(memberService).isInstanceOf(MemberServiceImpl.class);
+    }
+
+    @Test
+    @DisplayName("빈 이름으로 조회 X")
+    void findBeanByNameX() {
+        MemberService xxxxx = ac.getBean("xxxxx", MemberService.class);
+        assertThrows(NoSuchBeanDefinitionException.class,
+                () -> ac.getBean("xxxxx", MemberService.class));
+    }
+}
+```
+
+### 스프링 빈 조회 - 동일한 타입이 둘 이상
+- 타입으로 조회시 같은 타입의 스프링 빈이 둘 이상이면 오류 발생. 이때는 빈 이름을 지정해주어야 한다.
+- `ac.getBeansOfType()`을 사용하면 해당 타입의 모든 빈 조회 가능.
+
+```java
+public class ApplicationContextSameBeanFindTest {
+
+    AnnotationConfigApplicationContext ac = new AnnotationConfigApplicationContext(SameBeanConfig.class);
+
+    @Test
+    @DisplayName("타입으로 조회시 같은 타입이 둘 이상 있으면, 중복 오류 발생")
+    void findBeanByTypeDuplicate() {
+        MemberRepository bean = ac.getBean(MemberRepository.class);
+    }
+
+    @Configuration
+    static class SameBeanConfig { // 클래스 안에 static class를 쓰면 해당 클래스 스코프내에 존재.
+
+        @Bean
+        public MemberRepository memberRepository1() {
+            return new MemoryMemberRepository();
+        }
+        @Bean
+        public MemberRepository memberRepository2() {
+            return new MemoryMemberRepository();
+        }
+
+    }
+}
+```
+
+결과
+```bash
+org.springframework.beans.factory.NoUniqueBeanDefinitionException: No qualifying bean of type 'hello.core.member.MemberRepository' available: expected single matching bean but found 2: memberRepository1,memberRepository2
+```
+
+아래와 같이 `ac.getBeansOfType()`를 이용해 해당 타입의 빈을 모두 조회할 수 있다.
+```java
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+public class ApplicationContextSameBeanFindTest {
+
+    AnnotationConfigApplicationContext ac = new AnnotationConfigApplicationContext(SameBeanConfig.class);
+
+//    @Test
+//    @DisplayName("타입으로 조회시 같은 타입이 둘 이상 있으면, 중복 오류 발생")
+//    void findBeanByTypeDuplicate() {
+//        MemberRepository bean = ac.getBean(MemberRepository.class);
+//    }
+
+    @Test
+    @DisplayName("타입으로 조회시 같은 타입이 둘 이상 있으면, 중복 오류 발생")
+    void findBeanByTypeDuplicate() {
+        assertThrows(NoUniqueBeanDefinitionException.class, () -> ac.getBean(MemberRepository.class));
+    }
+
+    @Test
+    @DisplayName("타입으로 조회시 같은 타입이 둘 이상 있으면, 빈 이름을 지정하면 된다.")
+    void findBeanByName() {
+        MemberRepository memberRepository = ac.getBean("memberRepository1", MemberRepository.class);
+        assertThat(memberRepository).isInstanceOf(MemberRepository.class);
+    }
+
+    @Test
+    @DisplayName("특정 타입을 모두 조회하기")
+    void findAllBeanByType() {
+        Map<String, MemberRepository> beansOfType = ac.getBeansOfType(MemberRepository.class);
+
+        for(String key : beansOfType.keySet()) {
+            System.out.println("key = " + key + " value = " + beansOfType.get(key));
+        }
+
+        System.out.println("beansOfType = " + beansOfType);
+        assertThat(beansOfType.size()).isEqualTo(2);
+    }
+
+    @Configuration
+    static class SameBeanConfig { // 클래스 안에 static class를 쓰면 해당 클래스 스코프내에 존재.
+
+        @Bean
+        public MemberRepository memberRepository1() {
+            return new MemoryMemberRepository();
+        }
+        @Bean
+        public MemberRepository memberRepository2() {
+            return new MemoryMemberRepository();
+        }
+
+    }
+}
+```
+
+### 스프링 빈 조회 - 상속관계
+
+![Spring-Web-General-capture4](/snippets/springGeneral/section4/capture4.png)
+
+```java
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+public class ApplicationContenxtExtendsFindTest {
+
+    AnnotationConfigApplicationContext ac = new AnnotationConfigApplicationContext(TestConfig.class);
+
+    @Test
+    @DisplayName("부모 타입으로 조회시 자식이 둘 이상 있으면, 중복 오류가 발생한다")
+    void findBeanByParentTypeDuplicate() {
+        assertThrows(NoUniqueBeanDefinitionException.class,
+                () -> ac.getBean(DiscountPolicy.class));
+    }
+
+    @Test
+    @DisplayName("부모 타입으로 조회시 자식이 둘 이상 있으면, 빈 이름을 지정하면 된다.")
+    void findBeanByParentTypeBeanName() {
+        DiscountPolicy rateDiscountPolicy = ac.getBean("rateDiscountPolicy", DiscountPolicy.class);
+        assertThat(rateDiscountPolicy).isInstanceOf(RateDiscountPolicy.class);
+    }
+
+    @Test
+    @DisplayName("특정 하위 타입으로 조회")
+    void findBeanBySubType(){
+        // 이 주제에서 좋은 방법은 아님.
+        RateDiscountPolicy bean = ac.getBean(RateDiscountPolicy.class);
+        assertThat(bean).isInstanceOf(RateDiscountPolicy.class);
+    }
+
+    @Test
+    @DisplayName("부모 타입으로 모두 조회하기")
+    void findAllBeanByParentType() {
+        Map<String, DiscountPolicy> beansOfType = ac.getBeansOfType(DiscountPolicy.class);
+
+        assertThat(beansOfType.size()).isEqualTo(2);
+
+        for(String key : beansOfType.keySet()) {
+            System.out.println("key = " + key + " value = " + beansOfType.get(key));
+        }
+    }
+
+    @Test
+    @DisplayName("부모 타입으로 모두 조회하기 - Object")
+    void findAllBeanByObjectType() {
+        // 모든 객체는 Object타입.
+        
+        Map<String, Object> beansOfType = ac.getBeansOfType(Object.class);
+
+        for(String key : beansOfType.keySet()) {
+            System.out.println("key = " + key + " value = " + beansOfType.get(key));
+        }
+    }
+
+    @Configuration
+    static class TestConfig {
+        @Bean
+        public DiscountPolicy rateDiscountPolicy() {
+            return new RateDiscountPolicy();
+        }
+
+        @Bean
+        public DiscountPolicy fixDiscountPolicy() {
+            return new FixDiscountPolicy();
+        }
+    }
+}
+```
+
+### BeanFcatory와 ApplicationContext
+
+ApplicationContext는 `BeanFactory`를 상속받는다.
+
+![Spring-Web-General-capture5](/snippets/springGeneral/section4/capture5.png)
+
+`BeanFactory`
+- 스프링 컨테이너의 최상위 인터페이스
+- 스프링 빈을 관리하고 조회하는 역할 담당
+- `getBean()` 지원하기
+- 지금까지 사용한 대부분의 기능이 제공
+
+`ApplicationContext`
+- `BeanFactory`를 모두 상속받아 제공
+- 빈을 관리하고 검색하는 기능을 BeanFactory가 제공해주는데, 차이가 무엇인가.
+- 애플리케이션 개발 시 빈은 관리하고 조회하는 기능을 물론 수 많은 부가기능이 필요하다.
+
+```java
+public interface ApplicationContext extends EnvironmentCapable, ListableBeanFactory, HierarchicalBeanFactory,
+		MessageSource, ApplicationEventPublisher, ResourcePatternResolver {
+```
+
+`ApplicationContext`가 제공하는 부가기능
+![Spring-Web-General-capture6](/snippets/springGeneral/section4/capture6.png)
+
+- 메시지 소스를 이용한 국제화 기능
+    - 예로 한국에서 들어오면 한국어로, 영어권에서 들어오면 영어로 출력
+- 환경 변수
+    - 로컬, 개발, 운영등을 구분해서 처리
+- 애플리케이션 이벤트
+    - 이벤트를 발행하고 구독하는 모델을 편리하게 지원
+- 편리한 리소스 조회
+    - 파일, 클래스패스, 외부 등에서 리소스를 편리하게 조회
+
+`정리`
+- ApplicationContext는 BeanFactory의 기능을 상속받는다.
+- ApplicationContext는 빈 관리기능 + 편리한 부가 기능을 제공한다.
+- BeanFactory를 직접 사용할 일은 거의 없다. 부가기능이 포함된 ApplicationContext를 사용한다.
+- BeanFactory나 ApplicationContext를 스프링 컨테이너라 한다.\
+
+### 다양한 설정 형식 지원 - 자바 코드, XML
+스프링 컨테이너는 다양한 형식의 설정 정보를 받아들일 수 있게 유연하게 설계됨.
+- 자바 코드, XML, Groovy 등.
+
+![Spring-Web-General-capture7](/snippets/springGeneral/section4/capture7.png)
+
+- 자바 코드의 경우 new AnnotationConfigApplicationContext(`Appconfig.class 파일`)과 같이 자바 코드로된 정보를 넘기면 된다.
+
+#### XML
+다음과 같이 xml 코드를 작성합니다.
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+    <bean id="memberService" class="hello.core.member.MemberServiceImpl">
+        <constructor-arg name="memberRepository" ref="memberRepository" />
+    </bean>
+
+    <bean id="memberRepository"
+          class="hello.core.member.MemoryMemberRepository" />
+
+    <bean id="orderService"
+          class="hello.core.order.OrderServiceImpl">
+        <constructor-arg name="memberRepository" ref="memberRepository" />
+        <constructor-arg name="discountPolicy" ref="discountPolicy" />
+    </bean>
+
+    <bean id="discountPolicy"
+          class="hello.core.discount.RateDiscountPolicy" />
+</beans>
+```
+형식만 다를 뿐 이전에 작성한 `appConfig.class`와 똑같은 내용이다.
+
+```java
+import static org.assertj.core.api.Assertions.*;
+
+public class XmlAppContext {
+
+    @Test
+    void xmlAppContext() {
+        // main/resources 내 appConfig.xml을 읽는다.
+        ApplicationContext ac = new GenericXmlApplicationContext("appConfig.xml");
+        MemberService memberService = ac.getBean("memberService", MemberService.class);
+        assertThat(memberService).isInstanceOf(MemberService.class);
+    }
+}
+```
+결과
+```bash
+19:44:01.669 [main] WARN org.springframework.core.LocalVariableTableParameterNameDiscoverer -- Using deprecated '-debug' fallback for parameter name resolution. Compile the affected code with '-parameters' instead or avoid its introspection: hello.core.member.MemberServiceImpl
+19:44:01.675 [main] WARN org.springframework.core.LocalVariableTableParameterNameDiscoverer -- Using deprecated '-debug' fallback for parameter name resolution. Compile the affected code with '-parameters' instead or avoid its introspection: hello.core.order.OrderServiceImpl
+
+Process finished with exit code 0
+```
+
+### 스프링 빈 설정 메타 정보 - BeanDefinition
+`BeanDefinition` 이라는 추상화를 통해 스프링은 이런 다양한 설정 형식을 지원한다.
+- 쉽게 이야기해 `역할과 구현을 개념적으로 나눈 것`
+    - XML을 읽어서 BeanDefinition을 만들면 된다.
+    - 자바 코드를 읽어서 BeanDefinition을 만들면 된다.
+    - 스프링 컨테이너는 자바 코드인지, XML인지 몰라도 된다. 오직 BeanDefinition만 알면 된다.
+- `BeanDefinition`을 빈 설정 메타정보라 한다.
+    - `@Bean`, `<bean>` 당 각각 하나의 메타 정보가 생성된다.
+- 스프링 컨테이너는 이 메타정보를 기반으로 스프링 빈을 생성한다.
+
+![Spring-Web-General-capture8](/snippets/springGeneral/section4/capture8.png)
+
+코드 레벨로 좀 더 깊이 있게 들어가보면..
+
+![Spring-Web-General-capture9](/snippets/springGeneral/section4/capture9.png)
+
+```java
+public class GenericXmlApplicationContext extends GenericApplicationContext {
+
+	private final XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(this);
+```
+
+#### BeanDefinition 살펴보기
+
+![Spring-Web-General-capture10](/snippets/springGeneral/section4/capture10.png)
+
+```java
+public class BeanDefinitionText {
+
+    AnnotationConfigApplicationContext ac = new AnnotationConfigApplicationContext(AppConfig.class);
+    // GenericXmlApplicationContext ac = new GenericXmlApplicationContext("appConfig.xml");
+
+    @Test
+    @DisplayName("빈 설정 메타정보 확인")
+    void findApplicationBean() {
+        String[] beanDefinitionNames = ac.getBeanDefinitionNames();
+
+        for (String beanDefinitionName: beanDefinitionNames) {
+            // ApplicationContext 에서는 getBeanDefinition() 이 존재하지 않음.
+            BeanDefinition beanDefinition = ac.getBeanDefinition(beanDefinitionName);
+            
+            if(beanDefinition.getRole() == BeanDefinition.ROLE_APPLICATION) {
+                System.out.println("beanDefinitionName + = " + beanDefinitionName +
+                        " beanDefinition = " + beanDefinition);
+            }
+        }
+    }
+}
+```
+결과
+```bash
+beanDefinitionName + = appConfigbeanDefinition = Generic bean: class [hello.core.AppConfig$$SpringCGLIB$$0]; scope=singleton; abstract=false; lazyInit=null; autowireMode=0; dependencyCheck=0; autowireCandidate=true; primary=false; factoryBeanName=null; factoryMethodName=null; initMethodNames=null; destroyMethodNames=null
+beanDefinitionName + = memberServicebeanDefinition = Root bean: class [null]; scope=; abstract=false; lazyInit=null; autowireMode=3; dependencyCheck=0; autowireCandidate=true; primary=false; factoryBeanName=appConfig; factoryMethodName=memberService; initMethodNames=null; destroyMethodNames=[(inferred)]; defined in hello.core.AppConfig
+beanDefinitionName + = memberRepositorybeanDefinition = Root bean: class [null]; scope=; abstract=false; lazyInit=null; autowireMode=3; dependencyCheck=0; autowireCandidate=true; primary=false; factoryBeanName=appConfig; factoryMethodName=memberRepository; initMethodNames=null; destroyMethodNames=[(inferred)]; defined in hello.core.AppConfig
+beanDefinitionName + = orderServicebeanDefinition = Root bean: class [null]; scope=; abstract=false; lazyInit=null; autowireMode=3; dependencyCheck=0; autowireCandidate=true; primary=false; factoryBeanName=appConfig; factoryMethodName=orderService; initMethodNames=null; destroyMethodNames=[(inferred)]; defined in hello.core.AppConfig
+beanDefinitionName + = discountPolicybeanDefinition = Root bean: class [null]; scope=; abstract=false; lazyInit=null; autowireMode=3; dependencyCheck=0; autowireCandidate=true; primary=false; factoryBeanName=appConfig; factoryMethodName=discountPolicy; initMethodNames=null; destroyMethodNames=[(inferred)]; defined in hello.core.AppConfig
+
+Process finished with exit code 0
+```
+물론 메타 정보를 직접 설정하는 경우는 적지만 너무 깊게 이해하기 보단 스프링이 다양한 형태의 설정 정볼르 BeanDefinition으로 추상화해서 사용하는 것 정도만 이해하면 좋다.

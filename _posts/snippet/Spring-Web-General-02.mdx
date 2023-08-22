@@ -45,7 +45,7 @@ IntelliJ를 사용한다면 환경설정 - Gradle - Gradle Project내 core 에�
 
 #### 구현
 ---
-![Spring-Web-General-capture1](/snippets/springGeneral/capture1.png)
+![Spring-Web-General-capture1](/snippets/springGeneral/section2/capture1.png)
 회원 서비스: MemberServiceImpl
 
 우선 메모리 공간에 회원 정보를 저장하고 잘 구동되면 DB를 연동하도록하자.
@@ -60,7 +60,7 @@ public enum Grade {
 }
 ```
 
-Member Class
+- Member Class
 ```java
 package hello.core.member;
 
@@ -101,7 +101,7 @@ public class Member {
 }
 ```
 
-MemberRepository 인터페이스
+- MemberRepository 인터페이스
 ```java
 package hello.core.member;
 
@@ -112,7 +112,7 @@ public interface MemberRepository {
 }
 ```
 
-MemoryMemberRepository MemberRepository 메모리 저장 구현체
+-  MemoryMemberRepository MemberRepository 메모리 저장 구현체
 ```java
 package hello.core.member;
 
@@ -135,7 +135,7 @@ public class MemoryMemberRepository implements MemberRepository{
 }
 ```
 
-MemberService Interface
+- MemberService Interface
 ```java
 package hello.core.member;
 
@@ -147,7 +147,7 @@ public interface MemberService {
 }
 ```
 
-MemberServiceImpl
+- MemberServiceImpl
 ```java
 package hello.core.member;
 
@@ -167,7 +167,7 @@ public class MemberServiceImpl implements MemberService {
 }
 ```
 
-테스트
+- 테스트
 ```java
 package hello.core;
 
@@ -198,7 +198,6 @@ Process finished with exit code 0
 ```
 
 이번에는 junit을 이용한 테스트코드를 작성합니다. 테스트코드는 빌드시 제외됩니다.
-
 ```java
 package member;
 
@@ -253,21 +252,21 @@ MemberServiceImpl 는 인터페이스(MemberRepository) 뿐 아니라 실제 할
 - 할인 정책의 경우 VIP는 1000원을 할인해주고 고정 금액 할인을 적용해준다.
 - 할인 정책은 변경 가능성이 높다. 회사의 기본 할인 정책을 아직 정하지 못했고, 오픈 직전까지 고민을 미루고 싶다. 최악의 경우 할인을 적용하지 않을 수 있다.
 
-![Spring-Web-General-capture2](/snippets/springGeneral/capture2.png)
+![Spring-Web-General-capture2](/snippets/springGeneral/section2/capture2.png)
 
-![Spring-Web-General-capture3](/snippets/springGeneral/capture3.png)
+![Spring-Web-General-capture3](/snippets/springGeneral/section2/capture3.png)
 
-![Spring-Web-General-capture4](/snippets/springGeneral/capture4.png)
+![Spring-Web-General-capture4](/snippets/springGeneral/section2/capture4.png)
 
-![Spring-Web-General-capture5](/snippets/springGeneral/capture5.png)
+![Spring-Web-General-capture5](/snippets/springGeneral/section2/capture5.png)
 
-![Spring-Web-General-capture6](/snippets/springGeneral/capture6.png)
+![Spring-Web-General-capture6](/snippets/springGeneral/section2/capture6.png)
 
 #### 구현
 ---
 우선 정액 할인 정책으로 설계하여 개발해보도록하자.
 
-order 클래스
+- order 클래스
 ```java
 package hello.core.order;
 
@@ -333,7 +332,7 @@ public class Order {
 }
 ```
 
-OrderService Interface
+- OrderService Interface
 ```java
 package hello.core.order;
 
@@ -368,7 +367,7 @@ public class OrderServiceImpl implements OrderService{
 }
 ```
 
-orderApp
+- orderApp
 ```java
 package hello.core;
 
@@ -397,7 +396,7 @@ public class OrderApp {
 }
 ```
 
-junit Test
+- junit Test
 ```java
 import hello.core.member.Grade;
 import hello.core.member.Member;
@@ -424,5 +423,135 @@ public class OrderServiceTest {
 ```
 
 ```bash
-
+Process finished with exit code 0
 ```
+
+### 요구사항의 변경
+---
+기획측의 요구사항 변경으로 퍼센트 할인으로 정책을 바꾸게 되었습니다.
+
+#### 구현
+---
+- 구현 코드
+```java
+package hello.core.discount;
+
+import hello.core.member.Grade;
+import hello.core.member.Member;
+
+public class RateDiscountPolicy implements DiscountPolicy{
+
+    private int discountPercent = 10;
+
+
+    @Override
+    public int discount(Member member, int price) {
+        // Test 만들기 command + shift + T
+        if(member.getGrade() == Grade.VIP){
+            return price * discountPercent / 100; // 10 %
+        } else {
+            return 0;
+        }
+    }
+}
+```
+
+- Test Code
+```java
+package hello.core.discount;
+
+import hello.core.member.Grade;
+import hello.core.member.Member;
+import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+class RateDiscountPolicyTest {
+
+    RateDiscountPolicy discountPolicy = new RateDiscountPolicy();
+
+    @Test
+    @DisplayName("VIP는 10% 할인이 적용되어야 한다")
+    void vip_o() {
+        //given
+        Member member = new Member(1L, "memberVIP", Grade.VIP);
+        //when
+        int discount = discountPolicy.discount(member, 10000);
+        //then
+        Assertions.assertThat(discount).isEqualTo(1000);
+    }
+
+    @Test
+    @DisplayName("VIP가 아니면 할인이 적용되지 않아야 한다")
+    void vip_x() {
+        //given
+        Member member = new Member(2L, "memberBasic", Grade.BASIC);
+        //when
+        int discount = discountPolicy.discount(member, 10000);
+        //then
+        Assertions.assertThat(discount).isEqualTo(1000);
+    }
+
+}
+```
+
+![Spring-Web-General-capture7](/snippets/springGeneral/section2/capture7.png)
+
+#### 의존 관계의 문제
+---
+다시 테스크 코드를 정상적으로 동작하도록 수정하고 OrderServiceImpl의 코드를 수정합니다.
+```java {4-5}
+public class OrderServiceImpl implements OrderService{
+
+    private final MemberRepository memberRepository = new MemoryMemberRepository();
+//    private final DiscountPolicy discountPolicy = new FixDiscountPolicy();
+    private final DiscountPolicy discountPolicy = new RateDiscountPolicy();
+
+    @Override
+    public Order createOrder(Long memberId, String itemName, int itemPrice) {
+        // 단일 책임 원칙에 의해 discount 정책을 조회하려면 discountPolicy 객체를 사용하면 된다.
+        Member member = memberRepository.findById(memberId);
+        int discountPrice = discountPolicy.discount(member, itemPrice);
+
+        return new Order(memberId, itemName, itemPrice, discountPrice);
+    }
+}
+```
+위에서 우려했던 문제가 다시 발생합니다. 할인 정책 변경을 위해 클라이언트인 `OrderServiceImpl`코드를 고쳐야합니다.  
+
+원인을 되짚어 봅시다.
+- 역할과 구현을 충실하게 분리했다? -> OK
+- 다형성을 활용하고, 인터페이스와 구현 객체를 분리했다 -> OK
+- OCP, DIP 같은 객체지향 설계 원칙을 준수했다? -> 그렇게 보이지만 사실은 아니다.
+
+![Spring-Web-General-capture8](/snippets/springGeneral/section2/capture8.png)
+
+왜 클라이언트의 코드를 변경할 수 밖에 없는지 알아봅시다.
+
+![Spring-Web-General-capture9](/snippets/springGeneral/section2/capture9.png)
+
+어떻게 문제를 해결할 수 있을까
+
+![Spring-Web-General-capture10](/snippets/springGeneral/section2/capture10.png)
+
+코드도 인터페이스에만 의존하도록 코드를 변경해야합니다.
+
+```java {4}
+public class OrderServiceImpl implements OrderService{
+
+    private final MemberRepository memberRepository = new MemoryMemberRepository();
+    private DiscountPolicy discountPolicy;
+
+    @Override
+    public Order createOrder(Long memberId, String itemName, int itemPrice) {
+        // 단일 책임 원칙에 의해 discount 정책을 조회하려면 discountPolicy 객체를 사용하면 된다.
+        Member member = memberRepository.findById(memberId);
+        int discountPrice = discountPolicy.discount(member, itemPrice);
+
+        return new Order(memberId, itemName, itemPrice, discountPrice);
+    }
+}
+```
+하지만 위와 같이 실행하면 `NullPointException`이 발생합니다. 결국 이 문제를 해결하려면 클라이언트인 `OrderServiceImpl`에 `DiscountPolicy`의 구현 객체를 대신 생성하고 주입해주어야 한다.
