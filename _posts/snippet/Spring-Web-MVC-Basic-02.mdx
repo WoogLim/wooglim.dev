@@ -1,0 +1,707 @@
+---
+title: "[스프링 MVC 1편] - 2"
+description: "스프링 MVC - 서블릿 알아보기"
+language: "Java"
+category: "Spring MVC"
+update: "2023-08-19"
+hide: true
+serisenumber: 2
+---
+
+## 시작
+
+- [김영한 강사님의 스프링 MVC 1편 - 백엔드 웹 개발 핵심 기술 강의를 듣고 작성한 글입니다.](https://www.inflearn.com/course/%EC%8A%A4%ED%94%84%EB%A7%81-mvc-1)
+
+### 서블릿
+
+#### 프로젝트 생성
+우선 JSP 사용을 할 것이므로 `War`를 패키징으로 설정한다.
+
+![Spring-Basic-capture1](/snippets/springBasic/section2/capture1.png)
+
+Lombok이 정상 작동되도록 아래 설정도 필히 해주어야 한다.
+
+![Spring-Basic-capture2](/snippets/springBasic/section2/capture2.png)
+
+### 서블릿 환경 구성
+이제 스프링 부트 환경에서 서블릿을 등록하고 사용해보자
+
+```text
+참고
+- 서블릿은 톰캣 같은 웹 애플리케이션 서버를 직접 설치하고, 그 위에 서블릿 코드를 클래스 파일로 빌드해서 올린 다음, 톰캣 서버를 실행하면 된다. 이 과정은 매우 번거롭다.
+- 스프링 부트는 톰캣 서버를 내장하고 있으므로, 톰캣 서버 설치 없이 편리하게 서블릿 코드를 실행할 수 있다.
+```
+
+`@ServletComponentScan`
+스프링 부트는 서블릿을 직접 등록해 사용할 수 있도록 `@ServletComponentScan`을 지원한다 다음과 같이 추가하자.
+
+```java
+package hello.servlet;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.web.servlet.ServletComponentScan;
+
+@ServletComponentScan // 서블릿 자동 등록
+@SpringBootApplication
+public class ServletApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(ServletApplication.class, args);
+	}
+
+}
+```
+서블릿을 이용해 request 정보를 받고 응답을 보내보자.
+```java
+package hello.servlet.basic;
+
+import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
+import java.io.IOException;
+
+@WebServlet(name = "helloServlet", urlPatterns = "/hello")
+public class HelloServlet extends HttpServlet {
+
+    // ctrl + o 로 메서드 가져올 수 있음.
+    @Override
+    protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+
+        System.out.println("HelloServlet.service");
+        System.out.println("request = " + request);
+        System.out.println("response = " + response);
+        
+        String username = request.getParameter("userName");
+        System.out.println("username = " + username);
+
+        response.setContentType("text/plain");
+        response.setCharacterEncoding("utf-8");
+        response.getWriter().write("hello " + username);
+    }
+}
+```
+로깅 데이터를 보고 싶다면 아래와 같이 `/src/main/resources/application.properties`에 다음 코드를 입력한다.
+```properties
+
+```
+결과
+```bash
+Host: localhost:8080
+Connection: keep-alive
+Cache-Control: max-age=0
+sec-ch-ua: "Chromium";v="116", "Not)A;Brand";v="24", "Google Chrome";v="116"
+sec-ch-ua-mobile: ?0
+sec-ch-ua-platform: "macOS"
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Sec-Fetch-Site: none
+Sec-Fetch-Mode: navigate
+Sec-Fetch-User: ?1
+Sec-Fetch-Dest: document
+Accept-Encoding: gzip, deflate, br
+Accept-Language: ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7
+
+]
+```
+단 운영서버에 이렇게 모든 정보를 남기면 성능 저하가 발생할 수 있으므로 개발 단계에서만 사용하자.
+
+#### 동작 방식 설명
+
+1. 스프링 부트를 실행해 내장 톰캣 서버를 띄어주고 톰캣 서버는 내부에 서블릿 컨테이너 기능을 가지고 있는데, 서블릿을 모두 생성해준다 이때 `hello`서블릿을 생성해준다.
+2. 클라이언트는 HTTP 요청을 한다.
+3. 싱글톤으로 생성된 `hello`서블릿을 호출하고 request, respone를 넘겨준다. WAS 서버는 response 정보를 가지고 클라이언트에게 전송한다.
+
+참고로 HTTP 응답에서 Content-Length는 웹 애플리케이션에서 자동으로 추가한다.
+
+#### html 페이지 추가
+
+`index.html` 페이지를 추가해보자. 경로는 `/src/main/webapp`경로에 생성하면 된다. 이제 서버를 실행하면 이 페이지는 기본 웰컴 페이지가 된다.
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<ul>
+    <li><a href="basic.html">서블릿 basic</a></li>
+</ul>
+</body>
+</html>
+```
+
+### HttpServletRequest 개요
+
+`HttpServletRequest 역할`
+- HTTP 요청 메시지를 개발자가 직접 파싱해 사용하면 매우 불편할 것이다. 서블릿은 개발자가 HTTP 요청 메시지를 편리하게 사용할 수 있도록 개발자 대신 HTTP 요청 메시지를 파싱한다. 그 결과를 `HttpServletRequest`객체에 담아 제공한다.
+
+```bash
+POST /save HTTP/1.1
+HOST: localhost:8080
+Content-Type: application/x-www-form-urlencoded
+```
+
+`START LINE`
+- HTTP 메소드
+- URL
+- 쿼리 스트링
+- 스키마, 프로토콜
+
+`헤더`
+- 헤더 조회
+
+`바디`
+- form 파라미터 형식 조회
+- message body 데이터 직접 조회
+
+HttpServletRequest 객체는 추가로 여러가지 부가기능도 함께 제공
+
+`임시 저장소 기능`
+- 해당 HTTP 요청이 시작부터 끝날 때 까지 유지되는 임시 저장소 기능
+  - 저장 : `request.setAttribute(name, value)`
+  - 조회 : `request.getAttribute(name)`
+
+`세션 관리 기능`
+- `request.getSession(create: true)`
+
+`중요`
+- HttpServletReuqest, HttpServletResponse를 사용할 때 가장 중요한 점은 이 객체들이 HTTP 요청 메시지, HTTP 응답 메시지를 편리하게 사용하도록 도와주는 객체라는 점이다.
+
+#### 사용법
+
+##### start-line
+
+우선 start-line 정보를 가져오자.
+```java
+private void printStartLine(HttpServletRequest request) {
+        System.out.println("--- REQUEST-LINE - start ---");
+        System.out.println("request.getMethod() = " + request.getMethod()); //GET
+        System.out.println("request.getProtocol() = " + request.getProtocol()); //HTTP/1.1
+        System.out.println("request.getScheme() = " + request.getScheme()); //http
+        // http://localhost:8080/request-header
+        System.out.println("request.getRequestURL() = " + request.getRequestURL());
+        // /request-header
+        System.out.println("request.getRequestURI() = " + request.getRequestURI());
+        //username=hi
+        System.out.println("request.getQueryString() = " +
+                request.getQueryString());
+        System.out.println("request.isSecure() = " + request.isSecure()); //https 사용 유무
+        System.out.println("--- REQUEST-LINE - end ---");
+        System.out.println();
+    }
+```
+결과
+```bash
+--- REQUEST-LINE - start ---
+request.getMethod() = GET
+request.getProtocol() = HTTP/1.1
+request.getScheme() = http
+request.getRequestURL() = http://localhost:8080/request-header
+request.getRequestURI() = /request-header
+request.getQueryString() = username=kim
+request.isSecure() = false
+--- REQUEST-LINE - end ---
+```
+
+##### Header
+Header 정보를 가져오자
+```java
+private void printHeaders(HttpServletRequest request) {
+        System.out.println("--- Headers - start ---");
+  /*
+      Enumeration<String> headerNames = request.getHeaderNames();
+      while (headerNames.hasMoreElements()) {
+          String headerName = headerNames.nextElement();
+          System.out.println(headerName + ": " + request.getHeader(headerName));
+      }
+*/
+        request.getHeaderNames().asIterator()
+                .forEachRemaining(headerName -> System.out.println(headerName + ":" + request.getHeader(headerName)));
+        System.out.println("--- Headers - end ---");
+        System.out.println();
+    }
+```
+결과
+```bash
+--- Headers - start ---
+host:localhost:8080
+connection:keep-alive
+cache-control:max-age=0
+sec-ch-ua:"Chromium";v="116", "Not)A;Brand";v="24", "Google Chrome";v="116"
+sec-ch-ua-mobile:?0
+sec-ch-ua-platform:"macOS"
+upgrade-insecure-requests:1
+user-agent:Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36
+accept:text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+sec-fetch-site:none
+sec-fetch-mode:navigate
+sec-fetch-user:?1
+sec-fetch-dest:document
+accept-encoding:gzip, deflate, br
+accept-language:ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7
+--- Headers - end ---
+```
+
+##### Header 편리한 조회
+보다 편리한 정보를 조회해보자.
+```java
+private void printHeaderUtils(HttpServletRequest request) {
+        System.out.println("--- Header 편의 조회 start ---");
+        System.out.println("[Host 편의 조회]");
+        System.out.println("request.getServerName() = " + request.getServerName()); //Host 헤더
+        System.out.println("request.getServerPort() = " + request.getServerPort()); //Host 헤더 System.out.println();
+        System.out.println("[Accept-Language 편의 조회]");
+        request.getLocales().asIterator().forEachRemaining(locale -> System.out.println("locale = " + locale));
+        System.out.println("request.getLocale() = " + request.getLocale());
+        System.out.println();
+        System.out.println("[cookie 편의 조회]");
+        if (request.getCookies() != null) {
+            for (Cookie cookie : request.getCookies()) {
+                System.out.println(cookie.getName() + ": " + cookie.getValue());
+            }
+        }
+        System.out.println();
+        System.out.println("[Content 편의 조회]");
+        System.out.println("request.getContentType() = " + request.getContentType());
+        System.out.println("request.getContentLength() = " + request.getContentLength());
+        System.out.println("request.getCharacterEncoding() = " + request.getCharacterEncoding());
+
+        System.out.println("--- Header 편의 조회 end ---");
+        System.out.println();
+    }
+```
+결과
+```bash
+--- Header 편의 조회 start ---
+[Host 편의 조회]
+request.getServerName() = localhost
+request.getServerPort() = 8080
+[Accept-Language 편의 조회]
+locale = ko_KR
+locale = ko
+locale = en_US
+locale = en
+request.getLocale() = ko
+
+[cookie 편의 조회]
+
+[Content 편의 조회]
+request.getContentType() = null
+request.getContentLength() = -1
+request.getCharacterEncoding() = UTF-8
+--- Header 편의 조회 end ---
+```
+
+##### 기타 정보
+이외에 정보도 조회해보자
+
+```java
+private void printEtc(HttpServletRequest request) { System.out.println("--- 기타 조회 start ---");
+        System.out.println("[Remote 정보]");
+        System.out.println("request.getRemoteHost() = " + request.getRemoteHost()); //
+        System.out.println("request.getRemoteAddr() = " + request.getRemoteAddr()); //
+        System.out.println("request.getRemotePort() = " + request.getRemotePort()); //
+        System.out.println();
+        System.out.println("[Local 정보]");
+        System.out.println("request.getLocalName() = " + request.getLocalName()); //
+        System.out.println("request.getLocalAddr() = " + request.getLocalAddr()); //
+        System.out.println("request.getLocalPort() = " + request.getLocalPort()); //
+        System.out.println("--- 기타 조회 end ---");
+        System.out.println();
+    }
+```
+결과
+```bash
+--- 기타 조회 start ---
+[Remote 정보]
+request.getRemoteHost() = 0:0:0:0:0:0:0:1
+request.getRemoteAddr() = 0:0:0:0:0:0:0:1
+request.getRemotePort() = 52332
+
+[Local 정보]
+request.getLocalName() = localhost
+request.getLocalAddr() = 0:0:0:0:0:0:0:1
+request.getLocalPort() = 8080
+--- 기타 조회 end ---
+```
+
+start-line, header 정보 조회 방법을 조회했다. 이제 본격적으로 HTTP 요청 데이터를 어떻게 조회하는지 알아보자.
+
+### HTTP 요청 데이터 개요
+HTTP 요청 메시지를 통해 클라이언트에서 서버로 데이터를 전달하는 방법을 알아보자.
+
+`주로 다음 3가지 방법을 사용한다.`
+- `GET - 쿼리 파라미터`
+  - /url`?username=hello&age=20`
+  - 메시지 바디 없이, URL의 쿼리 파라미터에 데이터를 포함해 전달
+  - 예) 검색, 필터, 페이징등에서 많이 사용하는 방식
+- `POST - HTML Form`
+  - content-type: application/x-www-form-urlencoded
+  - 메시지 바디에 쿼리 파라미터 형식으로 전달 username=hello&age=20
+  - 예) 회원 가입, 상품 주문, HTML Form 사용
+- `HTTP message body`에 데이터를 직접 담아서 요청
+  - HTTP API에서 주로 사용. JSON, XML, TEXT
+  - 데이터 형식은 주로 JSON 사용
+  - POST, PUT, PATCH
+
+#### GET 쿼리 파라미터
+다음 데이터를 클라이언트에서 서버로 전송해보자
+
+전달 데이터
+- username = hello
+- age = 20
+
+메시지 바디 없이 URL의 `쿼리 파라미터`를 사용해 데이터를 전달하자. 주로 검색, 필터, 페이징등에서 많이 사용한다.
+
+쿼리파라미터는 URL에 `?`를 시작으로 보낼 수 있다. 추가 파라미터는 `&`로 구분한다.
+
+서버에서는 `HttpServletRequest`를 통해 가져올 수 있다.
+
+코드를 작성해 쿼리파라미터를 읽어보자
+```java
+package hello.servlet.basic.request;
+
+/**
+ * 1. 파라미터 전송 기능
+ * http://localhost:8080/request-param?username=hello&age=20
+ */
+@WebServlet(name = "requestParamServlet", urlPatterns = "/request-param")
+public class RequestParamServlet extends HttpServlet {
+
+    @Override
+    protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        System.out.println("[전체 파라미터 조회] - start");
+
+        request.getParameterNames().asIterator()
+                .forEachRemaining(paramName -> System.out.println(paramName + "=" + request.getParameter(paramName)));
+
+        System.out.println("[전체 파라미터 조회] - end");
+
+        System.out.println("[단일 파라미터 조회] - start");
+        String username = request.getParameter("username");
+        String age = request.getParameter("age");
+
+        System.out.println("username = " + username);
+        System.out.println("age = " + age);
+        System.out.println("[단일 파라미터 조회] - end");
+
+        System.out.println("[이름이 같은 복수 파라미터 조회] - start");
+        String[] usernames = request.getParameterValues("username");
+        for (String name : usernames) {
+            System.out.println("username = " + name);
+        }
+        System.out.println("[이름이 같은 복수 파라미터 조회] - end");
+
+        response.getWriter().write("hello");
+    }
+}
+
+```
+
+결과
+```bash
+[전체 파라미터 조회] - start
+username=hello
+age=20
+[전체 파라미터 조회] - end
+[단일 파라미터 조회] - start
+username = hello
+age = 20
+[단일 파라미터 조회] - end
+[이름이 같은 복수 파라미터 조회] - start
+username = hello
+username = bye
+[이름이 같은 복수 파라미터 조회] - end
+```
+
+`복수 파라미터에서 단일 파라미터 조회`
+`username=hello&username=bye`과 같이 파라미터 이름은 하나인데, 값이 중복이면 어떻게 될까? `request.getParameter()`는 하나의 파라미터 이름에 대해 단 하나의 값만 있을 때 사용해야한다. 중복일 경우 `request.getParameterValues()`를 사용해야 한다. 중복인 경우 `request.getParameter()`를 사용하면 첫 번째 값을 반환한다.
+
+#### POST HTML Form
+HTML Form은 주로 회원가입에 사용된다.
+
+먼저 HTML 코드를 작성한다.
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<form action="request-param" method="post">
+  username: <input type="text" name="username" />
+  age: <input type="text" name="age" />
+  <button type="submit">전송</button>
+</form>
+</body>
+</html>
+```
+
+결과
+```bash
+[전체 파라미터 조회] - start
+username=kim
+age=24
+[전체 파라미터 조회] - end
+[단일 파라미터 조회] - start
+username = kim
+age = 24
+[단일 파라미터 조회] - end
+[이름이 같은 복수 파라미터 조회] - start
+username = kim
+[이름이 같은 복수 파라미터 조회] - end
+```
+
+다만 위 코드를 보면 `action`이 `request-param`이다. 바로 GET에서 살펴본 쿼리 파라미터 형식과 같다. `request.getParameter()`는 GET URL 쿼리 파라미터 형식도 지원하고 POST HTML Form 형식도 지원한다.
+
+`참고`
+content-type은 HTTP 메시지 바디에 데이터 형식을 지정한다. `GET URL 쿼리 파라미터 형식`으로 클라이언트에서 서버로 데이터 전송 시 HTTP 메시지 바디를 사용하지 않기 때문에 content-type이 없다. `POST HTML Form 형식`으로 데이터 전송시 HTTP 메시지 바디에 해당 데이터를 포함해 보내기 때문에 바디에 포함된 데이터가 어떤 형식인지 content-type을 꼭 지정해야 한다. 이 폼으로 데이터를 보내는 방식을 `application/x-www-form-urlencoded`라 한다.
+
+#### API 메시지 바디
+
+`HTTP message body`에 데이터를 직접 담아 요청
+- HTTP API에서 주로 사용 JSON, XML, TEXT
+- 데이터 형식은 주로 JSON사용
+- POST, PUT, PATCH
+
+- 먼저 가장 단순한 텍스트 메시지를 HTTP 메시지 바디에 담아 전송하고 읽어보자.
+- HTTP 메시지 바디의 데이터를 InputStream을 사용해서 직접 읽을 수 있다.
+
+```java
+package hello.servlet.basic.request;
+
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+
+@WebServlet(name = "requestBodyStringServlet", urlPatterns = "/request-body-string")
+public class RequestBodyStringServlet extends HttpServlet {
+
+    @Override
+    protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        ServletInputStream inputStream = request.getInputStream();
+        String messageBody = StreamUtils.copyToString(inputStream, StandardCharsets.UTF_8);
+
+        System.out.println("messageBody = " + messageBody);
+
+        response.getWriter().write("hello");
+    }
+}
+```
+단순 텍스트를 body에 담아 요청을 보낸 결과
+```bash
+messageBody = hello!
+```
+
+##### JSON 데이터 보내기
+이번에는 HTTP API에서 주로 사용하는 JSON 형식으로 데이터를 전송해보자.
+
+HelloData 클래스를 생성하고 lombok을 이용해 `Getter`와 `Setter`를 추가한다.
+```java
+package hello.servlet.basic;
+
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
+public class HelloData {
+
+    private String username;
+    private int age;
+
+}
+```
+
+다만 JSON도 결국 텍스트이므로 파싱해주어야한다. `Jackson`라이브러리를 이용(`ObjectMapper 사용`)한다.
+
+```java
+package hello.servlet.basic.request;
+
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+
+@WebServlet(name = "requestBodyJsonServlet", urlPatterns = "/request-body-json")
+public class RequestBodyJsonServlet extends HttpServlet {
+
+    // 스프링은 Jackson 라이브러리를 기본으로 채용한다.
+    private ObjectMapper objectMapper = new ObjectMapper();
+
+    @Override
+    protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        ServletInputStream inputStream = request.getInputStream();
+        String messageBody = StreamUtils.copyToString(inputStream, StandardCharsets.UTF_8);
+
+        System.out.println("messageBody = " + messageBody);
+
+        HelloData helloData = objectMapper.readValue(messageBody, HelloData.class);
+
+        System.out.println("helloData.getUsername() = " + helloData.getUsername());
+        System.out.println("helloData.getAge() = " + helloData.getAge());
+
+        response.getWriter().write("hello");
+    }
+}
+```
+결과
+```bash
+messageBody = {
+    "username": "kim",
+    "age": 20
+}
+helloData.getUsername() = kim
+helloData.getAge() = 20
+```
+참고로 HTML Form 데이터도 `getInputStream()`을 이용해 가져올 수 있다. 다만 `request.getParameter()`를 통해 가져올 수 있어 그 방법을 사용한다.
+
+### HttpServletResponse 기본 사용법
+
+`HTTP 응답 메시지 생성`
+- HTTP 응답코드 지정
+- 헤더 생성
+- 바디 생성
+
+`편의 기능 제공`
+- Content-Type, 쿠키, Redirect
+
+```java
+package hello.servlet.basic.reponse;
+
+import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+
+@WebServlet(name = "responseHeaderServlet", urlPatterns = "/response-header")
+public class ResponseHeaderServlet extends HttpServlet {
+
+    @Override
+    protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        // [status-line]
+        response.setStatus(HttpServletResponse.SC_OK);
+
+        // [response-headers]
+//        response.setHeader("Content-Type", "text/plain;charset=utf-8");
+        response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+        response.setHeader("Pragma", "no-cache");
+        response.setHeader("my-header", "hello");
+
+        // Header 편의 메서드
+        content(response);
+        cookie(response);
+        redirect(response);
+
+        // message Body
+        PrintWriter writer = response.getWriter();
+        writer.println("안녕하세요");
+    }
+
+    private void content(HttpServletResponse response) {
+        response.setContentType("text/plain");
+        response.setCharacterEncoding("utf-8");
+    }
+
+    private void cookie(HttpServletResponse response) {
+        // Set-Cookie: myCookie=good; Max-Age=600; // 600초 동안 유효
+        // response.setHeader("Set-Cookie", "myCookie=good; Max-Age=600");
+        Cookie cookie = new Cookie("myCookie", "good");
+        cookie.setMaxAge(600);
+        response.addCookie(cookie);
+    }
+
+    private void redirect(HttpServletResponse response) {
+        // Status Code 302
+        // Location: /basic/hello-form.html
+
+        // 웹 브라우저 에서 302 코드를 받고 Location 값이 설정되어 있다면 /basic/hello-form.html 페이지로 리다이렉트한다.
+//        response.setStatus(HttpServletResponse.SC_FOUND);
+//        response.setHeader("Location", "/basic/hello-form.html");
+//        response.sendRedirect("/basic/hello-form.html");
+    }
+}
+```
+
+#### HTML로 응답하기
+HTML 응답할때는 content-type을 `text/html`로 지정해야 한다.
+
+```java
+package hello.servlet.basic.reponse;
+
+import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+
+@WebServlet(name = "responseHtmlServlet", urlPatterns = "/response-html")
+public class ResponseHtmlServlet extends HttpServlet {
+
+    @Override
+    protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        // Content-Type: text/html;charset=utf-8
+        response.setContentType("text/html");
+        response.setCharacterEncoding("utf-8");
+
+        PrintWriter writer = response.getWriter();
+        writer.println("<html>");
+        writer.println("<body>");
+        writer.println("<div>안녕!</div>");
+        writer.println("</body>");
+        writer.println("</html>");
+    }
+}
+```
+
+#### JSON으로 응답하기
+Jackson 라이브러리와 Content-type을 `application/json`으로 맞추어 json 데이터를 응답해보자.
+```java
+package hello.servlet.basic.reponse;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import hello.servlet.basic.HelloData;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
+import java.io.IOException;
+
+@WebServlet(name = "responseJsonServlet", urlPatterns = "/response-json")
+public class ResponseJsonServlet extends HttpServlet {
+
+    private ObjectMapper objectMapper = new ObjectMapper();
+
+    @Override
+    protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        // Content-Type: application/json
+        response.setContentType("application/json");
+        response.setCharacterEncoding("utf-8");
+
+        HelloData helloData = new HelloData();
+        helloData.setUsername("kim");
+        helloData.setAge(24);
+
+        // {"username":"kim", "age":24}
+        String result = objectMapper.writeValueAsString(helloData); // json -> text
+        response.getWriter().write(result);
+    }
+}
+```
+
+참고로 `application/json`은 스펙상 utf-8 형식을 사용하도록 정의됨
