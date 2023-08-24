@@ -65,7 +65,7 @@ import java.util.Map;
 public class MemberRepository {
 
     private static Map<Long, Member> store = new HashMap<>();
-    private static  long sequence = 0L;
+    private static long sequence = 0L;
 
     private static final MemberRepository instance = new MemberRepository();
 
@@ -156,3 +156,511 @@ class MemberRepositoryTest {
 
 #### 서블릿으로 구현하기
 이번엔 서블릿으로 구현해보자.
+
+회원가입 입력 폼
+```java
+package hello.servlet.web.servlet;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+
+@WebServlet(name = "memberFormServlet", urlPatterns = "/servlet/members/new-form")
+public class MemberFormServlet extends HttpServlet {
+
+    private MemberRepository memberRepository = MemberRepository.getInstance();
+
+    @Override
+    protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+
+        // HTML을 응답으로 내보내보자.
+        response.setContentType("text/html");
+        response.setCharacterEncoding("utf-8");
+
+        // 서블릿만으로 HTML을 구성하기는 쉽지 않다.
+        PrintWriter w = response.getWriter();
+        w.write("<!DOCTYPE html>\n" +
+                "<html>\n" +
+                "<head>\n" +
+                "    <meta charset=\"UTF-8\">\n" +
+                "    <title>Title</title>\n" +
+                "</head>\n" +
+                "<body>\n" +
+                "<form action=\"/servlet/members/save\" method=\"post\">\n" +
+                "    username: <input type=\"text\" name=\"username\" />\n" +
+                "    age:      <input type=\"text\" name=\"age\" />\n" +
+                " <button type=\"submit\">전송</button>\n" + "</form>\n" +
+                "</body>\n" +
+                "</html>\n");
+    }
+}
+```
+action 경로
+```java
+package hello.servlet.web.servlet;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+
+@WebServlet(name = "memberSaveServlet", urlPatterns = "/servlet/members/save")
+public class MemberSaveServlet extends HttpServlet {
+
+    private MemberRepository memberRepository = MemberRepository.getInstance();
+
+    @Override
+    protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        System.out.println("MemberSaveServlet.service");
+        String username = request.getParameter("username");
+        int age = Integer.parseInt(request.getParameter("age"));
+
+        Member member = new Member(username, age);
+        memberRepository.save(member);
+
+        response.setContentType("text/html");
+        response.setCharacterEncoding("utf-8");
+        PrintWriter w = response.getWriter();
+
+        w.write("<html>\n" +
+                "<head>\n" +
+                " <meta charset=\"UTF-8\">\n" + "</head>\n" +
+                "<body>\n" +
+                "성공\n" +
+                "<ul>\n" +
+                "    <li>id="+member.getId()+"</li>\n" +
+                "    <li>username="+member.getUsername()+"</li>\n" +
+                " <li>age="+member.getAge()+"</li>\n" + "</ul>\n" +
+                "<a href=\"/index.html\">메인</a>\n" + "</body>\n" +
+                "</html>");
+    }
+}
+```
+저장된 회원 조회
+```java
+package hello.servlet.web.servlet;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.List;
+
+@WebServlet(name = "memberListServlet", urlPatterns = "/servlet/members")
+public class MemberListServlet extends HttpServlet {
+
+    private MemberRepository memberRepository = MemberRepository.getInstance();
+
+    @Override
+    protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+
+        List<Member> members = memberRepository.findAll();
+
+        response.setContentType("text/html");
+        response.setCharacterEncoding("utf-8");
+
+        PrintWriter w = response.getWriter();
+        w.write("<html>");
+        w.write("<head>");
+        w.write("    <meta charset=\"UTF-8\">");
+        w.write("    <title>Title</title>");
+        w.write("</head>");
+        w.write("<body>");
+        w.write("<a href=\"/index.html\">메인</a>");
+        w.write("<table>");
+        w.write("    <thead>");
+        w.write("    <th>id</th>");
+        w.write("    <th>username</th>");
+        w.write("    <th>age</th>");
+        w.write("    </thead>");
+        w.write("    <tbody>");
+        for (Member member : members) {
+            w.write("    <tr>");
+            w.write("        <td>" + member.getId() + "</td>");
+            w.write("        <td>" + member.getUsername() + "</td>");
+            w.write("        <td>" + member.getAge() + "</td>");
+            w.write("    </tr>");
+        }
+        w.write("    </tbody>");
+        w.write("</table>");
+        w.write("</body>");
+        w.write("</html>");
+    }
+}
+```
+
+![Spring-Basic-capture1](/snippets/springBasic/section3/capture1.png)
+
+이렇듯 서블릿 덕분에 동적인 화면을 만들 수 있었지만 템플릿 없이 HTML을 구성하는건 말도 안된다. 때문에 JSP와 같은 템플릿 엔진이 탄생했다.
+
+#### JSP 로 회원 관리 웹 애플리케이션 만들기
+JSP도 다른 템플릿 엔진에 비해 성능상 많이 뒤쳐져 있기 때문에 스프링에서 `deprecated`되었다.
+
+우선 `build.gradle`에 `dependencies`에 라이브러리를 주입해주어야 한다.
+```groovy {5-8}
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+
+	//JSP 추가 시작
+	implementation 'org.apache.tomcat.embed:tomcat-embed-jasper'
+	implementation 'jakarta.servlet:jakarta.servlet-api'
+	implementation 'jakarta.servlet.jsp.jstl:jakarta.servlet.jsp.jstl-api'
+	implementation 'org.glassfish.web:jakarta.servlet.jsp.jstl'
+	//JSP 추가 끝
+	
+	compileOnly 'org.projectlombok:lombok'
+	annotationProcessor 'org.projectlombok:lombok'
+	
+//	providedRuntime 'org.springframework.boot:spring-boot-starter-tomcat'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}
+```
+
+단 인텔리 제이 무료 버전에서는 JSP 형식이 일부 제한되므로 하이라이팅이 되지 않을 수 있다.
+
+jsp 파일은 `src/main/webapp/jsp` 경로에 생성한다.
+
+우선 입력 폼을 만들어주자.
+```jsp
+<!-- /members/new-form.jsp -->
+
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<html>
+<head>
+  <title>Title</title>
+</head>
+<body>
+  <form action="/jsp/members/save.jsp" method="post">
+    username: <input type="text" name="username" />
+    age: <input type="text" name="age" /> <button type="submit">전송</button>
+  </form>
+</body>
+</html>
+```
+저장 이후 화면을 만들어보자. 코드를 보면 로직이 함께 들어가 있다.
+```jsp
+<!-- /members/save.jsp -->
+<%@ page import="hello.servlet.domain.member.Member" %>
+<%@ page import="hello.servlet.domain.member.MemberRepository" %>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%
+    // request, response 사용 가능
+    MemberRepository memberRepository = MemberRepository.getInstance();
+
+    System.out.println("MemberSaveServlet.service");
+    String username = request.getParameter("username");
+    int age = Integer.parseInt(request.getParameter("age"));
+
+    Member member = new Member(username, age);
+    memberRepository.save(member);
+%>
+<html>
+<head>
+  <title>Title</title>
+</head>
+<body>
+    성공
+<ul>
+    <li>id=<%=member.getId()%></li>
+    <li>username=<%=member.getUsername()%></li>
+    <li>age=<%=member.getAge()%></li>
+</ul>
+<a href="/index.html">메인</a>
+</body>
+</html>
+```
+메인 리스트 페이지도 생성하자
+```jsp
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page import="hello.servlet.domain.member.Member" %>
+<%@ page import="java.util.List" %>
+<%@ page import="hello.servlet.domain.member.MemberRepository" %>
+<%
+    // request, response 사용 가능
+    MemberRepository memberRepository = MemberRepository.getInstance();
+    List<Member> members = memberRepository.findAll();
+%>
+<html>
+<head>
+  <title>Title</title>
+</head>
+<body>
+<a href="/index.html">메인</a>
+<table>
+    <thead>
+    <th>id</th>
+    <th>username</th>
+    <th>age</th>
+    </thead>
+    <tbody>
+    <%
+        // 자바 코드를 그대로 사용할 수 있다.
+        for (Member member : members) {
+            out.write(" <tr>");
+            out.write("     <td>" + member.getId() + "</td>");
+            out.write("     <td>" + member.getUsername() + "</td>");
+            out.write("     <td>" + member.getAge() + "</td>");
+            out.write(" </tr>");
+        }
+    %>
+    </tbody>
+</table>
+</body>
+</html>
+```
+
+![Spring-Basic-capture2](/snippets/springBasic/section3/capture2.png)
+
+두 가지 일을 한 곳에서 처리하기 때문에(로직 + HTML코드) 한계가 나타난다.
+
+#### 서블릿과 JSP의 한계
+서블릿으로 개발할 때 뷰 화면을 위한 HTML을 만드는 작업이 자바 코드에 섞여 지저분하고 복잡했다. JSP를 사용한 덕분에 뷰를 생성하는 HTML 작업을 깔끔히 가져가고 중간에 동적으로 변경이 필요한 부분에만 자바 코드를 적용했다. 하지만 고민이 남는다.  
+
+회원 저장 JSP를 보자. 코드의 상위 절반은 회원을 저장하기 위한 비즈니스 로직, 나머지 하위 절반은 HTML로 보여주기 위한 뷰 영역이 존재한다. 회원 목록의 경우에도 마찬가지다.
+
+JAVA코드, 데이터 조회하는 리포지토릳 등 다양한 코드가 모두 JSP에 노출되어 있다. JSP가 너무 많은 역할을 한다. 이렇게 작은 프로젝트도 머리가 아파오는데, 수천줄의 JSP를 떠올리면 정말 지옥과 같을 것이다.
+
+이 때문에 `MVC패턴`이 등장한다.
+
+비즈니스 로직은 서블릿 처럼 다른곳에서 처리하고 JSP는 목적에 맞게 HTML로 화면을 그리는 일에 집중해야 한다. 과거 개발자들도 비슷한 고민이 있었고 이에 MVC패턴이 등장한다.
+
+### MVC 패턴 (개요)
+
+- 문제점을 다시 되돌아보자.
+
+`너무 많은 역할`
+하나의 서블릿이나 JSP만으로 비즈니스 로직, 뷰 렌더링 모두 처리하면 너무 많은 역할을 수행하게된다. 결국 유지보수가 어려워진다.
+
+`변경의 라이프 사이클`
+UI를 일부 수정하는 일과 비즈니스 로직을 수정하는 일은 각각 다르게 발생할 가능성이 매우 높고 대부분 서로에게 영향을 주지 않는다. 변경의 라이프 사이클이 다른 부분을 하나의 코드로 관리하는 것은 유지보수하기 좋지 않다.
+
+`기능 특화`
+JSP 같은 뷰 템플릿은 화면을 렌더링 하는데 최적화 되어 있기 때문에 이 부분의 업무만 담당하는 것이 가장 효과적이다.
+
+`Model View Controller`
+MVC 패턴은 지금까지 학습한 것 처럼 서블릿이나 JSP로 처리하던 것을 컨트롤러와 뷰 라는 영역으로 서로 역할을 나눈 것을 말한다. 웹 애플리케이션은 보통 이 MVC패턴을 사용한다.
+
+`컨트롤러`
+HTTP 요청을 받아 파라미터를 검증하고 비즈니스 로직을 실행한다. 그리고 뷰에 전달할 결과 데이터를 조회해 모델에 담는다.
+
+`모델`
+컨트롤러에서 뷰에 출력할 데이터를 담아둔다. 뷰가 필요한 데이터를 모두 모델에 담아 전달해주는 덕분에 뷰는 비즈니스 로직이나 데이터 접근을 몰라고 되고 화면을 렌더링 하는 일에 집중할 수 있다.
+
+`뷰`
+모델에 담겨있는 데이터를 사용해서 화면을 그리는 일에 집중한다.
+
+![Spring-Basic-capture3](/snippets/springBasic/section3/capture3.png)
+
+비즈니스 로직을 컨트롤러에 한정했지만 세부적으로 바라보면 아래와 같다.
+
+![Spring-Basic-capture4](/snippets/springBasic/section3/capture4.png)
+
+컨트롤러에 비즈니스 로직을 둘 수 있지만 컨트롤러가 너무 많은 역할을 담당한다. 그래서 일반저긍로 비즈니스 로직은 서비스라는 계층을 별도로 만들어 처리한다. 그리고 컨트롤러는 비즈니스 로직이 있는 서비스를 호출하는 역할을 담당한다. 참고로 비즈니스 로직을 변경하면 비즈니스 로직을 호출하는 컨트롤러의 코드도 변경될 수 있다.
+
+### MVC 패턴 (적용)
+서블릿을 컨트롤러로, JSP를 뷰로 사용 할 것이다.
+
+Model은 HttpServletRequest 객체를 사용한다. request는 내부에 데이터 저장소를 가지는데, `request.setAttribute()`, `request.getAttribute()`를 사용하면 데이터를 보관하고 조회할 수 있다.
+
+컨트롤러 작성
+```java
+package hello.servlet.web.servletmvc;
+
+import java.io.IOException;
+
+@WebServlet(name = "mvcMemberFormServlet", urlPatterns = "/servlet-mvc/members/new-form")
+public class MvcMemberFormServlet extends HttpServlet {
+    // 컨트롤러 역할
+
+    @Override
+    protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+
+        // 뷰인 JSP 경로
+        String viewPath = "/WEB-INF/views/new-form.jsp";
+
+        // 컨트롤러에서 뷰로 이동하기 위해 사용
+        RequestDispatcher dispatcher = request.getRequestDispatcher(viewPath);
+
+        // 서블릿에서 JSP 호출
+        dispatcher.forward(request, response);
+
+    }
+}
+```
+
+뷰 작성
+```jsp
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<html>
+<head>
+  <title>Title</title>
+</head>
+<body>
+  <!-- 상대경로 사용, [현재 URL이 속한 계층 경로 + /save] -->
+  <form action="save" method="post">
+    username: <input type="text" name="username" />
+    age: <input type="text" name="age" /> <button type="submit">전송</button>
+  </form>
+</body>
+</html>
+```
+- 위 JSP 코드를 보면 `action`을 보면 절대 경로가 아닌 상대경로로 적용된다.
+
+`dispatcher.forward()`의 경우 다른 서블릿이나 JSP로 이동할 수 있는 기능이다. 서버 내부에서 다시 호출이 발생한다. 때문에 경로는 `http://localhost:8080/servlet-mvc/members/new-form`와 같이 JSP를 가리키지 않는다.
+
+`WEB-INF`의 자원들은 외부에서 호출해도 그냥 호출되지 않습니다. 반드시 서버 내부에서 다시 호출이 발생합니다. 컨트롤러를 거쳐서 내부에서 포워드를 해야 접속이 가능합니다.
+
+`redirect vs forward`
+- 리다이렉트는 실제 클라이언트에 응답이 나갔다가 클라이언트가 redirect 경로로 다시 요청한다. 따라서 클라이언트가 인지할 수 있고, URL 경로도 실제로 변경된다. 반면에 포워드는 서버 내부에서 일어나는 호출이므로 클라이언트가 전혀 인지하지 못한다.
+
+`/servlet-mvc/members/save`경로로 요청이 가도록 컨트롤러(서블릿)을 생성하자
+
+`/servlet-mvc/members/save` 컨트롤러
+```java
+package hello.servlet.web.servletmvc;
+
+import java.io.IOException;
+
+@WebServlet(name = "mvcMemberSaveServlet", urlPatterns = "/servlet-mvc/members/save")
+public class MvcMemberSaveServlet extends HttpServlet {
+
+    private MemberRepository memberRepository = MemberRepository.getInstance();
+
+    @Override
+    protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+
+        String username = request.getParameter("username");
+        int age = Integer.parseInt(request.getParameter("age"));
+
+        Member member = new Member(username, age);
+        memberRepository.save(member);
+
+        // Model에 데이터를 보관한다.
+        request.setAttribute("member", member);
+
+        String viewPath = "/WEB-INF/views/save-result.jsp";
+        RequestDispatcher dispatcher = request.getRequestDispatcher(viewPath);
+        dispatcher.forward(request, response);
+
+    }
+
+}
+```
+
+`/WEB-INF/views/save-result.jsp` 뷰
+```jsp
+<%@ page import="hello.servlet.domain.member.Member" %>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<html>
+<head>
+  <title>Title</title>
+</head>
+<body>
+    성공
+<ul>
+    <!--
+        이 방법은 너무 사용하기 힘들다.
+        <li>id=<%=((Member)request.getAttribute("member")).getId()%></li>
+        <li>username=<%=m((Member)request.getAttribute("member")).getUsername()%></li>
+        <li>age=<%=((Member)request.getAttribute("member")).getAge()%></li>
+    -->
+
+    <!-- 프롬포트 접근법 실제로. getId() getUsername() getAge() 등이 작동된다. -->
+    <li>id=${member.id}</li>
+    <li>username=${member.username}</li>
+    <li>age=${member.age}</li>
+</ul>
+<a href="/index.html">메인</a>
+</body>
+</html>
+```
+
+이어서 List 컨트롤러를 생성해보자
+
+```java
+package hello.servlet.web.servletmvc;
+
+import java.io.IOException;
+import java.util.List;
+
+@WebServlet(name = "mvcMemberListServlet", urlPatterns = "/servlet-mvc/members")
+public class MvcMemberListServlet extends HttpServlet {
+
+    private MemberRepository memberRepository = MemberRepository.getInstance();
+
+    @Override
+    protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+
+        List<Member> members = memberRepository.findAll();
+
+        request.setAttribute("members", members);
+
+        String viewPath = "/WEB-INF/views/members.jsp";
+        RequestDispatcher dispatcher = request.getRequestDispatcher(viewPath);
+        dispatcher.forward(request, response);
+    }
+}
+```
+
+뷰도 생성해보자 여기에서는 조금 다르게 `jstl`을 사용해보자.
+```jsp {2}
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<html>
+<head>
+  <title>Title</title>
+</head>
+<body>
+<a href="/index.html">메인</a>
+<table>
+    <thead>
+    <th>id</th>
+    <th>username</th>
+    <th>age</th>
+    </thead>
+    <tbody>
+        <c:forEach var="item" items="${members}">
+            <tr>
+                <td>${item.id}</td>
+                <td>${item.username}</td>
+                <td>${item.age}</td>
+            </tr>
+        </c:forEach>
+    </tbody>
+</table>
+</body>
+</html>
+```
+
+이렇듯 MVC 패턴은 컨트롤러를 거쳐 뷰로 진입한다.
+
+### MVC 패턴 (한계)
+
+MVC 패턴을 적용한 덕분에 컨트롤러의 역할과 뷰를 렌더링 하는 역할을 명확히 구분할 수 있다.  
+특히 뷰는 화면을 그리는 역할에 충실한 덕분에 코드가 깔끔하고 직관적이다. 단순하게 모델에서 필요한 데이터를 꺼내고, 화면을 만들면 된다. 하지만 컨트롤러는 딱 봐도 중복이 많고 필요치 않은 코드들도 많이 보인다.
+
+#### MVC 컨트롤러의 단점
+
+`포워드 중복`
+- View로 이동하는 코드가 항상 중복 호출.
+```java
+RequestDispatcher dispatcher = request.getRequestDispatcher(viewPath);
+dispatcher.forward(request, response);
+```
+
+`ViewPath에 중복`
+```java
+String viewPath = "/WEB-INF/views/members.jsp";
+```
+
+- prefix `/WEB-INF/views/`
+- surfix `.jsp`
+그리고 만약 jsp가 아닌 thymeleaf 같은 다른 뷰로 변경한다면 전체 코드를 다 변경해야 한다.
+
+`사용하지 않는 코드`
+다음 코드를 사용할 때도 있고, 사용하지 않을 때도 있다. 특히 response는 현재 코드에서 사용되지 않는다.
+```java
+HttpServletRequest request, HttpServletResponse response
+```
+그리고 이런 코드를 사용하는 테스트 케이스를 작성하기도 어렵다.
+
+`공통 처리가 어렵다`
+- 기능이 복잡해질수록 컨트롤러에서 공통으로 처리해야 하는 부분이 점점 더 많이 증가할 것이다. 공통 기능을 메서드로 뽑으면 될 것 같지만 결과적으로 해당 메서드를 항상 호출해야 한다. 실수로 호출하지 않으면 문제가 될 것이다. 그리고 호출하는것 자체도 중복이다.
+
+`정리하면 공통 처리가 어렵다는 문제가 있다.`
+- 문제를 해결하기 위해 컨트롤러 호출 전 먼저 공통 기능을 처리해야 한다. 소위 수문장 역할을 수행할 기능이 필요하다. `프론트 컨트롤러(Front Controller)패턴`을 도입하면 이런 문제를 해결할 수 있다. 스프링 MVC의 핵심도 바로 이 프론트 컨트롤러에 존재한다.
