@@ -316,7 +316,7 @@ dependencies {
 jsp 파일은 `src/main/webapp/jsp` 경로에 생성한다.
 
 우선 입력 폼을 만들어주자.
-```jsp
+```html
 <!-- /members/new-form.jsp -->
 
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
@@ -333,7 +333,7 @@ jsp 파일은 `src/main/webapp/jsp` 경로에 생성한다.
 </html>
 ```
 저장 이후 화면을 만들어보자. 코드를 보면 로직이 함께 들어가 있다.
-```jsp
+```html
 <!-- /members/save.jsp -->
 <%@ page import="hello.servlet.domain.member.Member" %>
 <%@ page import="hello.servlet.domain.member.MemberRepository" %>
@@ -365,7 +365,7 @@ jsp 파일은 `src/main/webapp/jsp` 경로에 생성한다.
 </html>
 ```
 메인 리스트 페이지도 생성하자
-```jsp
+```html
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ page import="hello.servlet.domain.member.Member" %>
 <%@ page import="java.util.List" %>
@@ -484,7 +484,7 @@ public class MvcMemberFormServlet extends HttpServlet {
 ```
 
 뷰 작성
-```jsp
+```html
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <html>
 <head>
@@ -543,7 +543,7 @@ public class MvcMemberSaveServlet extends HttpServlet {
 ```
 
 `/WEB-INF/views/save-result.jsp` 뷰
-```jsp
+```html
 <%@ page import="hello.servlet.domain.member.Member" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <html>
@@ -598,7 +598,7 @@ public class MvcMemberListServlet extends HttpServlet {
 ```
 
 뷰도 생성해보자 여기에서는 조금 다르게 `jstl`을 사용해보자.
-```jsp {2}
+```html {2}
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <html>
