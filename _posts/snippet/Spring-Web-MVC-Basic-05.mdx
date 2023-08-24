@@ -1,0 +1,165 @@
+---
+title: "[스프링 MVC 1편] - 5"
+description: "스프링 MVC - 구조 이해"
+language: "Java"
+category: "Spring MVC"
+update: "2023-08-23"
+hide: true
+serisenumber: 5
+---
+
+## 시작
+
+- [김영한 강사님의 스프링 MVC 1편 - 백엔드 웹 개발 핵심 기술 강의를 듣고 작성한 글입니다.](https://www.inflearn.com/course/%EC%8A%A4%ED%94%84%EB%A7%81-mvc-1)
+
+### 스프링 MVC 전체 구조
+
+![Spring-Basic-capture1](/snippets/springBasic/section5/capture1.png)
+
+`직접 만든 프레임워크 -> 스프링 MVC 비교`
+- `FrontController` -> `DispatcherServlet`
+- `handlerMappingMap` -> `HandlerMapping`
+- `MyHandlerAdapter` -> `HandlerAdapter`
+- `ModelView` -> `ModelAndView`
+- `viewResolver` -> `ViewResolver(interface)`
+- `MyView` -> `view(interface)`
+
+#### DispatcherServlet 구조 살펴보기
+
+`org.springframework.web.servlet.DispatcherServlet`
+
+![Spring-Basic-capture2](/snippets/springBasic/section5/capture2.png)
+
+`DispatcherServlet` 은 스프링 MVC의 핵심이다.
+
+`DispatcherServlet` 서블릿 등록
+- `DispatcherServlet`도 부모 클래스에서 `HttpServlet`을 상속 받아 사용하고 서블릿으로 동작한다. (그림 참조)
+- 스프링 부트는 `DispatcherServlet`을 서블릿으로 자동으로 등록하면서 `모든 경로`(`urlPatterns="/"`)에 대해서 매핑한다.
+    - 다만 더 자세한 경로가 우선순위가 높다. 그래서 기존에 등록한 서블릿도 함께 동작한다.
+
+`요청 흐름`
+- 서블릿이 호출되면 `HttpServlet`이 제공하는 `service()`가 호출된다.
+- 스프링 MVC는 `DispatcherServlet`의 부모인 `FrameworkServlet`에서 `service()`를 오버라이드 해두었다.
+```java
+// DispatcherServlet 이 상속받는 FrameworkServlet 코드중 ...
+@Override
+	protected void service(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+
+		if (HTTP_SERVLET_METHODS.contains(request.getMethod())) {
+			super.service(request, response);
+		}
+		else {
+			processRequest(request, response);
+		}
+	}
+```
+- `FrameworkServlet.service()`를 시작으로 여러 메서드가 호출되면서 최종으로 `DispatcherServlet.doDispatch()`가 호출된다.
+```java
+// DispatcherServlet 코드의 doDispatch 메서드
+protected void doDispatch(HttpServletRequest request, HttpServletResponse response) throws Exception {
+		HttpServletRequest processedRequest = request;
+		HandlerExecutionChain mappedHandler = null;
+		boolean multipartRequestParsed = false;
+
+		WebAsyncManager asyncManager = WebAsyncUtils.getAsyncManager(request);
+
+		try {
+            // ModelView가 보인다.
+			ModelAndView mv = null;
+			Exception dispatchException = null;
+
+			try {
+				processedRequest = checkMultipart(request);
+				multipartRequestParsed = (processedRequest != request);
+
+                // 1. 핸들러를 꺼낸다.
+				// Determine handler for the current request.
+				mappedHandler = getHandler(processedRequest);
+				if (mappedHandler == null) {
+                    // 핸들러가 없다면 리턴
+					noHandlerFound(processedRequest, response);
+					return;
+				}
+
+                // 2. 핸들러 어댑터 조회 - 핸들러를 처리할 수 있는 어댑터
+				// Determine handler adapter for the current request.
+				HandlerAdapter ha = getHandlerAdapter(mappedHandler.getHandler());
+
+				// Process last-modified header, if supported by the handler.
+				String method = request.getMethod();
+				boolean isGet = HttpMethod.GET.matches(method);
+				if (isGet || HttpMethod.HEAD.matches(method)) {
+					long lastModified = ha.getLastModified(request, mappedHandler.getHandler());
+					if (new ServletWebRequest(request, response).checkNotModified(lastModified) && isGet) {
+						return;
+					}
+				}
+
+				if (!mappedHandler.applyPreHandle(processedRequest, response)) {
+					return;
+				}
+
+                // 3. 핸들러 어댑터 실행 -> 4. 핸들러 어댑터를 통해 핸들러 실행 -> 5. ModelAndView 반환
+				// Actually invoke the handler.
+				mv = ha.handle(processedRequest, response, mappedHandler.getHandler());
+
+				if (asyncManager.isConcurrentHandlingStarted()) {
+					return;
+				}
+
+				applyDefaultViewName(processedRequest, mv);
+				mappedHandler.applyPostHandle(processedRequest, response, mv);
+			}
+			catch (Exception ex) {
+				dispatchException = ex;
+			}
+			catch (Throwable err) {
+				// As of 4.3, we're processing Errors thrown from handler methods as well,
+				// making them available for @ExceptionHandler methods and other scenarios.
+				dispatchException = new ServletException("Handler dispatch failed: " + err, err);
+			}
+            // 6. 메서드를 더 자세히보면 여기서 렌더링 호출 내부에서 뷰 리졸버를 통해 뷰를 찾고 뷰로 이동시켜 렌더링한다.
+			processDispatchResult(processedRequest, response, mappedHandler, mv, dispatchException);
+		}
+		catch (Exception ex) {
+			triggerAfterCompletion(processedRequest, response, mappedHandler, ex);
+		}
+		catch (Throwable err) {
+			triggerAfterCompletion(processedRequest, response, mappedHandler,
+					new ServletException("Handler processing failed: " + err, err));
+		}
+		finally {
+			if (asyncManager.isConcurrentHandlingStarted()) {
+				// Instead of postHandle and afterCompletion
+				if (mappedHandler != null) {
+					mappedHandler.applyAfterConcurrentHandlingStarted(processedRequest, response);
+				}
+			}
+			else {
+				// Clean up any resources used by a multipart request.
+				if (multipartRequestParsed) {
+					cleanupMultipart(processedRequest);
+				}
+			}
+		}
+	}
+```
+
+![Spring-Basic-capture3](/snippets/springBasic/section5/capture3.png)
+
+`동작 순서`  
+1. 핸들러 조회 : 핸들러 매핑을 통해 요청 URL에 매핑된 핸들러(컨트롤러)를 조회한다.
+2. 핸들러 어댑터 조회 : 핸들러를 실행할 수 있는 핸들러 어댑터를 조회한다.
+3. 핸들러 어댑터 실행 : 핸들러 어댑터를 실행한다.
+4. 핸들러 실행 : 핸들러 어댑터가 실제 핸들러를 실행한다.
+5. ModelAndView 반환 : 핸들러 어댑터는 핸들러가 반환하는 정보를 ModelAndView로 `변환`해서 반환한다.
+6. viewResolver 호출 : 뷰 리졸버를 찾고 실행한다.  
+    - JSP의 경우 : `InternalResourceViewResolver`가 자동 등록되고 사용됨.
+7. View 반환 : 뷰 리졸버는 뷰의 논리 이름을 물리 이름으로 바꾸고, 렌더링 역할을 담당하는 뷰 객체 반환
+    - JSP의 경우 : `InternalResourceView(JstlView)`를 반환하는데, 내부에 `forward()`로직이 있다.
+8. 뷰 렌더링 : 뷰를 통해 뷰를 렌더링 한다.
+
+![Spring-Basic-capture4](/snippets/springBasic/section5/capture4.png)
+
+스프링 MVC는 코드 분량도 많고 복잡해 내부 구조를 다 파악하는 것은 쉽지 않다.하지만 스프링 MVC는 전세계 수 많은 개발자들의 요구사항에 맞추어 기능을 확장했고 대부분의 기능이 이미 다 구현되어 있다.
