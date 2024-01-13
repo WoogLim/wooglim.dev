@@ -1,0 +1,288 @@
+---
+title: "[Docker Mastery] - 1"
+description: "도커 환경 셋업과 기본 지식"
+language: "devops"
+category: "Docker"
+update: "2023-10-21"
+hide: false
+serisenumber: 1
+---
+
+## 시작
+
+- [Bret Fisher 님의 Docker Mastery 강의 기술 강의를 듣고 작성한 글입니다.](https://www.udemy.com/course/docker-mastery)
+
+### 사용할 에디터
+- Docker, Kubernates, Compose를 조작하기 위해서 VScode를 사용하겠습니다. VIM만으로 작업하기에는 코드 에러 등 분간이 어렵기 때문입니다. 또한 마켓플레이스에서 필요 도구를 사용할 수 있죠 VScode에서 제어를 위해 `Docker`, `Kubernates`, `Remote Development`를 설치해줍니다. `Remote SSH`의 경우 원격 서버에 접속해 VScode로 작업이 가능하고 `Remote Container`의 경우 원격의 컨테이너를 조작할 수 있습니다.
+- 그외 Mac의 경우 인기 있는 Iterm2 혹은 터미널 Windows의 경우 PowerShell Docker 툴 박스의 경우 QuickStart 터미널을 사용합니다.
+
+### 기본 명령
+- 도커 버전
+```bash
+docker version
+```
+- 도커 세부 정보
+  - 실행중인 컨테이너 확인 및 설정 확인 가능
+```bash
+docker info
+```
+- 기타 명령 가이드
+```bash
+docker
+```
+
+### 컨테이너 기초
+- 컨테이너는 이미지의 실행 중인 인스턴스입니다. nginx 이미지에 기반해 컨테이너를 만들어봅시다.
+
+#### nginx 이미지로 컨테이너 생성
+아래 명령어를 입력하고 localhost로 접속해보면 nginx 초기 접속 페이지가 보일것입니다.
+```bash
+docker container run --publish 80:80 nginx
+```
+과정은 다음과 같습니다.
+- Docker 엔진은 nginx라는 이미지를 Docker Hub에서 가져옵니다.
+- 이미지를 캐시에 저장하고 이미지가 사용 가능상태가 되면 다음 단계로 진행됩니다.
+- 사용 가능하도록 새 컨테이너에 새 프로세스로 생성
+- 로컬 80포트를 열고 모든 트래픽을 이 컨테이너가 담당합니다.
+- 80의 해당 컨테이너 내부 실행되는 실행 파일로 이동하여 트래픽이 전달됩니다.
+
+백그라운드에서 실행한다면 `detach` 혹은 `d`를 명령에 포함합니다.
+```bash
+docker container run --publish 80:80 --detach nginx
+```
+백그라운드에서 실행되며 컨테이너의 고유 ID를 얻게 됩니다.
+
+아래 컨테이너 목록을 조회하면 고유 ID로 작동중인 컨테이너를 조회할 수 있습니다.
+```bash
+docker container ls
+```
+
+다음과 같이 컨테이너를 중지할 수 있습니다. 고유 ID를 모두 입력할 필요는 없습니다. 입력했을때 공통되는 ID가 없다면 해당 ID가 중지됩니다.
+```bash
+docker container stop 고유 ID
+```
+
+컨테이너를 실행하고 목록을 조회하면 name이 붙어있습니다. 설정도 하지 않았는데 말이죠. name을 명시하지 않은 경우 자동으로 명명되어 생성됩니다.
+
+다음과 같이 ls -a 명령을 입력하면 실행하지 않는 컨테이너 말고도 이외 컨테이너를 볼 수 있습니다.
+```bash
+docker container ls -a
+```
+
+name을 지정하려면 다음과 같이 실행할 수 있습니다.
+```bash
+docker container run --publish 80:80 --detach --name webhost nginx
+```
+
+다음과 같이 컨테이너 name으로 로그를 확인할 수 있습니다.
+```bash
+docker container logs webhost
+```
+
+컨테이너 내부에 실행중인 프로세스를 확인합니다.
+```bash
+docker container top webhost
+```
+프로세의 경우 마스터 프로세스, 워커 프로세스 등이 있는데, 차후 알바보겠습니다.
+
+컨테이너는 중지 후 삭제할 수 있습니다. force 명령으로 강제로 삭제할 수 있습니다.
+```bash
+docker container rm -f ID
+```
+
+### 컨테이너와 Virtual Machine
+컨테이너와 가상머신과 비슷하지만 다릅니다. 컨테이너는 가상 머신이 아미녀 호스트 운영 체제 내부의 제한된 프로세스입니다.
+
+mongo 데이터베이스를 시작해봅니다.
+```bash
+docker run --name mongod -d mongo
+```
+
+프로세스가 동작중인지 확인합니다.
+```bash
+docker ps
+
+ps aux | grep mongo
+```
+
+프로세스 목록으로 조회될 것이며 이는 곧 프로세스로 동작된다는 것을 확인할 수 있습니다. 단 호스트에서 실행되는 일반 프로세스와 컨테이너 보안 체꼐가 다르므로 다릅니다.
+
+### 컨테이너 관리
+1. nginx, mysql, httpd(apache)server 등의 컨테이너를 동시에 실행하는 경우 `-d` 옵션을 붙여 백그라운드로 실행하고 `--name` 옵션을 붙여 컨테이너의 명을 설정합니다. 또한 컨테이너별 다른 컨테이너에 트래픽을 전달할 수 있도록 `호스트 개방 포트:포워딩되는 컨테이너 포트` 를 설정합니다.
+2. mysql을 사용하는 경우 `--env` 설정을 이용해 환경 변수를 컨테이너에 전달합니다. `MYSQL_ROOT=root`
+3. `docker container logs 컨테이너명` 명령을 이용해 컨테이너 동작이 이루어졌는지 확인합니다.
+4. 컨테이너 실행 후 `docker container stop` 그리고 `docker container rm`명령으로 컨테이너 동작을 관리합니다.
+5. `docker container ls`명령으로 컨테이너 동작 목록을 확인합니다.
+
+mysql 컨테이너를 실행합니다.
+```bash
+docker container run -d -p 3306:3306 --name db --e MYSQL_RANDOM_ROOT_PASSWORD=yes  mysql
+```
+
+로그를 확인합니다.
+```bash
+docekr contatiner logs db
+```
+
+httpd 컨테이너를 실행합니다.
+```bash
+docker container run -d --name webserver -p 8080:80 httpd
+```
+
+nginx 컨테이너를 실행합니다. nginx의 경우 백그라운드로 실행해야합니다.
+```bash
+docker container run -d --name proxy -p 80:80 nginx
+```
+
+동작 중인 컨테이너를 확인합니다.
+```bash
+docker ps
+```
+
+nginx로 트래픽을 전달합니다.
+```bash
+curl localhost:8080
+```
+
+컨테이너를 정지합니다.
+```bash
+docker container stop mysql_컨테이너_ID nginx_컨테이너_ID httpd_컨테이너_ID
+```
+
+```bash
+docker container ls -a
+```
+
+```bash
+docker container rm stop mysql_컨테이너_ID nginx_컨테이너_ID httpd_컨테이너_ID
+```
+
+### 컨테이너 환경 확인하기
+앞서 얘기한 컨테이너 내부 프로세스를 확인하는 명령은 다음과 같습니다.
+```bash
+docker container top
+```
+
+컨테이너 시작 구성환경을 확인할수도 있습니다.
+```bash
+docker container inspect
+```
+
+컨테이너의 성능 확인
+```bash
+docekr container stats
+```
+
+실제로 컨테이너를 실행해봅니다.
+```bash
+docker container run -d --name nginx nginx
+docker container run -d --name mysql -e MYSQL_RANDOM_ROOT_PASSWORD=true mysql
+```
+
+컨테이너 내부 실행 프로세스를 확인합니다.
+```bash
+> docker container ls
+CONTAINER ID   IMAGE     COMMAND                  CREATED              STATUS              PORTS                 NAMES
+8fbe6a2bf82d   mysql     "docker-entrypoint.s…"   20 seconds ago       Up 18 seconds       3306/tcp, 33060/tcp   mysql
+f1d4d42ea68c   nginx     "/docker-entrypoint.…"   About a minute ago   Up About a minute   80/tcp                nginx
+> docker container top mysql
+UID                 PID                 PPID                C                   STIME               TTY                 TIME                CMD
+999                 2469                2441                5                   02:22               ?                   00:00:01            mysqld
+> docker container top nginx
+UID                 PID                 PPID                C                   STIME               TTY                 TIME                CMD
+root                2204                2179                0                   02:21               ?                   00:00:00            nginx: master process nginx -g daemon off;
+uuidd               2256                2204                0                   02:21               ?                   00:00:00            nginx: worker process
+uuidd               2257                2204                0                   02:21               ?                   00:00:00            nginx: worker process
+uuidd               2258                2204                0                   02:21               ?                   00:00:00            nginx: worker process
+uuidd               2259                2204                0                   02:21               ?                   00:00:00            nginx: worker process
+uuidd               2260                2204                0                   02:21               ?                   00:00:00            nginx: worker process
+```
+
+환경구성을 디테일하게 확인해봅시다.  
+mysql의 실행 구성에 대한 요소를 JSON데이터로 확인할 수 있습니다.
+```bash
+docker container inspect mysql
+```
+
+컨테이너의 실시간 자원 현황을 확인할 수 있습니다. 다만 운영환경에서는 모니터링과 성능은 더 복잡해질 것입니다.
+```bash
+docker container stats
+```
+
+### 컨테이너 내부 동작 확인하기
+이번에는 다음과 같이 컨테이너의 내부 동작을 확인해봅시다.
+1. `docker conatainer run -it`
+2. `docker conatiner exec -it`
+3. 리눅스 배포판 간의 차이 및 컨테이너 내 리눅스 환경
+
+#### run 옵션
+다음 명령을 입력해봅시다.
+```bash
+docker container run --help
+```
+run 명령을 이용한 포맷은 다음과 같습니다. `docker container run [OPTIONS] IMAGE [COMMAND] [ARG....]`
+
+it 옵션을 사용하면 i옵션과 t옵션을 사용합니다. t는 tty를 제공합니다. SSH와 같은 접속 환경을 사용할 수 있죠. i는 더 많은 명령을 실행할 수 있도록 돕는 명령입니다.
+
+다음 명령을 입력하면 쉘을 통해 작업할 수 있습니다. 사용자는 `root@컨테이너ID`로 설정됩니다. 이 안에서 리눅스 명령을 사용할 수 있게 되죠.
+```bash
+docker container run -it --name proxy nginx bash
+```
+
+컨테이너 내부의 파일을 확인할 수 있죠.  
+이외에도 여러 라이브러리를 인터넷에서 가져와 설치할 수 있습니다.
+```bash
+ls -al
+```
+
+`exit`를 입력하면 쉘은 종료되며 `container`또한 `stop`상태가 됩니다. 이전에 실행했던 컨테이너의 경우 `-d`를 사용했기 때문에 백그라운드 환경에서도 실행될 수 있었습니다.
+
+nginx가 아닌 ubuntu이미지를 다운로드 하고 실행해봅시다.
+```bash
+docker container run -it --name ubuntu ubuntu
+
+Unable to find image 'ubuntu:latest' locally
+latest: Pulling from library/ubuntu
+005e2837585d: Pull complete
+Digest: sha256:6042500cf4b44023ea1894effe7890666b0c5c7871ed83a97c36c76ae560bb9b
+Status: Downloaded newer image for ubuntu:latest
+```
+
+패키지 관리자를 설치합니다.
+```bash
+apt-get update
+```
+
+nginx, mysql등 ubuntu를 이용해 실행할 수도 있죠. 똑같이 `exit`를 입력하면 컨테이너를 종료됩니다.
+
+이후 접속할때는 `-ai`옵션을 이용해 입력이 가능한 환경으로 시작되도록 합니다.
+```bash
+docker conatiner start -ai ubuntu
+```
+
+#### exec 옵션
+이제 exec 옵션에 대해 알아봅시다. 예로 실행중인 이미 mysql 컨테이너의 쉘을 실행하고 싶은경우에 exec 옵션을 사용할 수 있습니다.
+
+exec 명령 포맷은 다음과 같습니다. `docker container exec [OPTIONS] CONTAINER COMMAND [ARG...]`
+
+mysql 컨테이너에 bash를 실행하고 싶다면 다음과 같이 입력하면 됩니다.
+```bash
+docker container exec -it mysql bash
+```
+
+이렇듯 exec 명령은 실행 중인 시스템에서 무언가 변형해야 하거나 트러블슈팅이 필요한 경우 사용할 수 있습니다.
+
+이번엔 리눅스의 축소판의 알파인을 받아옵니다. 알파인은 5MB정도의 사이즈를 가졌습니다. `docker image ls`를 통해 이미지가 정상적으로 받아졌는지 확인해봅니다. 이후 실행해봅니다.
+```bash
+docker container run -it alpine bash
+```
+분명 오류가 발생할 것입니다. 알파인은 bash를 가지고 있지 않습니다. 대신 sh이 있습니다.
+```bash
+docker container run -it alpine sh
+```
+
+요약해봅시다.
+- `docker container run -it` 해당 컨테이너를 SSH 환경으로 접근하여 실행합니다.
+- `docker container exec -it` 실행중인 컨테이너에서 특정 서비스를 이용합니다. 이때 새 컨테이너를 생성하지 않습니다.
+- `Linux`의 축소판인 `Alpine`을 사용하면 보다 경량화가 가능합니다.
+
