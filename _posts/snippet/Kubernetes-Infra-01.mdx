@@ -41,7 +41,7 @@ vagrant destroy -f
 #### Vagrant 작성하기
 Vagrant는 루비 언어로 작성합니다.
 
-```ruby
+```c
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
@@ -83,7 +83,7 @@ vagrant port
 
 #### 가상 머신에 추가 패키지 설치
 Vagrant에 셸 프로비전을 추가한다.
-```ruby
+```c
     # ...
     cfg.vm.synced_folder "../data", "/vagrant", disabled: true
     # 프로비저닝 스크립트 추가 vm.provision "shell" 구문으로 경로에 있는 install_pkg.sh를 게스트 내부에서 호출해 실행
@@ -115,7 +115,7 @@ updates/7/x86_64                                                     CentOS-7 - 
 #### 추가 가상 머신 증설하기
 `Vagrantfile`을 실행하여 추가 가상 머신의 설정을 작성합니다.
 
-```ruby
+```c
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
