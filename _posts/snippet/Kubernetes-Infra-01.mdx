@@ -179,4 +179,10 @@ end
 chmod 744 ./ping_2_nds.sh
 ```
 
-이제 `vargrant up`을 통해 4대의 가상머신을 구성합니다.
+이제 `vargrant up`을 통해 4대의 가상머신을 구성합니다. 이후 `vagrant ssh`로 접속을 시도하면 `This command requires a specific VM name to target in a multi-VM environment.`에러가 발생합니다. 가상 머신이 여러 대라서 그렇습니다. 가상머신의 vm.host_name 을 입력해 접속해야 합니다.
+
+```bash
+vagrant ssh 가상 머신 호스트 명
+```
+
+차후 여러 가상 머신에 SSH 접속을 필요로 하는 경우 [putty](https://www.chiark.greenend.org.uk/~sgtatham/putty/latest.html)와 [superputty](https://github.com/jimradford/superputty/releases)를 같이 사용하는것이 좋습니다.
