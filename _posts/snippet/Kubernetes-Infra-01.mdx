@@ -1,0 +1,182 @@
+---
+title: "[Kubernetes Bigin] - 1"
+description: "쿠버네티스와 도커를 이용한 인프라 구축 - Vagrant 및 환경 구성하기"
+language: "devops"
+category: "Kubernetes"
+update: "2024-01-13"
+hide: true
+serisenumber: 1
+---
+
+## 시작
+- [조훈, 심근우, 문성주 님의 컨테이너 인프라 환경 구축을 위한 쿠버네티스/도커 를 읽고 정리한 글입니다.](https://www.aladin.co.kr/shop/wproduct.aspx?ItemId=273111259)
+
+### Vagrant 사용하기
+vagrant를 설치하고 프로비저닝 작업을 진행해봅시다. 또한 가상머신인 플랫폼 virtualBox도 설치하여 준비된 이미지 환경을 작성하여 실행해봅시다.  
+[vagrant Cloud](https://app.vagrantup.com/boxes/search)로 이동하면 docker hub와 같이 환경이 이미 구성된 이미지를 로컬 혹은 필요 컴퓨터에 가져와 사용할 수 있습니다.  
+
+아래 순서와 같이 받으려는 이미지 이름을 설정하여 받아옵니다.
+```bash
+# vagrant 사용 초기화
+vagrant init
+
+vi Vagrantfile
+
+# 받아올 이미지 설정
+config.vm.box = "받아올 이미지 명"
+
+# 실행
+vagrant up
+
+# 이미지 실행 후 SSH 접속
+vagrant ssh
+
+# SSH 종료
+exit
+
+# vagrant 삭제 -f 는 강제 종료 옵션
+vagrant destroy -f
+```
+
+#### Vagrant 작성하기
+Vagrant는 루비 언어로 작성합니다.
+
+```ruby
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+#  vagrant 설정 시작
+Vagrant.configure("2") do |config|
+    # 가상 머신을 "m-k8s"로 정의 커스텀 설정 진행
+    config.vm.define "m-k8s" do |cfg|
+        # 기본값 vm.box를 do |cfg|에 적용한 내용을 받아 할당
+        cfg.vm.box = "sysnet4admin/CentOS-k8s"
+        # 프로바이더를 버추얼박스로 정의 베이그런트를 통해 제공되는 코드가 실제로 가상 머신으로 작동될 플랫폼 do |vb|
+        cfg.vm.provider "virtualbox" do |vb|
+            # 버추얼박스에 생성한 가상 머신 이름, CPU 수, 메모리 크기, 소속된 그룹 명시
+            vb.name = "m-k8s(github_SysNet4Admin)"
+            vb.cpus = 2
+            vb.memory = 2048
+            vb.customize ["modifyvm", :id, "--groups", "/k8s-SM(github-SysNet4Admin)"]
+        # do는 end로 닫음 들여쓰기 규칙 지켜야 함.
+        end
+            # 가상 머신 자체에 대한 설정   
+            cfg.vm.host_name = "m-k8s"
+            # 호스트 전용 네트워크는 private_network로 설정. eth1 인터페이스를 호스트 전용으로 구성. ip는 192.168.1.10 지정
+            cfg.vm.network "private_network", ip: "192.168.1.10"
+            # ssh 통신은 호스트 60010, 게스트 22번으로 포트 포워딩 auto_correct 는 포트가 겹치면 자동 변경
+            cfg.vm.network "forwarded_port", guest: 22, host: 60010, auto_correct: true, id: "ssh"
+            #  호스트와 게스트 사이 디렉터리 동기화 방지
+            cfg.vm.synced_folder "../data", "/vagrant", disabled: true
+        end
+    end
+```
+이후 `vagrant up`명령 입력시 작성된 구문으로 가상 머신으로 생성됩니다. 이후 `ip addr show eth1`을 실행해 주소가 `192.168.1.10`으로 설정되어 있는 것을 확인할 수 있을것이다.
+
+##### 기타 Vagrant 명령
+```bash
+# 포트 확인 포워딩 정보 확인 가능
+vagrant port
+
+# netstat -an | findstr 포트 번호
+```
+
+#### 가상 머신에 추가 패키지 설치
+Vagrant에 셸 프로비전을 추가한다.
+```ruby
+    # ...
+    cfg.vm.synced_folder "../data", "/vagrant", disabled: true
+    # 프로비저닝 스크립트 추가 vm.provision "shell" 구문으로 경로에 있는 install_pkg.sh를 게스트 내부에서 호출해 실행
+    cfg.vm.provision "shell", path: "install_pkg.sh"
+    # ...
+```
+
+그리고 해당 폴더에 `install_pkg.sh`파일을 생성한다.
+```sh
+# /usr/bin/env bash
+# install packages
+
+# EPEL
+yum install epel-release -y
+# vim 하이라이팅
+yum install vim-enhanced -y
+```
+
+이후 해당 디렉토리에서 `vagrant provision`명령을 입력해 프로비전 구문을 실행한다.  
+다시 ssh 접속으로 패키지가 설치됐는지 확인합니다.
+
+```bash
+base/7/x86_64                                                        CentOS-7 - Base                                                                                     10,072
+epel/x86_64                                                          Extra Packages for Enterprise Linux 7 - x86_64                                                      13,786
+extras/7/x86_64                                                      CentOS-7 - Extras                                                                                      518
+updates/7/x86_64                                                     CentOS-7 - Updates
+```
+
+#### 추가 가상 머신 증설하기
+`Vagrantfile`을 실행하여 추가 가상 머신의 설정을 작성합니다.
+
+```ruby
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+#  vagrant 설정 시작
+Vagrant.configure("2") do |config|
+    # 가상 머신을 "m-k8s"로 정의 커스텀 설정 진행
+    config.vm.define "m-k8s" do |cfg|
+        # 기본값 vm.box를 do |cfg|에 적용한 내용을 받아 할당
+        cfg.vm.box = "sysnet4admin/CentOS-k8s"
+        # 프로바이더를 버추얼박스로 정의 베이그런트를 통해 제공되는 코드가 실제로 가상 머신으로 작동될 플랫폼 do |vb|
+        cfg.vm.provider "virtualbox" do |vb|
+            # 버추얼박스에 생성한 가상 머신 이름, CPU 수, 메모리 크기, 소속된 그룹 명시
+            vb.name = "m-k8s(github_SysNet4Admin)"
+            vb.cpus = 2
+            vb.memory = 2048
+            vb.customize ["modifyvm", :id, "--groups", "/k8s-SM(github-SysNet4Admin)"]
+        # do는 end로 닫음 들여쓰기 규칙 지켜야 함.
+        end
+            # 가상 머신 자체에 대한 설정   
+            cfg.vm.host_name = "m-k8s"
+            # 호스트 전용 네트워크는 private_network로 설정. eth1 인터페이스를 호스트 전용으로 구성. ip는 192.168.1.10 지정
+            cfg.vm.network "private_network", ip: "192.168.1.10"
+            # ssh 통신은 호스트 60010, 게스트 22번으로 포트 포워딩 auto_correct 는 포트가 겹치면 자동 변경
+            cfg.vm.network "forwarded_port", guest: 22, host: 60010, auto_correct: true, id: "ssh"
+            #  호스트와 게스트 사이 디렉터리 동기화 방지
+            cfg.vm.synced_folder "../data", "/vagrant", disabled: true
+            # 프로비저닝 스크립트 추가 vm.provision "shell" 구문으로 경로에 있는 install_pkg.sh를 게스트 내부에서 호출해 실행
+            cfg.vm.provision "shell", path: "install_pkg.sh"
+            # 파일을 게스트 운영체제에 전달. 호스트의 ping_2_nds.sh 파일을 게스트의 홈 디렉터리로 전달 (/home/vagrant)
+            cfg.vm.provision "file", source: "ping_2_nds.sh", destination: "ping_2_nds.sh"
+            # 게스트에서 config.sh 실행
+            cfg.vm.provision "shell", path: "config.sh"
+        end
+
+        (1..3).each do |i| # 1부터 3까지 3개의 인자를 반복해 i로 입력
+            config.vm.define "w#{i}-k8s" do |cfg|
+                cfg.vm.box = "sysnet4admin/CentOS-k8s"
+                cfg.vm.provider "virtualbox" do |vb|
+                    vb.name = "w#{i}-k8s(github_SysNet4Admin)"
+                    vb.cpus = 1
+                    vb.memory = 1024
+                    vb.customize ["modifyvm", :id, "--groups", "/k8s-SM(github-SysNet4Admin)"]
+                end
+                cfg.vm.host_name = "w#{i}-k8s"
+                cfg.vm.network "private_network", ip: "192.168.1.10#{i}"
+                cfg.vm.network "forwarded_port", guest: 22, host: "6010#{i}", auto_correct: true, id: "ssh"
+                cfg.vm.synced_folder "../data", "/vagrant", disabled: true
+                cfg.vm.provision "shell", path: "install_pkg.sh"
+        end
+    end
+end
+```
+추가로 추가된 가상머신(노드)에 핑테스트 쉘 `ping_2_nds.sh` 을 작성해 실행해 봅시다. 실행 가능하도록 권한을 변경하는 sh코드를 작성합니다.
+
+```sh
+# /usr/bin/env bash
+# modify permission
+
+#  role : O G OTHER
+#  rwxr--r--
+chmod 744 ./ping_2_nds.sh
+```
+
+이제 `vargrant up`을 통해 4대의 가상머신을 구성합니다.
