@@ -1,0 +1,206 @@
+---
+title: "[Kubernetes Bigin] - 1"
+description: "쿠버네티스와 도커를 이용한 인프라 구축 - 컨테이너"
+language: "devops"
+category: "Kubernetes"
+update: "2024-01-14"
+hide: false
+serisenumber: 1
+---
+
+## 시작
+- [조훈, 심근우, 문성주 님의 컨테이너 인프라 환경 구축을 위한 쿠버네티스/도커 를 읽고 정리한 글입니다.](https://www.aladin.co.kr/shop/wproduct.aspx?ItemId=273111259)
+
+### 컨테이너
+지금까진 가상 머신을 이용해 진행했지만, 가상 머신은 독립적인 운영 체제 커널을 가지고 있어야 하므로 자원을 많이 소모하게 됩니다. 하지만 컨테이너 인프라 환경은 운영 체제 커널 하나에 많은 컨테이너가 격리된 형태로 실행되어 자원을 최소화 할 수 있습니다.
+
+이후 커널을 공유해 더 많은 애플리케이션을 올릴 컨테이너가 도입되고 컨테이너 관리 기술이 대두되었습니다. 2014년 구글이 `쿠버네티스`를 오픈 소스로 공개하고 이후 리눅스 재단과 파트너십을 맺고 클라우드 컴퓨팅 재단을 설립하고 쿠버네티스를 그 시초 기술로 제공했습니다.
+
+쿠버네티스는 컨테이너 관리 도구이자 `컨테이너 오케스트레이션`을 위한 솔루션입니다. 복잡한 단계를 관리해 관계를 미리 정의해 손쉽게 사용하도록 서비스를 제공합니다. 연결, 실행, 종료뿐 아니라 상태를 추적 보존하는 등 안정적으로 사용할 수 있게 만들어주는게 `컨테이너 오케스트레이션`입니다.
+
+`컨테이너 오케스트레이션`의 종류로, `docker swarm`, `mesos`, `nomad`, `kubernetes`가 있습니다.
+
+쿠버네티스를 구성하는 방법으로는 `EKS`, `AKS`, `GKE` 등이 있습니다. 구성이 이미 다 갖춰져 있으며 마스터 노드를 클라우드 업체에서 관리합니다.
+
+또한 쿠버네티스 클러스터를 구성해주는 도구인  `kops`, `kubeadm`, `kubespray`등이 있습니다.
+
+#### 구성하기
+`kubeadm`으로 쿠버네티스를 구성합니다. 쿠버네티스가 설치되는 자원은 가상 머신으로 하여 온프레미스 환경과 흡사하게 구성합니다. 설치 과정을 베이그런트로 자동화합니다.
+
+```ruby
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+  N = 3 # max number of worker nodes
+  Ver = '1.18.4' # Kubernetes Version to install
+
+  #=============#
+  # Master Node #
+  #=============#
+
+    config.vm.define "m-k8s" do |cfg|
+      cfg.vm.box = "sysnet4admin/CentOS-k8s"
+      cfg.vm.provider "virtualbox" do |vb|
+        vb.name = "m-k8s(github_SysNet4Admin)"
+        vb.cpus = 2
+        vb.memory = 3072
+        vb.customize ["modifyvm", :id, "--groups", "/k8s-SgMST-18.6.0(github_SysNet4Admin)"]
+      end
+      cfg.vm.host_name = "m-k8s"
+      cfg.vm.network "private_network", ip: "192.168.1.10"
+      cfg.vm.network "forwarded_port", guest: 22, host: 60010, auto_correct: true, id: "ssh"
+      cfg.vm.synced_folder "../data", "/vagrant", disabled: true 
+      # 실행할 워커 노드의 갯수를 지정한다.
+      cfg.vm.provision "shell", path: "config.sh", args: N
+      # [$1, $2]
+      cfg.vm.provision "shell", path: "install_pkg.sh", args: [ Ver, "Main" ]
+      cfg.vm.provision "shell", path: "master_node.sh"
+    end
+
+  #==============#
+  # Worker Nodes #
+  #==============#
+
+  (1..N).each do |i|
+    config.vm.define "w#{i}-k8s" do |cfg|
+      cfg.vm.box = "sysnet4admin/CentOS-k8s"
+      cfg.vm.provider "virtualbox" do |vb|
+        vb.name = "w#{i}-k8s(github_SysNet4Admin)"
+        vb.cpus = 1
+        vb.memory = 2560
+        vb.customize ["modifyvm", :id, "--groups", "/k8s-SgMST-18.6.0(github_SysNet4Admin)"]
+      end
+      cfg.vm.host_name = "w#{i}-k8s"
+      cfg.vm.network "private_network", ip: "192.168.1.10#{i}"
+      cfg.vm.network "forwarded_port", guest: 22, host: "6010#{i}", auto_correct: true, id: "ssh"
+      cfg.vm.synced_folder "../data", "/vagrant", disabled: true
+      cfg.vm.provision "shell", path: "config.sh", args: N
+      cfg.vm.provision "shell", path: "install_pkg.sh", args: Ver
+      cfg.vm.provision "shell", path: "work_nodes.sh"
+    end
+  end
+
+end
+```
+
+이어서 가상 머신 노드의 환경설정을 위한 `config.sh`를 봅시다.
+```text
+#!/usr/bin/env bash
+
+# vi 호출 시 vim 호출
+echo 'alias vi=vim' >> /etc/profile
+
+# 쿠버네티스 설치 요구 조건을 맞추기 위해 스왑 off
+swapoff -a
+# 시스템이 다시 시작되더라도 스왑하지 않도록
+sed -i.bak -r 's/(.+ swap .+)/#\1/' /etc/fstab
+
+gg_pkg="packages.cloud.google.com/yum/doc" # Due to shorten addr for key
+# 쿠버네티스 리포 설정  경로. 쿠버네티스를 내려받을 리퍼지토리를 설정한다.
+cat <<EOF > /etc/yum.repos.d/kubernetes.repo
+[kubernetes]
+name=Kubernetes
+baseurl=https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64
+enabled=1
+gpgcheck=0
+repo_gpgcheck=0
+gpgkey=https://${gg_pkg}/yum-key.gpg https://${gg_pkg}/rpm-package-key.gpg
+EOF
+
+# Set SELinux in permissive mode (effectively disabling it)
+setenforce 0
+sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config
+
+# 브리지 네트웍을 통과할 IPv4, IPv6 패킷을 iptables가 관리하게 설정. 파드의 통신을 iptables로 제어
+cat <<EOF >  /etc/sysctl.d/k8s.conf
+net.bridge.bridge-nf-call-ip6tables = 1
+net.bridge.bridge-nf-call-iptables = 1
+EOF
+# be_netfilter 커널 모듈 사용. 브리지 네트웍 구성. IP마스커레이드(커널에서 제공하는 NAT 기능)를 사용해 내부 네트웍과 외부 네트웍 분리 위 옵션이 적용되도록 br_netfilter 적용
+modprobe br_netfilter
+
+#쿠버네티스 안에서 노드 간 통신을 이름으로 할 수 있도록 각 노드의 호스트 이름, IP를 /etc/hosts에 맞게 설정. 워커 노드는 Vagrantfile에서 넘겨 받은 인자로 동적 생성
+echo "192.168.1.10 m-k8s" >> /etc/hosts
+for (( i=1; i<=$1; i++  )); do echo "192.168.1.10$i w$i-k8s" >> /etc/hosts; done
+
+# 외부와 통신할 DNS서버 설정
+cat <<EOF > /etc/resolv.conf
+nameserver 1.1.1.1 #cloudflare DNS
+nameserver 8.8.8.8 #Google DNS
+EOF
+
+# docker repo
+yum install yum-utils -y 
+yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+```
+
+패키지 설치 관련 `install_pkg.sh`입니다.
+
+```text
+#!/usr/bin/env bash
+
+# 깃헙 리포를 받기 위해 git 설치
+yum install epel-release -y
+yum install vim-enhanced -y
+yum install git -y
+
+# 쿠버네티스를 관리할 컨테이너를 설치하기 위해 도커 설치 및 구동
+yum install docker-ce-18.06.0.ce-3.el7 docker-ce-cli-18.06.0.ce-3.el7 \
+    containerd.io-1.2.6-3.3.el7 -y
+systemctl enable --now docker
+
+# 쿠버네티스 구성을 위한 kubectl, kubelet, kubeadm 설치
+yum install kubectl-$1 kubelet-$1 kubeadm-$1 -y
+systemctl enable --now kubelet
+
+# 노드 별로 설치되는 패키지. 단 Main 노드에만 내려받도록 Vagrantfile에서 인자를 내려받습니다. repo에서 받은 코드를 홈 디렉터리에 옮깁니다. sh 스크립트를 찾아 실행 가능 상태로 변경합니다.
+if [ $2 = 'Main' ]; then
+  git clone https://github.com/sysnet4admin/_Book_k8sInfra.git
+  mv /home/vagrant/_Book_k8sInfra $HOME
+  find $HOME/_Book_k8sInfra/ -regex ".*\.\(sh\)" -exec chmod 700 {} \;
+fi
+```
+
+여기서 `kubectl`, `kubelet`, `kubeadm`이 뭔지 간단하게 정리해보고 진행하겠습니다.
+
+kubectl, kubelet, kubeadm은 모두 Kubernetes를 관리하는 데 사용되는 도구입니다.
+
+kubectl은 Kubernetes 클러스터의 리소스를 관리하는 데 사용되는 명령줄 도구입니다. kubectl을 사용하여 파드, 노드, 서비스, 네임스페이스 등과 같은 Kubernetes 리소스를 생성, 수정, 삭제할 수 있습니다.
+
+kubelet은 Kubernetes 클러스터의 각 노드에서 실행되는 프로세스입니다. kubelet은 노드에서 파드와 컨테이너를 시작, 중지, 재시작하는 등의 작업을 수행합니다.
+
+kubeadm은 Kubernetes 클러스터를 빠르고 쉽게 설치하는 데 사용되는 도구입니다. kubeadm을 사용하여 단일 노드 클러스터 또는 다중 노드 클러스터를 설치할 수 있습니다.
+
+각 도구의 자세한 설명은 다음과 같습니다.
+
+##### kubectl
+
+Kubernetes 클러스터의 리소스를 관리하는 데 사용되는 명령줄 도구입니다. 파드, 노드, 서비스, 네임스페이스 등과 같은 Kubernetes 리소스를 생성, 수정, 삭제할 수 있습니다.
+kubectl 명령어는 다음과 같은 구조로 이루어져 있습니다.
+
+```bash
+kubectl [OPTIONS] COMMAND [ARGS]
+```
+
+- OPTIONS는 kubectl 명령어의 옵션을 지정합니다.
+- COMMAND는 kubectl 명령어의 종류를 지정합니다.
+- ARGS는 COMMAND의 인수를 지정합니다.
+
+##### kubelet
+
+- Kubernetes 클러스터의 각 노드에서 실행되는 프로세스입니다.
+- 노드에서 파드와 컨테이너를 시작, 중지, 재시작하는 등의 작업을 수행합니다.
+- kubelet은 Kubernetes API 서버와 통신하여 클러스터의 상태를 유지합니다.
+
+##### kubeadm
+
+Kubernetes 클러스터를 빠르고 쉽게 설치하는 데 사용되는 도구입니다. 단일 노드 클러스터 또는 다중 노드 클러스터를 설치할 수 있습니다.
+kubeadm을 사용하여 Kubernetes 클러스터를 설치하려면 다음 단계를 수행합니다.
+
+1. kubeadm을 설치합니다.
+2. 클러스터의 노드를 초기화합니다.
+3. 클러스터의 API 서버를 설치합니다.
+4. 클러스터의 노드에 파드를 배치합니다.
+
+kubeadm은 Kubernetes 클러스터를 설치하는 가장 쉬운 방법 중 하나입니다.
