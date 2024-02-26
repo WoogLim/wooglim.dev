@@ -17,18 +17,18 @@ serisenumber: 1
 입력 프롬포트입니다. 문자열에서 벡터를 얻어 이미지를 생성합니다.
 
 ### Nagative Prompt
-![stable-diffusion-webui-prompt](/snippets/stableDiffusion/section1/nagative-prompt.png)
+![stable-diffusion-webui-nagative-prompt](/snippets/stableDiffusion/section1/nagative-prompt.png)
 
 `Prompt`가 양이라면 `Nagative Prompt`는 음입니다. `Prompt`에서 제외하고 싶은 요소를 입력하여 조정이 가능합니다.
 
 ### Sampling method&step
-![stable-diffusion-webui-prompt](/snippets/stableDiffusion/section1/sampling-method&step.png)
+![stable-diffusion-webui-sampling-method&step](/snippets/stableDiffusion/section1/sampling-method&step.png)
 
 `sampling method`는 역확산(노이즈 제거 작업)과정의 스텝 수를 줄여 이미지 생성 속도를 높일 수 있습니다. `Euler a`와 같이 끝에 a가 붙은 sampling method의 경우 단계별로 그림이 크게 달라집니다. a는 무작위성을 높입니다. a가 붙지 않은 sampling method의 경우 단계 수를 늘릴 수록 그림이 정교해집니다.  
 `sampling steps`는 몇 단계로 실행해 이미지를 생성할 것인지 정합니다. 세밀한 이미지를 생성할 것이 아니라면 스텝 수를 줄입니다.
 
 ### Width&Height
-![stable-diffusion-webui-prompt](/snippets/stableDiffusion/section1/width-height.png)
+![stable-diffusion-webui-width-height](/snippets/stableDiffusion/section1/width-height.png)
 
 생성할 이미지의 가로세로 폭입니다. `1.X`계통 학습 모델은 `512 x 512`로 학습합니다. 이에 경우 `512 x 512`사이즈를 이용하는게 좋습니다. `2.X` 계통이후부터는 `768 x 768`이상의 사이즈가 적합합니다. 크기가 늘어남에따라 VRAM의 요구사항이 높아집니다. 때문에 생성 시간이 오래 걸립니다. `512 x 512`크기로 제작하여 `replicate`등을 이용해 이미지를 확대하는 방법도 존재합니다.
 
@@ -42,23 +42,23 @@ serisenumber: 1
 이미지 생성 후 img2img로 고해상도로 만듭니다. `Upscaler`알고리즘을 선택할 수 있습니다. 이미지 크기를 크게 하면 VRAM요구사항도 커집니다.
 
 ### Batch count
-![stable-diffusion-webui-prompt](/snippets/stableDiffusion/section1/batch-count.png)
+![stable-diffusion-webui-batch-count](/snippets/stableDiffusion/section1/batch-count.png)
 한 번의 실행으로 생성하는 이미지 갯수입니다. 단 주의할 점은 `Prompt` 내용이 같더라도 생성되는 이미지는 모두 다릅니다. 생성된 이미지 중 쓸만한 이미지를 선택해 사용하기 좋습니다. 이후 세부적 수정이 필요한 경우 img2img로 작업합니다.
 
 ### Batch size
-![stable-diffusion-webui-prompt](/snippets/stableDiffusion/section1/batch-size.png)
+![stable-diffusion-webui-batch-size](/snippets/stableDiffusion/section1/batch-size.png)
 동시 생성할 이미지 매수입니다. `Batch count`와 달리 동시에 생성됩니다.
 
 ### CFG(Classifier-free Guidance) Scale
-![stable-diffusion-webui-prompt](/snippets/stableDiffusion/section1/cfg-scale.png)
+![stable-diffusion-webui-cfg-scale](/snippets/stableDiffusion/section1/cfg-scale.png)
 모델과 분류기를 동시에 학습하여 값이 클수록 이미지의 다양성은 사라지고 비슷한 이미지를 생성합니다. 낮추는 경우 다양한 이미지가 생성되나 입력 문자열에서 예상하기 어려운 이미지도 생성됩니다.
 
 ### Seed
-![stable-diffusion-webui-prompt](/snippets/stableDiffusion/section1/seed.png)
+![stable-diffusion-webui-seed](/snippets/stableDiffusion/section1/seed.png)
 시드 값은 랜덤 값의 씨앗 값입니다. 기본적으로 같은 프롬포트, 설정, 시드 값이면 동일한 이미지가 출력됩니다. 주사위 버튼의 경우 입력란에 -1이 들어갑니다. -1은 랜덤 값을 시드 값으로 전달하게 됩니다. 재활용 버튼은 선택한 출력 이미지의 시드 값이 입력란에 들어갑니다. 동일한 구도에서 프롬프트만 변경할 경우 사용합니다.
 
 ### script
-![stable-diffusion-webui-prompt](/snippets/stableDiffusion/section1/script.png)
+![stable-diffusion-webui-script](/snippets/stableDiffusion/section1/script.png)
 프롬포트 조합이나 설정의 변형을 시도할 때 표 형식으로 모아 생성해주는 기능 `Prompt matrix`는 `|`로 구분한 여러 프롬프트의 조합을 표로 만들어 줍니다. `X/Y plot`은 Prompt, Smapler, steps등 설정의 조합을 표로 만들어 줍니다.
 
 ### 출력 이미지
@@ -76,6 +76,6 @@ serisenumber: 1
 ```
 
 ### 생성된 이미지
-![stable-diffusion-webui-prompt](/snippets/stableDiffusion/section1/gen-image.png)
+![stable-diffusion-webui-gen-image](/snippets/stableDiffusion/section1/gen-image.png)
 아래 아이콘을 클릭해 다운로드하거나 `txt2img`, `img2img`탭으로 이동할 수 있습니다.
 
