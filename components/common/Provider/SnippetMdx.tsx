@@ -89,7 +89,7 @@ const CustomCodeBlock = ({ ...props }) => {
   return (
     <div className="codeBox dark:text-zinc-900">
       <div className="code-title dark:bg-zinc-200 dark:text-zinc-900">
-        <span>{props.className.split("-")[1]}</span>
+        <span>{props.className?.split("-")[1]}</span>
       </div>
       <pre {...props} />
     </div>

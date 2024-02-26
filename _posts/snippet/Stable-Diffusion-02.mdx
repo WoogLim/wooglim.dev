@@ -1,8 +1,8 @@
 ---
 title: "[Stable Diffusion] - 2"
 description: "webui 입력 폼 가이드 - img2img"
-language: "GenerativeAI"
-category: "GenerativeAI"
+language: "StableDiffusion"
+category: "Generative AI"
 update: "2024-02-27"
 hide: false
 serisenumber: 2
@@ -15,10 +15,13 @@ serisenumber: 2
 - txt2img로 생성한 이미지 수정하기
 
 `img2img`탭에서는 몇 개의 탭이 존재합니다.
+
 ![stable-diffusion-webui-img2img-tab](/snippets/stableDiffusion/section2/img2img-tab.png)
+
 - `Inpaint` 탭에서는 이미지를 불러온 후 변경하지 않을 부분을 마스크로 두고 그 외 부분을 재작성해 생성합니다. `Maskblur`값을 조정하여 작성한 마스크를 얼마나 흐리게 할지 지정할 수 있습니다.
 
 ![stable-diffusion-webui-img2img-option](/snippets/stableDiffusion/section2/img2img-option.png)
+
 설정은 `txt2img`와 흡사합니다. 몇 가지 살펴봅시다.
 
 ### Denoising strength
@@ -37,6 +40,7 @@ Sampling count에 따른 이미지의 차이를 봅시다.
 위 프롬포트로, 모델은 1.5 sampling method는 Euler를 이용. 시드 값은 0으로 고정하여 1단계부터 20단계까지 봅시다.
 
 ![stable-diffusion-webui-step-image](/snippets/stableDiffusion/section2/step-image.png)
+
 고화질을 원한다면 50정도 까지 사용하지만 보통은 20정도로도 확연히 보이는 문제는 없습니다.
 
 실제로 이와 같이 소재를 만들 때 프롬프트나 설정 값을 세밀하게 변경해 원하는 이미지가 나올 때까지 출력을 반복합니다.
