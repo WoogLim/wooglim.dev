@@ -1,6 +1,6 @@
 ---
 title: "[Docker Mastery] - 4"
-description: "컨테이너"
+description: "컨테이너 접근과 이미지 삭제"
 language: "devops"
 category: "Docker"
 update: "2024-02-26"
@@ -20,4 +20,201 @@ serisenumber: 4
 
 이후 `docker ps`명령만 입력해도 컨테이너는 실행중이므로 리스트에 보이게 됩니다.
 
-### At
+중지하고 싶다면 `docker stop [컨테이너 명]`으로 중지할 수 있습니다.
+
+### Attached&Detached
+
+`docker run -p 8000:80 [이미지 명]`으로 실행한 경우 터미널에서 탈출하지 못하고 포그라운드에서 작동합니다. start는 백그라운드로 작동합니다. 여기서 run의 경우 `Attached` start의 경우 `Detached`라고 봅시다.
+
+`start`로 실행한 애플리케이션에 접속해 조작을 해도 로그는 나타나지 않습니다. 단 `run`으로 실행한 애플리케이션은 로그가 보일 수 있겠죠. 하지만 `run`으로 실행한다 하더라도 `Detached` 옵션 `-d`를 붙이면 백그라운드에서 실행할 수 있습니다.
+
+이후 다시 컨테이너로 접속해 로그를 보고 싶다면 `docker attach [컨테이너 명]`을 실행하면 됩니다.
+
+### logs
+
+단순히 로그를 확인하고 싶다면 `logs`에 follow옵션 `-f`으로 로그를 확인할 수 있습니다.
+
+```bash
+docker logs -f [컨테이너 명]
+```
+
+### Python으로도
+자 이제 돌아와 Attached와 Detached에 대해 더 알아 봅시다.
+
+아래 파이썬 코드를 작성합니다.
+
+```py
+# rng.py
+from random import randint
+
+min_number = int(input('Please enter the min number: '))
+max_number = int(input('Please enter the max number: '))
+
+if (max_number < min_number):
+  print('Invalid input - shutting down...')
+else:
+  rnd_number = randint(min_number, max_number)
+  print(rnd_number)
+```
+
+이미지를 생성해봅시다.
+
+```yaml
+FROM python
+
+WORKDIR /app
+
+COPY . /app
+
+CMD ["python", "rng.py"]
+```
+
+Dockerfile을 작성하고 빌드합니다.
+```bash
+docker build .
+```
+
+이후 `docker run [이미지 명]`으로 실행합니다. Attached로 실행하기 위해 별도 옵션을 적용하지 않고 `docker run [이미지 명]`으로 실행합니다. 자 이제 위 코드처럼 값을 입력할 수 있을까요? 안될겁니다. 컨테이너에 무엇인가 입력을 해야한다면 인터렉티브 옵션이 필요합니다.
+
+아래와 같이 입력해야 실제로 컨테이너와 상호작용이 가능하게됩니다.
+
+```bash
+# i 인터렉티브 모드 t 터미널 생성
+docker run -it [이미지 명]
+```
+
+```bash
+Please enter the min number: 2
+Please enter the max number: 10
+5
+```
+
+`Attached`모드를 빠져나와 이후에도 상호작용 모드로 들어가고 싶다면 두 가지 방법이 존재합니다.
+
+아래는 `stop`이후 접근하는 방법입니다.
+
+```bash
+docker start -a -i [컨테이너 명]
+```
+
+두번째 방법은 `exec`로 컨테이너에 접근하는 방법입니다.
+
+```bash
+docker exec -it [컨테이너 명]
+```
+
+### 컨테이너 제거
+
+이제 컨테이너를 제거하는 방법을 알아봅시다.
+
+```bash
+docker ps -a
+```
+
+를 입력하면 유휴 컨테이너를 확인할 수 있습니다. STATUS가 `Up`이 아닌 상태의 컨테이너를 제거해봅시다.
+
+```bash
+docker rm [컨테이너 명 or ID] [컨테이너 명 or ID] [컨테이너 명 or ID]
+```
+
+위와 같이 복수개인 경우 띄어쓰기로 모두 제거가 가능합니다. 이미지 및 컨테이너를 제거하기 좀 더 쉬운 방법을 봅시다.
+
+우선 아래와 같이 로컬에서 가지고 있는 이미지를 확인해봅시다.
+
+```bash
+docker images
+```
+
+이미지 제거는 `rmi` 명령을 이용합니다.
+
+```bash
+docker rmi [이미지 명] [이미지 명] [이미지 명]
+```
+
+주의할 점은 중지된 컨테이너가 있는 경우 해당 이미지는 제거가 불가능합니다. 컨테이너를 먼저 제거해야하죠.
+
+현재 실행 중인 컨테이너에서 사용하지 않는 이미지를 모두 제거하기 위한 명령은 다음과 같습니다.
+
+```bash
+docker image prune
+```
+
+모든 로컬 이미지를 제거할 경우 `-a`옵션을 이용합니다. 이때 또한 컨테이너가 이미지를 사용중이면 해당 이미지는 삭제되지 않습니다.
+
+```bash
+docker image prune -a
+```
+
+### 중지된 컨테이너 자동 제거하기
+
+`rm` 옵션을 이용하면 컨테이너가 중지되면 자동 제거됩니다.
+
+```bash
+docker run -p 3000:80 -d -rm [이미지 명]
+```
+
+이후 `stop`명령으로 중지하면 컨테이너도 제거됩니다.
+
+### 이미지 정보 확인하기 inspect
+
+```bash
+docker image inspect [이미지 명 or ID]
+```
+
+`inspect`명령으로 이미지의 스펙을 확인할 수 있습니다. 이미지의 전체 ID, 생성시간, 노출되는 포트, 일부 환경 변수, 사용중인 도커 버전, 사용중인 운영체제, 이미지의 명령 레이어(명령당 2개의 레이어를 가집니다)
+
+### 컨테이너에/컨테이너로 파일 복사
+
+복사시 `cp` 명령을 이용합니다. 로컬에 text.txt 파일이 존재하는 경우 로컬에서 컨테이너로 아래와 같이 복사가 가능합니다.
+
+```bash
+docker cp tmp/text.txt [실행중인 컨테이너명 혹은 ID]:/tmp
+```
+
+반대의 경우는 명령의 위치를 바꿉니다.
+
+```bash
+docker cp [실행중인 컨테이너명 혹은 ID]:/tmp/text.txt tmp
+```
+
+일반적으로 수행하는 일은 아니지만 파일이 변경된 경우 빌드하여 이미지를 생성해 컨테이너로 실핼할 수 있지만 복사를 진행할 수도 있습니다.
+
+### 컨테이너와 이미지에 태그 지정하기
+
+컨테이너에 네임을 지정하려면 `--name`옵션을 이용할 수 있습니다.
+
+```bash
+docker run -p 3000:80 -d --rm --name gotest [이미지명 혹은 ID]
+```
+
+이미지에도 지정합니다. 이미지 빌드시 `-t`옵션을 이용해 name:tag 형식으로 지정합니다.
+
+```bash
+docker build -t gotest:latest
+```
+
+이후 컨테이너로 실행하는 경우 특정 버전의 이미지로 컨테이너를 실행할 수 있습니다.
+
+이미 생성된 이미지의 경우에 이름과 태깅을 변경하고 싶다면 아래와 같이 명령을 수행합니다.
+
+```bash
+docker tag gotest:latest woog/gotest:latest
+```
+
+이미지가 변경된 것은 아니며 `woog/gotest:latest`라는 이미지로 복제됩니다.
+
+### 도커 푸시 및 풀
+
+`Docker Hub`로 Push 하기위해 해당 이미지는 다음 명칭을 가져야 합니다. `사용자/네임:태그(선택사항)` Docker Hub의 `Repo`생성시 이미지와 동일하게 `사용자/네임` 형식으로 리포지토리 명을 설정합니다. 이후 Push를 진행합니다.
+
+```bash
+docker push [이미지 명 및 태그]
+```
+
+Docker Hub의 `Reps`가 private, public 이냐에 따라 레포 접근 허용자만 push 및 pull이 가능합니다. private의 경우 외부 사용자는 가져올 수 없습니다.
+
+```bash
+docker run [이미지 명 및 태그]
+```
+
+위 구문에서 로컬에 해당 이미지 및 태깅 버전이 존재하지 않는다면 `Docker Hub`에서 탐색하여 가져오게 됩니다.
