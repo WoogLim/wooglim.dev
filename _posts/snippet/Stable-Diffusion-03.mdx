@@ -30,12 +30,12 @@ gray cat, glass garden
 문구 중 특정 단어, 문구를 강조하는 표기법도 있습니다. `Attention/emphasis`라고 하빈다. 이 표기법은 중요 단어를 강조하고 뒤에 있는 문구에 있더라도 우선순위를 높일 수 있습니다.
 
 ```text
-a (문구) : 1.1배 강조
-a ((문구)) : 1.1 x 1.1 = 1.2배 강조
-a [문구] : 1.1배 억제
-a (문구:1.5) : 1.5배 강조
-a (문구:0.25) : 0.25배 강조
-a \(문구\) : 이스케이프(프롬포트로 이용 가능)
+(문구) : 1.1배 강조
+((문구)) : 1.1 x 1.1 = 1.2배 강조
+[문구] : 1.1배 억제
+(문구:1.5) : 1.5배 강조
+(문구:0.25) : 0.25배 강조
+\(문구\) : 이스케이프(프롬포트로 이용 가능)
 ```
 단어의 강도, 문구 순서에 따른 우선순위, 강조에 따른 가중치가 프롬포트의 핵심입니다. cat 이라는 단어가 있는 경우 고양이가 만들어지면 강조가 잘 된 경우입니다. 하지만 원하지 않는 그림이 나온 경우 강조가 잘 되지 않은 것입니다. 이 경우 다른 문구로 변경하거나 학습 모델을 변경해야합니다.
 
@@ -103,3 +103,134 @@ handsome guy selfie, deviantart
 ```
 
 ![stable-diffusion-webui-more-option-guy](/snippets/stableDiffusion/section3/more-option-guy.png)
+
+### 작가의 화풍
+
+작가의 화풍을 위해 문단에 작가명을 작성하는것은 법의 논란의 여지가 있습니다. `style of Vincent van Gogh`와 같은 문구를 추가하는게 예시입니다.
+
+화풍은 사용해도 무방합니다. `gothic`, `cubism`, `realism`, `japonisme` 등과 같이 말이죠.
+
+```text
+<!-- Prompt -->
+cat, style of baroque
+```
+
+![stable-diffusion-webui-baroque-cat](/snippets/stableDiffusion/section3/baroque-cat.png)
+
+```text
+<!-- Prompt -->
+cat, style of japonisme
+```
+
+![stable-diffusion-webui-japonisme-cat](/snippets/stableDiffusion/section3/japonisme-cat.png)
+
+특정 화풍을 그리는 작가명, 키워드 목록은 `Stable Diffusion artist list`등의 키워드로 검색하면 됩니다.
+
+아래 사이트를 참고하면 Stable-Diffusion 아티스트들의 작품도 볼 수 있습니다.  
+[list of artists for SD v1.4](https://rentry.org/artists_sd-v1-4), [Stable Diffusion Artist list - Style studies](https://stablediffusion.fr/artists), [SD Artist Collection](https://sgreens.notion.site/sgreens/4ca6f4e229e24da6845b6d49e6b08ae7)
+
+애니메이션풍의 이미지를 생성할 때는 애니메이션 제작 회사, 게임 이름 등을 지정하면 비슷한 풍의 그림을 만들 수 있습니다. `Dragonball`, `love live` 
+
+또한 [미술 기법](https://ko.wikipedia.org/wiki/%EB%B6%84%EB%A5%98:%EB%AF%B8%EC%88%A0_%EA%B8%B0%EB%B2%95)을 참고해도 좋습니다.
+
+`pixel art`, `drawing`, `acrylic painting`
+
+```text
+<!-- Prompt -->
+cat, pixel art
+```
+
+![stable-diffusion-webui-pixel-art-cat](/snippets/stableDiffusion/section3/pixel-art-cat.png)
+
+```text
+<!-- Prompt -->
+cat, ball-point pen art
+```
+
+![stable-diffusion-webui-ballpoint-cat](/snippets/stableDiffusion/section3/ballpoint-cat.png)
+
+### 대상의 시점과 빛
+대상의 앵글과 빛으로 촬영할지 지정합니다. 카메라의 렌즈 이름, 셔터 속도를 지정하는 방법도 존재하죠. 야외의 경우 시간대 혹은 계절을 나타내는 단어를 넣어 생성되는 내용을 제어할 수 있습니다. 피사체를 원거리에 둘지 근거리에 둘지도 나타낼 수 있죠.
+
+```text
+far long shot, wide shot, west shot, face closeup photo, close up front shot, bust shot
+```
+
+각도의 시점은 아래 문구의 예가 있습니다.
+
+```text
+below view, selfie shot angel, wide shot angle, bird view
+```
+
+인물 이미지의 경우 다음 예가 있습니다.
+
+```text
+portrait
+```
+
+풍경화의 경우
+
+```text
+landscape, golden shutting
+```
+
+화면 구성이 좋은 이미지
+
+```text
+beautiful composition
+```
+
+선명한 이미지
+
+```text
+sharp focus
+```
+
+화려한 색상
+
+```text
+bright color contrast
+```
+
+조명
+
+```text
+soft lighting, golden hour lighting, brilliant photo, atmospheric lighting
+```
+
+적당한 배경을 넣고 싶은 경우
+
+```text
+beautiful background
+```
+
+### 세부 디테일
+이미지를 만드는 경우 뼈대가 되는 부분을 먼저 지시하고 시드를 유지한채 세부적인 디테일을 문구로 작성하는 경우가 많습니다.
+
+```text
+masterpiece, best quality, concept art, extremely detailed, 
+one kawaii cute girl, beautiful perfect symmetrical face, 
+fantastic long white dress with many frills,
+blue long wavy hair, bust shot, portrait, upper sunlight and golden sun,
+sharp focus, 8k, ray tracing, cinematic lighting,
+(cinematic postprocessing:1.8)
+```
+
+![stable-diffusion-webui-detail-cute-girl](/snippets/stableDiffusion/section3/detail-cute-girl.png)
+
+디테일적인 부분에서 실처럼 가느렇거나 휘어진 물건은 디테일이 떨어지는 경우가 흔합니다. 인체의 경우 손가락을 잘 표현하지 못하는 경우도 있습니다. 가급적 이런 부분을 피하기 위해 `Nagative Prompt`에 추가하는 것이 좋습니다.
+
+```text
+<!-- Nagative Prompt -->
+one small man with green face, skinny small body, very long eagle nose, very long ears, green bald head
+wrinkeld old face and body, in ragged armor, green skin, yellow face, brown face
+```
+
+이미지를 생성하다 보면 한명만 생성하고 싶은데 두명 이상이 생성되는 경우가 있습니다.  `sole`, `one`등을 이용할 수 있겠죠.  
+
+아름다운 캐릭터를 위해 `kawaii`, `cute`, `handsome`, `beautiful` 등을 입력할 수 있고, 연령대를 명시하는 문구도 넣을 수 있습니다. `old`, `young`, `teenage`등과 같이 말이죠.
+
+AI 일러스트 생성을 위해 프롬포트 생성기를 사용하는 것도 좋습니다. [ AI일러스트 프롬프트 생성기](https://programming-school-advance-com/ai-image-generation)
+
+또한 `원소법전`이라는 프롬프트집도 참고가 됩니다. AI이미지 투고 사이트에서 프롬프트를 확인하는 것도 도움이 됩니다. AI이미지 투고 사이트는 프롬프트도 함께 표시하는 경우가 많죠. 예시 사이트는 [PixAI](https://pixai.art), [chichi-pui](https://www.chichi-pui.com), [AI픽터스](https://www.aipictors.com) 등이 존재합니다.
+
