@@ -54,15 +54,15 @@ handsome [boy:tiger:0.1] face, extremely detailed portrait,
 
 ![stable-diffusion-webui-tiger-guy](/snippets/stableDiffusion/section3/tiger-guy.png)
 
-### Nagative prompt
-프롬포트로 이미지를 생성하는 경우 Nagative prompt 에는 이미지에서 걷어내고 싶은 문구를 작성합니다.
+### Negative prompt
+프롬포트로 이미지를 생성하는 경우 Negative prompt 에는 이미지에서 걷어내고 싶은 문구를 작성합니다.
 
 기본적으로 `Positive prompt` 에는 `그리는 대상`, `화질 향상`, `화풍과 화가`, `시점과 빛`, `디테일 조작` 등의 문구가 들어갑니다.
 
-`Nagative prompt`에는 `저화질 제외`, `화면에 글씨 제외` 등을 입력합니다.
+`Negative prompt`에는 `저화질 제외`, `화면에 글씨 제외` 등을 입력합니다.
 
 ```text
-<!-- Nagative Prompt -->
+<!-- Negative Prompt -->
 error, text, extra digit, worst quality, low quality, long neck
 ```
 
@@ -218,10 +218,10 @@ sharp focus, 8k, ray tracing, cinematic lighting,
 
 ![stable-diffusion-webui-detail-cute-girl](/snippets/stableDiffusion/section3/detail-cute-girl.png)
 
-디테일적인 부분에서 실처럼 가느렇거나 휘어진 물건은 디테일이 떨어지는 경우가 흔합니다. 인체의 경우 손가락을 잘 표현하지 못하는 경우도 있습니다. 가급적 이런 부분을 피하기 위해 `Nagative Prompt`에 추가하는 것이 좋습니다.
+디테일적인 부분에서 실처럼 가느렇거나 휘어진 물건은 디테일이 떨어지는 경우가 흔합니다. 인체의 경우 손가락을 잘 표현하지 못하는 경우도 있습니다. 가급적 이런 부분을 피하기 위해 `Negative Prompt`에 추가하는 것이 좋습니다.
 
 ```text
-<!-- Nagative Prompt -->
+<!-- Negative Prompt -->
 one small man with green face, skinny small body, very long eagle nose, very long ears, green bald head
 wrinkeld old face and body, in ragged armor, green skin, yellow face, brown face
 ```
@@ -230,7 +230,111 @@ wrinkeld old face and body, in ragged armor, green skin, yellow face, brown face
 
 아름다운 캐릭터를 위해 `kawaii`, `cute`, `handsome`, `beautiful` 등을 입력할 수 있고, 연령대를 명시하는 문구도 넣을 수 있습니다. `old`, `young`, `teenage`등과 같이 말이죠.
 
-AI 일러스트 생성을 위해 프롬포트 생성기를 사용하는 것도 좋습니다. [ AI일러스트 프롬프트 생성기](https://programming-school-advance-com/ai-image-generation)
+AI 일러스트 생성을 위해 프롬포트 생성기를 사용하는 것도 좋습니다.
 
-또한 `원소법전`이라는 프롬프트집도 참고가 됩니다. AI이미지 투고 사이트에서 프롬프트를 확인하는 것도 도움이 됩니다. AI이미지 투고 사이트는 프롬프트도 함께 표시하는 경우가 많죠. 예시 사이트는 [PixAI](https://pixai.art), [chichi-pui](https://www.chichi-pui.com), [AI픽터스](https://www.aipictors.com) 등이 존재합니다.
+### Negative prompt
+다음은 Negative prompt 로 설정하는 문구의 예시입니다.
 
+#### 저화질 방지
+
+```text
+worst quality, jpeg artifacts, blurry, long neck, grayscale, flat color
+```
+
+#### 서투른 인체 방지
+
+```text
+bad anatomy, bad hands, fingers, fewer digits, missing arms
+```
+
+####  불필요한 부분 제외
+
+이미지 생성시 워터마크, 기호가 붙는 문자열이 나올 수 있습니다.
+
+```text
+text, error, signature, watermark, username, shadow, frame
+```
+
+### 이미지에서 프롬프트 추출하기
+
+Stable Diffusion 을 이용해 생성한 이미지는 PNG Info 탭에서 프롬프트나 설정을 표시할 수 있습니다. 그 외에 일반 사진(jpeg 등) 혹은 이미지로 태그를 생성하는 방법이 있습니다 `img2img`탭의 `Interrogate CLIP` , `Interrogate DeepBooru`두 기능을 이용합니다.
+
+![stable-diffusion-webui-img2img-menu](/snippets/stableDiffusion/section3/img2img-menu.png)
+
+`Interrogate CLIP`은 이미지 설명을 문장으로 작성하는 기능이고, `Interrogate DeepBooru`는 쉼표로 구분된 단어의 나열을 생성하는 기능입니다. 두 기능 모두 최초 실행시 파일 다운로드 실행 시간이 존재합니다.
+
+`Interrogate CLIP`은 VRAM 4GB 환경에서는 오류가 발생합니다. `Interrogate DeepBooru`는 --lowvram, --medvram 환경에서 모두 사용 가능합니다. `Interrogate DeepBooru`기능이 이미지 생성에 더 최적화되어 있습니다.
+
+각각 실행하면 프롬프트란에 결과가 출력됩니다. ` --lowvram, --medvram `두 설정 각각 결과까지 나타나기까지 걸리는  시간은 다릅니다. `--lowvram`설정이라면 `--medvram`설정을 적용했을때보다 결과가 늦게 나타납니다. GPU를 업그레이드 했을에도 불구하고 해당 옵션이 설정되어 있다면 재기능을 못할 수 있죠.
+
+![stable-diffusion-webui-interrogate-deepbooru](/snippets/stableDiffusion/section3/interrogate-deepbooru.png)
+
+아래가 추출된 결과입니다.
+
+```text
+blue sky, blurry, city, cloud, cloudy sky, day, depth of field, fantasy, forest,
+grass, lake, landscape, mountain, mountainous horizon, nature, no humans,
+outdoors, river, scenery, sky, tree, water, waterfall
+```
+
+### 응용하기
+
+이제 두 이미지(배경 이미지, 캐릭터 이미지)를 생성해봅시다.
+
+#### 배경 이미지
+
+1920X1080 이미지와 거의 같은 896X512사이즈로 설정합니다. 이후 업스케일 및 확대 AI를 이용해 해상도를 높여 1920X1080 크기의 이미즈를 얻을 수 있습니다.
+
+```text
+<!-- Prompt -->
+bright color contrast, beautiful detailing landscape painting,
+masterpiece, best quality, concept art, extrmely detailed,
+digital painting, oil painting, (watercolor painting: 1.2),
+ray tracing, beautiful composition,
+(wide river: 1.1), green grassland, blue sky of summer, daytime,
+upper sunlight and bright golden sun, style of renaissance and gothic,
+(style of high fantasy: 1.2)
+far long shot, below view, brilliant photo,
+sharp focus, atmospheric lighting, realism,
+8k, ray tracing, cinematic lighting, cinematic postprocessing
+```
+
+```text
+<!-- Negative prompt -->
+text, error, worst quality, low quality, normal quality, jpeg artifacts, signature,
+watermark, username, blurry, shadow, flat shading, flat color, grayscale, black&white,
+monochrome, frame, human, body, boy, girl, man, woman, mob
+```
+
+![stable-diffusion-webui-background](/snippets/stableDiffusion/section3/background.png)
+
+#### 캐릭터 이미지
+
+캐릭터 이미지를 생성해봅시다. 소녀 전사를 생성합니다. CFG Scale을 10으로 설정해 비슷한 이미지를 생성하도록하여 여러번 시도 합니다. `Batch count` 또한 3으로 설정해 3개의 이미지를 동시에 생성해봅시다.
+
+```text
+<!-- Prompt -->
+(watercolor painting: 1.3), (oil painting: 1.2),
+(style of gothic: 1.3),
+(style of renaissance: 1.2),
+(style of high fantasy: 1.1),
+(bust shot: 1.5), (portrait: 1.5),
+bright color contrast, masterpiece, best quality, concept art, extremely detailed,
+(fantasy full armor costume: 1.1),
+one kawaii cute girl,
+beautiful perfect symmetrical face, small nose and mouth, aesthetic eyes,
+long wavy hair, sharp focus, realism, 8k,
+(style of granblud fantasy: 0.7),
+(style of genshin impact: 0.3),
+(artstation: 0.3), (deviantart: 0.3), (pixiv ranking 1st: 0.3)
+```
+
+```text
+<!-- Negative prompt -->
+bad anatomy, bad hands, text, error, missing fingers, extra digit, fewer digits,
+cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, water-mark,
+username, blurry, missing fingers, missing arms, long neck, humpbacked,
+shadow, flat shading, flat color, grayscale, black&white, monochrome
+```
+
+![stable-diffusion-webui-character](/snippets/stableDiffusion/section3/character.png)
