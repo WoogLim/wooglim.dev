@@ -1,0 +1,105 @@
+---
+title: "[Stable Diffusion] - 3"
+description: "프롬프트 맛깔나게 생성하기"
+language: "StableDiffusion"
+category: "Generative AI"
+update: "2024-03-01"
+hide: false
+serisenumber: 3
+---
+
+### 프롬포트의 규칙
+프롬포트는 기본적으로 영어를 사용하며(한글 학습 모델은 예외), 각 단어는 공백으로 구분합니다.
+
+```text
+<!-- Prompt -->
+gray cat
+```
+
+![stable-diffusion-webui-gray-cat](/snippets/stableDiffusion/section3/gray-cat.png)
+
+문구는 여러 개 입력이 가능하며 쉼표로 구분합니다. 우선순위는 앞 문구 부터 시작입니다.
+
+```text
+<!-- Prompt -->
+gray cat, glass garden
+```
+
+![stable-diffusion-webui-garden-cat](/snippets/stableDiffusion/section3/garden-cat.png)
+
+문구 중 특정 단어, 문구를 강조하는 표기법도 있습니다. `Attention/emphasis`라고 하빈다. 이 표기법은 중요 단어를 강조하고 뒤에 있는 문구에 있더라도 우선순위를 높일 수 있습니다.
+
+```text
+a (문구) : 1.1배 강조
+a ((문구)) : 1.1 x 1.1 = 1.2배 강조
+a [문구] : 1.1배 억제
+a (문구:1.5) : 1.5배 강조
+a (문구:0.25) : 0.25배 강조
+a \(문구\) : 이스케이프(프롬포트로 이용 가능)
+```
+단어의 강도, 문구 순서에 따른 우선순위, 강조에 따른 가중치가 프롬포트의 핵심입니다. cat 이라는 단어가 있는 경우 고양이가 만들어지면 강조가 잘 된 경우입니다. 하지만 원하지 않는 그림이 나온 경우 강조가 잘 되지 않은 것입니다. 이 경우 다른 문구로 변경하거나 학습 모델을 변경해야합니다.
+
+이미지를 생성하는 도중 문구의 내용을 단계별로도 전환할 수 있습니다. 이를 `Prompt Editing`이라고 합니다. 이 방법은 `Sampling steps`를 이용합니다. 소수가 들어가면 비율을 나타내며 정수인 경우 노이즈를 걷어내는 스텝 수가 됩니다.
+
+```text
+[프롬포트A:프롬포트B:스텝] : 스텝 수까지 프롬포트 A, 이후에는 프롬포트 B를 활성화
+[프롬포트A::스텝] : 스텝 수까지 프롬포트 A
+[프롬프트B:스텝] : 스텝 수까지 없고, 이후 프롬포트 B 활성화
+```
+
+```test
+<!-- Prompt -->
+handsome [boy:tiger:0.1] face, extremely detailed portrait,
+```
+
+![stable-diffusion-webui-tiger-guy](/snippets/stableDiffusion/section3/tiger-guy.png)
+
+### Nagative prompt
+프롬포트로 이미지를 생성하는 경우 Nagative prompt 에는 이미지에서 걷어내고 싶은 문구를 작성합니다.
+
+기본적으로 `Positive prompt` 에는 `그리는 대상`, `화질 향상`, `화풍과 화가`, `시점과 빛`, `디테일 조작` 등의 문구가 들어갑니다.
+
+`Nagative prompt`에는 `저화질 제외`, `화면에 글씨 제외` 등을 입력합니다.
+
+```text
+<!-- Nagative Prompt -->
+error, text, extra digit, worst quality, low quality, long neck
+```
+
+### 이미지의 대상
+인간, 고양이 등 무엇을 그리고 싶은지를 `대상`으로 봅니다. 이 `대상`의 경우 학습 모델에 영향을 받습니다. 이미지가 마음에 들지 않는다면 문구를 추가해줘도 됩니다. `guy` -> `handsome guy`등과 말이죠. 그리고 시드는 고정으로하여 생성합니다.
+
+```text
+<!-- Prompt -->
+guy portrait
+```
+
+![stable-diffusion-webui-guy-portrait](/snippets/stableDiffusion/section3/nomal-guy.png)
+
+```text
+<!-- Prompt -->
+handsome detailing one guy portrait
+```
+
+![stable-diffusion-webui-handsome-guy](/snippets/stableDiffusion/section3/handsome-guy.png)
+
+### 화질 향상시키기
+학습 모델은 이미지와 단어의 조합에 따른 벡터를 가집니다. 또한 원본 모델은 웹의 이미지로 학습됩니다. 때문에 `특정 웹사이트`, `고화질의 이미지에 자주 붙는 태그`를 붙이면 화질이 향상됩니다.
+
+```text
+artstation, deviantart, trending artstation, pixiv ranking 1st
+```
+
+```text
+<!-- Prompt -->
+handsome guy selfie
+```
+
+![stable-diffusion-webui-guys](/snippets/stableDiffusion/section3/guys.png)
+
+```text
+<!-- Prompt -->
+handsome guy selfie, deviantart
+```
+
+![stable-diffusion-webui-more-option-guy](/snippets/stableDiffusion/section3/more-option-guy.png)
