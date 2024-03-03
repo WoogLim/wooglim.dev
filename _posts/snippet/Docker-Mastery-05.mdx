@@ -185,3 +185,153 @@ docker run -d -p 3000:80 --rm --name feedback-app -v feedback:/app/feedback -v "
 단 위 명령은 실행 직후 에러가 발생할 겁니다. `바인드 마운트`의 경우 로컬 경로의 폴더를 컨테이너 지정 경로에 덮어씌우게 됩니다. 즉, `node_module`등의 폴더가 없다면 그대로 덮어씌어 없어지겠죠. 이는 곧 이미지 빌드시 도커라이징 과정이 무의미 해졌다는것을 의미합니다.
 
 이미지 기반으로 컨테이너를 생성했지만 이후 로컬의 경로로 모두 덮어씌어지게 되는 문제가 발생한거죠.
+
+### 볼륨 이해하기
+
+-v 옵션을 이용해 볼륨, 바인드 마운트가 가능합니다. 컨테이너 내부 어떤 폴더가 호스트의 특정 폴더와 마운트 혹은 연결됩니다. 컨테이너 내부에 이미 파일이 있는 경우, 외부 볼륨에 데이터가 있는 경우(볼륨) 컨테이너 내부에 데이터가 존재하지 않는 경우 볼륨에서 데이터를 찾습니다.
+
+아직 내부에 파일이 없어 파일을 로드하게되는데, 이를 위해 바인드 마운트를 사용합니다.
+
+도커는 호스트의 로컬 파일은 덮어쓰지 않습니다. 대신 호스트 지정 폴더의 데이터를 컨테이너에 덮어씌웁니다. 
+
+이전으로 문제로 돌아가보면 로컬의 빈 폴더로 덮어씌어지기 때문에 node 애플리케이션을 실행하는데 필요한 `node_module`도 사라지게 됩니다. 이제 `run`옵션에 익명 볼륨을 할당해 봅시다. 이전과 같은 문제가 발생해도 익명 볼륨에 해당 데이터가 존재하므로 똑같은 에러는 발생하지 않을겁니다.
+
+```bash
+docker run -d -p 3000:80 --rm --name feedback-app -v feedback:/app/feedback -v "/Users/wooglim/dev/dockerPractice/1/feedback-node:/app" -v /app/node_modules feedback-node:volumes
+```
+
+익명 볼륨의 데이터는 컨테이너로 실행되기 전 지정 폴더의 데이터를 익명 볼륨으로 로컬에 저장하게 됩니다.
+
+컨테이너를 중지 및 제거 하고 다시 실행하면 앱은 정상적으로 실행될것입니다.
+
+이제 추가된 바인드 마운트로 인해 코드 변경 사항이 즉시 컨테이너에도 반영됩니다. 만일 서버 파일을 실시간으로 감지하는 라이브러리(nodemon)등을 이용하지 않는다면 컨테이너를 중지하고 재실행 해줘야 합니다.
+
+윈도우의 경우 파일시스템 환경이 다르기 때문에 잘 적용이 되지 않을수도 있습니다.
+
+추가로 바인드 마운트로 지정된 로컬 폴더는 도커로 제어할 수 없습니다. 삭제할 경우 직접 삭제해야만 합니다.
+
+익명 볼륨의 경우 외부 경로보다 컨테이너 내부 경로의 우선 순위를 두어 데이터를 저장하고자 할때 유용하게 사용할 수 있습니다.
+
+### 읽기 전용 볼륨
+
+바인드 마운트의 경우 변경사항이 컨테이너 내부에 반영됩니다. 호스트에서 변경한 파일은 컨테이너에서도 확인할 수 있는거죠. 반대는 어떨까요? 컨테이너에서 파일을 수정하는 경우 호스트의 데이터도 변경됩니다. 이 경우 읽기 전용으로만 하여 컨테이너를 수정을 시도해도 호스트의 데이터는 변경되지 않도록 하는 옵션이 있습니다. `read only`를 의미하는 `ro`를 바인드 마운트 끝에 붙여주면 됩니다.
+
+```bash
+docker run ... -v "/Users/wooglim/dev/dockerPractice/1/feedback-node:/app:ro" -v /app/node_modules feedback-node:volumes
+```
+
+이때 주의할 것은 해당 `-v`옵션에 설정한 `read-only`옵션이 다른 바인드 마운트 설정에도 영향이 있는지 확인하는 겁니다. 컨테이너에서 `/app`내부 파일에 쓰기를 시도하면 이를 방지합니다. 다른 바인드 마운트 옵션에서는 일부 쓰기를 진행하고자 하는데, `/app`하위 폴더라면 쓰기 권한이 방어가 되는 문제가 발생합니다.
+
+### 볼륨 관리하기
+
+```bash
+docker volume --help
+
+Usage:  docker volume COMMAND
+
+Manage volumes
+
+Commands:
+  create      Create a volume
+  inspect     Display detailed information on one or more volumes
+  ls          List volumes
+  prune       Remove all unused local volumes
+  rm          Remove one or more volumes
+
+Run 'docker volume COMMAND --help' for more information on a command.
+```
+
+ls 명령을 사용해봅시다. 익명 볼륨, 네이밍 볼륨을 확인할 수 있습니다. 바인드 마운트는 도커에서 관리하지 않으므로 조회되지 않습니다.
+
+```bash
+docker volume ls
+local     ac5a364073299d7cf559758f30b92cfa3defc46d2a32a593a96fc52f096cad52
+local     e18515efd770cc2ee0ec196f1df2d888b4facd69bc62dae162e769e0c5cfb97b
+local     feedback
+```
+
+create 옵션은 네이밍 볼륨을 생성할 수 있는 명령입니다.
+
+```bash
+docker volume create --help
+
+Usage:  docker volume create [OPTIONS] [VOLUME]
+
+Create a volume
+
+Options:
+  -d, --driver string   Specify volume driver name (default "local")
+      --label list      Set metadata for a volume
+  -o, --opt map         Set driver specific options (default map[])
+```
+
+inspect는 볼륨에 대한 정보를 확인할 수 있는 명령입니다. 생성일, 드라이버, 라벨, 마운트 포인트, 이름, 옵션, 스코프 등을 확인할 수 있죠.
+
+```bash
+docker inspect --help
+
+Usage:  docker inspect [OPTIONS] NAME|ID [NAME|ID...]
+
+Return low-level information on Docker objects
+
+Options:
+  -f, --format string   Format the output using the given Go template
+  -s, --size            Display total file sizes if the type is container
+      --type string     Return JSON for specified type
+```
+
+rm 옵션을 볼륨을 삭제하는 명령입니다. 제거 당시 컨테이너와 볼륨이 연결되어 있다면 컨테이너는 중지 및 제거해야 합니다.
+
+prune 옵션은 사용하지 않는 볼륨을 모두 제거하는 명령입니다. (컨테이너에서 사용하지 않는)
+
+### COPY와 dockerignore
+
+`.dockerignore`에 특정 파일을 추가하면 COPY 명령으로 복사해서는 안 되는 요소를 제외할 수 있습니다
+
+예로, 호스트에 설치된 `node_modules`를 제외하고 싶다면 아래와 같이 추가하면 됩니다.
+
+```yaml
+node_modules
+```
+
+### 환경변수 설정 
+`Dockerfile`은 매개변수 즉 인자(`$환경변수`)를 받을 수 있습니다. 또한 `Dockerfile`파일 내부에 `ENV`명령 레이어를 이용해 환경변수를 설정할 수 있습니다. 이로 인해 보다 유연한 이미지를 생성할 수 있게됩니다.
+
+```yaml
+# Dockerfile
+# ENV 환경변수명 값 -> 이 변수를 전역 환경변수로 적용됨
+ENV PORT 80
+
+EXPOSE $PORT
+```
+
+또는 `run`명령에 환경변수 옵션을 추가해 적용할 수 있습니다.
+
+```bash
+# docker run -env PORT=80 ... 동일하게 작동
+docker run --env PORT=80 ...
+```
+
+또 다른 방법으로 환경변수 파일을 별도로 생성한 뒤 `run`시 적용해주는 옵션도 있습니다. `--env-file`옵션입니다.
+
+```bash
+# --env-file 환경변수 경로
+docker run --env-file ./.env
+```
+
+### 매개변수로 유용하게 사용하기
+
+```yaml
+# Dockerfile
+ARG DEFAULT_PORT = 80
+
+ENV PORT ${DEFAULT_PORT}
+
+EXPOSE $PORT
+```
+
+이미지 빌드시 `ARG`로 설정한 인자의 값을 변경할 수 있습니다. 변경하지 않는다면 기본 초기화값으로 적용됩니다. ` --build-arg`옵션을 이용합니다.
+
+```bash
+docker build -t feedback-node --build-arg DEFAULT_PORT=8000 .
+```
