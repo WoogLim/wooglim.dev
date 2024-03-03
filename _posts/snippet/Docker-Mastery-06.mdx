@@ -1,0 +1,106 @@
+---
+title: "[Docker Mastery] - 6"
+description: "네트워크"
+language: "devops"
+category: "Docker"
+update: "2024-03-03"
+hide: false
+serisenumber: 6
+---
+
+## 시작
+
+- [Maximilian Schwarzmüller 님의 Docker & Kubernetes : 실전 가이드 강의를 듣고 작성한 글입니다.](https://www.udemy.com/course/docker-kubernetes-2022/?couponCode=KEEPLEARNING)
+
+### 컨테이너와 네트워크 요청
+
+개발한 애플리케이션이 `some-api.com`과 같이 웹사이트와 통신한다면 `some-api.com`으로 들어오는 GET 요청을 애프리케이션이 실행중인 컨테이너가 받도록 지시할 수 있습니다.  
+이 과정을 살펴봅시다.
+
+### 컨테이너와의 통신
+
+애플리케이션이 담긴 컨테이너가 호스트의 다른 컨테이너(데이터베이스 등)와 통신하는 경우를 봅시다. 애플리케이션 컨테이너, 데이터베이스 컨테이너 두개를 실행해 사용할 수 있겠지만 직접 코드내에서 연결을 시도하는 경우
+`host.docker.internal`문구를 이용해 로컬 호스트의 ip로 매핑할 수 있습니다.
+
+```js
+// localhost 는 도커에서 읽지 못함.
+// mongoose.connect(
+//   'mongodb://localhost:27017/swfavorites',
+
+mongoose.connect(
+  'mongodb://host.docker.internal:27017/swfavorites',  
+```
+
+이 경우 호스트에서 실행한 데이터베이스에 접속했기 때문에 데이터는 영구적으로 보관됩니다.
+
+이제 데이터베이스 컨테이너를 실행해봅시다.
+
+공식 이미지를 사용하겠습니다.
+
+```bash
+docker run -d --name mongodb mongo
+```
+
+연결을 위해 `inspect` 명령으로 컨테이너의 ip를 조회합니다. `IPAddress`값을 확인하면 됩니다.
+
+```bash
+docker container inspect mongodb
+```
+`mongoose.connect`의 `host.docker.internal`부분을 조회된 IP로 설정하면 컨테이너 끼리 통신이 가능해질겁니다.
+
+이 과정도 마냥 편하지만은 않죠. 매번 IP를 하드코딩해야 합니다.
+
+### 컨테이너간 네트워크 설정
+이번엔 네트워크 옵션을 이용해보겠습니다.
+
+```bash
+docker network --help
+
+Usage:  docker network COMMAND
+
+Manage networks
+
+Commands:
+  connect     Connect a container to a network
+  create      Create a network
+  disconnect  Disconnect a container from a network
+  inspect     Display detailed information on one or more networks
+  ls          List networks
+  prune       Remove all unused networks
+  rm          Remove one or more networks
+
+Run 'docker network COMMAND --help' for more information on a command.
+```
+
+`create`명령으로 네트워크를 생성합니다.
+
+```bash
+docker network create favorites-net
+```
+
+이제 생성한 네트워크를 연결하여 실행해줍니다.
+
+```bash
+docker run -d --name mongodb --network favorites-net mongo
+```
+
+`inspect`명령으로 어떤 네트워크에 접속해있는지 확인이 가능합니다. 또한 컨테이너끼리 같은 네트워크에 있다면 IP가 아닌 `NAMES`로 IP를 매핑해 적용할 수 있습니다. 때문에 이전과 같이 하드코딩하는 일은 없어졌습니다.
+
+```js
+mongoose.connect(
+  'mongodb://mongodb:27017/swfavorites',  
+```
+
+이제 소스를 변경했으니 이미지를 다시 빌드하고 컨테이너로 실행합니다.
+
+```bash
+docker run --name favorites --rm -p 3000:3000 -d --network favorites-net favorites-node
+```
+
+또한 같은 네트워크에 존재한다면 포트를 외부로 노출시키지 않아도 됩니다. 호스트에 연결해야 한다거나 타 네트워크의 컨테이너와 연결할 때를 제외하곤 말이죠.
+
+### 도커 네트워크 드라이버
+
+도커 네트워크는 실제 네트워크 동작에 영향을 미치는 다양한 종류의 드라이버를 지원합니다. 디폴트 드라이버는 `bridge`로, 컨테이너가 동일 네트워크에 존재하는 경우 이름으로 서로 찾을 수 있도록 지원합니다. 드라이버의 경우 `--driver`옵션을 추가해 설정이 가능합니다.
+
+대부분의 경우 `bridge`를 이용하지만 `host`(로컬호스트를 네트워크로 공유 - 컨테이너와 호스트 시스템 간 격리 제거), `overlay`(swarm모드에서만 작동), `macvlan`(컨테이너에 커스텀 MAC주소 설정), `none`(모든 네트워킹 비활성) 등의 드라이버를 사용할 수 있습니다.
