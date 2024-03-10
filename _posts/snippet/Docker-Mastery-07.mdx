@@ -1,0 +1,285 @@
+---
+title: "[Docker Mastery] - 7"
+description: "다중 컨테이너"
+language: "devops"
+category: "Docker"
+update: "2024-03-10"
+hide: false
+serisenumber: 7
+---
+
+## 시작
+
+- [Maximilian Schwarzmüller 님의 Docker & Kubernetes : 실전 가이드 강의를 듣고 작성한 글입니다.](https://www.udemy.com/course/docker-kubernetes-2022/?couponCode=KEEPLEARNING)
+
+### 컨테이너 설계
+일반적인 웹 서비스라 함은 DB, 백엔드서버, 프론트엔드서버가 있을겁니다. 세 가지 애플리케이션을 이미지로 빌드하고 네트워크를 구성해 컨테이너로 실행하고 컨테이너간 통신할 수 있도록 구축합니다.
+
+#### DB 컨테이너 실행
+
+```bash
+docker run --name mongodb --rm -d -p 27017:27017 mongo
+```
+
+#### Backend 컨테이너 실행
+
+DB 커넥션 코드를 수정합니다.
+```js
+// app.js
+
+mongoose.connect(
+  'mongodb://host.docker.internal:27017/sample-server'
+)
+```
+
+도커파일을 작성합니다.
+```yaml
+# Dockerfile
+FROM node
+
+WORKDIR /app
+
+COPY package.json .
+
+RUN npm install
+
+COPY . .
+
+EXPOSE 80
+
+CMD["node", "app.js"]
+```
+
+빌드합니다.
+
+```bash
+docker build -f Dockerfile --t backend_server . 
+```
+
+실행합니다.
+
+```bash
+docker run --name backend-server --rm -d -p 80:80 backend_server
+```
+
+#### 프론트엔드 서버 컨테이너화
+
+도커 파일을 작성합니다.
+```yaml
+# Dockerfile
+
+# node를 이용해 실행하지는 않고, React 패키지 모듈을 받기 위한 목적으로 node 이용
+FROM node
+
+WORKDIR /app
+
+COPY package.json .
+
+RUN npm install
+
+COPY . .
+
+# 노출시킬 포트 명시
+EXPOSE 3000
+
+CMD ["npm", "start"]
+```
+
+빌드합니다.
+
+```bash
+docker build -t frontend_server .
+```
+
+실행합니다.
+
+```bash
+# React 는 특이하게도 -it 트리거를 설정하지 않으면 중지가 되는 문제가 발생.
+docker run --name frontend-server --rm -p 3000:3000 -it frontend_server
+```
+
+### 네트워크 구성하기
+
+네트워크를 생성합니다.
+
+```bash
+docker network create sample-net
+```
+
+다시 DB 서버 컨테이너를 실행합니다. 세 컨테이너 모두 같은 네트워크를 사용할 것이므로 포트를 포워딩하지 않아도 됩니다.
+```bash
+docker run --name mongodb --rm -d --network sample-net mongo
+```
+
+백엔드 서버도 다시 실행합니다. 우선 코드부터 수정합니다.
+DB 커넥션 코드를 수정합니다. 같은 네트워크를 사용하므로 컨테이너 명을 도메인에 명시해줍니다.
+
+```js
+// app.js
+
+mongoose.connect(
+  'mongodb://mongodb:27017/sample-server'
+)
+```
+
+컨테이너를 다시 실행합니다.
+
+```bash
+docker run --name backend-server --rm -d --network sample-net backend_server
+```
+
+프론트엔드 서버도 다시 실행합니다.
+
+코드상 백엔드에 요청을 보내는 부분의 도메인을 localhost가 아닌 백엔드 컨테이너명으로 동일하게 변경해야합니다.
+
+다시 빌드합니다.
+
+```bash
+docker build -t frontend_server .
+```
+
+프론트엔드는 예외로 사용자들이 접속할 수 있도록 포워딩을 그대로 유지한채 네트워크를 추가합니다.
+
+```bash
+docker run --name frontend-server --network sample-net --rm -p 3000:3000 -it frontend_server
+```
+
+이 상태에서 웹사이트로 접속을 하면 백엔드 요청이 실패하는 것을 확인할 수 있습니다. `React`는 서버측에서 실행되는 것이 아닌 브라우저에서 실행되기 때문이죠. 그렇기 때문에 `localhost`를 `backend-server`와 같은 컨테이너명으로 지정해줬다 하더라도 브라우저상에서는 이 컨테이너를 알지 못합니다.
+해결방법은 다시 `localhost`로 되돌리고 `network`에 포함시키는 것 또한 사실상 쓸모가 없기 때문에 제외해야합니다.
+
+```bash
+docker run --name frontend-server --rm -p 3000:3000 -it frontend_server
+```
+
+또한 이제 백엔드서버의 포트 또한 알고 있어야 접속이 가능하니 백엔드 컨테이너도 다시 실행해줍니다.
+
+```bash
+docker run --name backend-server --rm -d --network sample-net -p 80:80 backend_server
+```
+
+### 볼륨 및 접근 제한
+
+DB의 경우 외부에서 접근하지 못하도록 막는게 좋습니다. 이를 위한 접근 제한을 설정하고 DB 데이터 백업을 위해 볼륨을 이용합니다.
+
+백엔드의 경우 로그 파일은 영구적으로 가지고 있어야합니다. 외부 경로와 마운트합니다.
+
+프론트 서버에는 소스 수정과 동시에 업데이트 되도록 수정해봅시다.
+
+#### DB 데이터 영구적으로 가지고 있기
+
+DB컨테이너의 경우 별도 옵션없이 컨테이너를 생성하고 삭제하면 저장소도 같이 삭제됩니다. 저장소는 남겨두도록 수정해봅시다.
+
+네임드 볼륨을 설정하여 컨테이너가 삭제되더라도 남도록 구성해봅시다.
+
+```bash
+docker run --name mongodb -v data:data/db --rm -d --network sample-net mongo
+```
+
+컨테이너 제거 후 볼륨 조회시 그대로 볼륨 데이터가 남아있는것을 확인할 수 있습니다.
+
+```bash
+docker volume ls
+```
+
+다시 중지하고 username, password를 설정해봅시다. 이런 환경변수는 docker-hub에 mongodb와 같은 오피셜 이미지를 보면 어떤 변수가 존재하는지 확인할 수 있습니다.
+
+```bash
+docker run --name mongodb -v data:data/db --rm -d --network sample-net -e MONGO_INITDB_ROOT_USERNAME=root -e MONGO_INITDB_ROOT_PASSWORD=secret mongo
+```
+
+컨테이너에 해당 유저네임(root), 패스워드(secret)가 설정된 것을 확인할 수 있습니다. 이제 백엔드 코드를 일부 수정해야겠죠.
+
+```js
+// app.js
+
+mongoose.connect(
+  'mongodb://root:secret:mongodb:27017/sample-server?authSource=admin'
+)
+```
+
+#### 백엔드 서버 로그 데이터 영구 저장
+
+로컬에서 로그를 보고싶다면 마운트 바운드도 괜찮습니다. 우선 네임드 볼륨을 적용해보겠습니다.
+
+개발중 코드 변경사항이 바로 적용되도록 바운드 마운트 또한 설정하겠습니다.
+
+또한 `node_modules`등의 패키지 폴더가 로컬의 데이터로 덮어씌어지는 문제를 해결하기 위해 익명 볼륨을 사용합니다.
+
+바운드 마운트된 경로보다 볼륨을 더 먼저 읽기 때문에 가능하죠.
+
+```bash
+docker run --name backend-server -v logs:/app/logs -v /Users/wooglim/dev/dockerPractice/bakend:/app -v /app/node_modules --rm -p 80:80 -d --network sample-net backend_server
+```
+
+이후 삭제한다하더라도 로그 데이터는 그대로 남아있게됩니다.
+
+로컬의 코드 수정시 바로 반영되도록 도커이미지 명령을 수정합니다.
+
+`nodemon`과 같은 라이브러리 및 `package.json`에 스크립트로 추가해 서버를 nodemon으로 실행하도록 변경합니다. 이후 이미지를 다시 빌드합니다.
+
+```json
+// package.json
+"script": {
+  "start": "nodemon app.js"
+}
+```
+
+도커 파일도 수정합니다. 이전에 DB에서 username, password를 추가함에 따라 mongoose 커넥션시 해당 정보로 하드 코딩이 되어있었습니다. 이부분도 코드를 수정하고 도커이미지도 수정합니다.
+
+```yaml
+# Dockerfile
+
+# 초기값 root, secret 설정 
+ENV MONGODB_USERNAME=root
+ENV MONGODB_PASSWORD=secret
+
+CMD ["npm", "start"]
+```
+
+환경변수는 `docker run -e MONGODB_USERNAME=username`옵션이 추가되면 초기값이 설정값으로 수정됩니다.
+
+돌아가 바운드 마운트를 설정해주었기 때문에 로컬에서 코드 수정이 일어나면 컨테이너에서 이를 읽어 `nodemon`이 감지해 코드를 반영하게 되겠죠.
+
+이제 커넥션 정보도 수정해봅시다. 변경사항은 즉시 반영될겁니다.
+
+```js
+// app.js
+
+mongoose.connect(
+  `mongodb://${process.env.MONGODB_USERNAME}:${process.env.MONGODB_PASSWORD}:mongodb:27017/sample-server?authSource=admin`
+)
+```
+
+##### dockerignore 설정
+
+백엔드 도커 이미지 파일에는 문제가 있습니다 바로 `COPY . .`구문입니다. 현재 컨텍스트의 모든 내용을 컨테이너로 복사하고있죠. 제외할 폴더도 있을겁니다 이 폴더 및 파일은 컨텍스트 루트에 `.dockerignore`에 명시해주어야 이미지 빌드시 `COPY . .`구문 실행시 제외됩니다.
+
+```yaml
+# .dockerignore
+node_modules
+Dockerfile
+.git
+```
+
+#### 프론트엔드 바운드 마운트
+
+프론트엔드 또한 개발 환경에 적합하도록 코드 수정시 바로 반영되도록 수정해봅시다.
+
+도커 이미지 빌드시 제외할 항목 또한 추가합니다.
+
+```yaml
+# .dockerignore
+node_modules
+Dockerfile
+.git
+```
+
+이제 다시 실행합니다.
+
+```bash
+docker run -v /Users/wooglim/dev/dockerPractice/frontend/src:/app/src --name fronend-server --rm -p 3000:3000 -it frontend_server
+```
+
+`react`에는 기본 세팅으로 앱 생성시 스크립트 자동 반영 라이브러리가 포함되어 있을겁니다.
+
+이제 코드를 수정하면 백엔드와 같이 수정 사항이 즉시 반영되는 것을 확인할 수 있을겁니다.
