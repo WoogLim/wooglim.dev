@@ -1,0 +1,93 @@
+---
+title: "[Docker Mastery] - 9"
+description: "유틸리티 컨테이너"
+language: "devops"
+category: "Docker"
+update: "2024-03-12"
+hide: false
+serisenumber: 9
+---
+
+## 시작
+
+- [Maximilian Schwarzmüller 님의 Docker & Kubernetes : 실전 가이드 강의를 듣고 작성한 글입니다.](https://www.udemy.com/course/docker-kubernetes-2022/?couponCode=KEEPLEARNING)
+
+### 유틸리티 컨테이너
+
+지금까지 애플리케이션이 포함된 컨테이너를 실행했습니다. 환경변수를 설정하고, `docker run`명령으로 실행하여 `Dockerfile`에 명시한 `CMD`명령 레이어로 컨테이너 실행시 스크립트를 자동 실행했죠.
+
+좀 더 커스텀한 컨테이너를 실행한다면 유틸리티 컨테이너를 사용합니다.
+
+유틸리티 컨테이너는 환경변수를 설정하고 `run`명령에 `-init`옵션을 이용해 실행환경을 초기화 하고 컨테이너에 접속해 앱을 실행하기 위한 명령을 컨테이너 실행 이후 수행하는거죠.
+
+### 컨테이너에서 명령을 수행하는 법
+
+node 컨테이너를 실행해봅시다.
+
+```bash
+docker run -it node
+> 1+1
+> 2
+```
+
+위 명령의 경우 터미널을 빠져나오면 컨테이너는 제거 됩니다. 이어서 `-d`옵션으로 실행해봅시다.
+
+```bash
+docker run --name test-node -it -d node
+```
+
+`exec`는 실행중인 컨테이너 내 특정 명령을 실행하여 결과를 바로 출력할 수 있습니다.
+
+`npm init`명령을 수행해봅시다. 프로젝트 구성에 필요한 질의과정이 있으므로 `-it`옵션도 같이 사용합니다.
+
+```bash
+docker exec -it test-node npm init
+```
+
+컨테이너를 중지하고 컨테이너를 실행함과 동시에 명령을 수행해봅시다.
+
+```bash
+docker run --name test-node -it node npm init
+```
+
+이 경우 컨테이너 접속을 중지하면 컨테이너가 삭제되겠죠. 아무튼 이런 방법도 있습니다.
+
+### 커스텀한 도커 이미지 만들기
+
+우선 Dockerfile을 작성합니다.
+
+```yaml
+FROM node:14-alpine
+
+WORKDIR /app
+```
+
+빌드합니다. `alpine`은 명령 터미널을 지원하지 않는 경량화 버전입니다.
+
+```bash
+docker build -t node-util .
+```
+
+실행합니다. 단 컨테이너내 변경 사항을 즉시 적용 할 수 있도록 바인드 마운트를 진행합니다.
+`package.json`의 경우 미리 설정했다고 가정합시다.
+
+`Dockerfile`부터 수정해봅시다.
+
+`ENTRYPOINT`를 이용해봅시다. 이 명령 레이어는 컨테이너 실행 직후 수행되는 명령에 앞단에 붙어 같이 실행됩니다.
+
+```yaml
+# Dockerfile
+FROM node:14-alpine
+
+WORKDIR /app
+
+ENTRYPOINT ["npm"]
+```
+
+아래 명령을 실행하면 `docker run -it -v $(pwd):/app node-util npm install`와 같이 실행됩니다.
+
+```bash
+docker run -it -v $(pwd):/app node-util install
+```
+
+호스트에서 

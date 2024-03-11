@@ -64,7 +64,7 @@ volumes:
   data:
 ```
 도커 컴포즈로 실행되는 서비스의 경우 기본으로 `-d`, `--rm`옵션을 가지고 있기 때문에 해당 옵션은 설정하지 않았습니다. 또한 네트워크를 지정하지 않더라도 컴포즈 내에서 작동하는 모든 컨테이너는 생성 당시 같은 네트워크 공간에 포함됩니다. 다만 다른곳에서 참조하고싶은 경우 이를 명시해도 괜찮습니다. `networks`설정을 추가해주어야 합니다.  
-`network`옵션을 설정하지 않은 경우 yaml 파일명에 _default가 붙은채 네트워크가 생성됩니다. volume의 경우는 yaml파일명+볼륨명 으로 생성됩니다. 프로젝트 이름이 접두사로 붙게됩니다.
+`network`옵션을 설정하지 않은 경우 yaml 파일명에 _default가 붙은채 네트워크가 생성됩니다. volume의 경우는 프로젝트 폴더명+볼륨명 으로 생성됩니다. 프로젝트 이름이 접두사로 붙게됩니다.
 
 
 ### Linux에 Docker Compose 설치
@@ -98,4 +98,126 @@ docker-compose down
 
 ```bash
 docker-compose down -v
+```
+
+### 다중 컨테이너로 작업하기
+
+이어서 백엔드 부분의 설정도 진행해봅시다.
+
+환경변수는 별도 파일로 정리합니다.
+
+```json
+// ./env/backend.env
+
+MONGODB_USERNAME=max
+MONGODB_PASSWORD=secret
+```
+
+yaml 파일을 작성해봅시다.
+
+```yaml
+# docker-compose.yaml
+
+version: "3.8"
+
+services: 
+  # 각 컨테이너에 대해 구성 설정 
+  # ...
+  backend:
+    # image: 'backend-server'
+
+    # 빌드 컨텍스트 및 도커 파일명 명시
+    # build:
+    #   context: ./backend
+    #   dockerfile: Dockerfile
+    #   arge:
+    #     some-arg:1
+    
+    # Dockerfile을 찾아 이미지를 빌드합니다.
+    build: ./backend
+
+    ports:
+      - '80:80'
+    volumes:
+      - logs:/app/logs
+      # 바인드 마운트 현재 경로에서 ./backend 폴더를 컨테이너내 app에 마운트
+      - ./backend:/app
+      - /app/node_modules
+    env_file:
+      - ./env/backend.env
+    # 도커 컴포즈에만 존재 
+    # 동시에 여러 컨테이너가 생성되는데, 의존할 컨테이너를 명시할 수 있다.
+    # backend의 경우 mongodb가 실행된 후 backend가 후에 실행되어야하고 의존함.
+    depends_on:
+      - mongodb
+
+  # foorntend:
+volumes:
+  data:
+  # 네임드 볼륨 명시
+  logs:
+```
+
+이어서 `frontend`부분도 완성해봅시다. 프론트엔드의 경우 인터렉티브 옵션 `-it` 옵션이 필요했습니다.
+
+```yaml
+# docker-compose.yaml
+
+version: "3.8"
+
+services: 
+  # 각 컨테이너에 대해 구성 설정 
+  # ...
+
+  frontend:
+    build: ./frontend
+    ports:
+      - '3000:3000'
+    volumes:
+      - ./frontend/src:/app/src
+    # -i
+    stdin_open: true
+    # -t
+    tty: true
+    depends_on:
+      - backend
+volumes:
+  data:
+  logs:
+```
+
+이제 완성되었습니다. 그대로 실행하면 됩니다.
+
+```bash
+docker-compose up -d
+```
+
+이렇듯 더 복잡한 프로젝트의 경우 `docker-compose`를 이용하는것이 유용합니다. 물론 명령을 기록할 수 있기 때문에 단일 컨테이너를 실행하는 경우에도 유용합니다.
+
+한번 빌드가 완료되면 캐시에 남아 더 이상 빌드를 하지 않게 됩니다. 코드 변경 사항이 일어난 경우에는 `build` 명령으로 다시 빌드가 가능합니다.
+
+```bash
+docker-compose build
+```
+
+이후 `up`명령 실행시 빌드된 이미지가 있으므로 위 `build`명령으로 수행된 이미지를 가지고 컨테이너를 실행하게 됩나다.
+
+컨테이너 명을 명시하지 않고 컨테이너를 실행하면 네임은 `프로젝트 폴더명_서비스 컨테이너명_증가숫자` 와 같이 정해집니다. 컨테이너 명이 겹칠일은 없겠네요.
+
+컨테이너명을 명시하려면 `container_name: mongodb`와 같이 컨테이너명을 명시해주어야 합니다.
+
+```yaml
+# docker-compose.yaml
+
+version: "3.8"
+
+services: 
+  # 각 컨테이너에 대해 구성 설정 
+  # ...
+
+  frontend:
+    container_name: frontend
+volumes:
+  data:
+  logs:
 ```
