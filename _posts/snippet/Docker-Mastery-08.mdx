@@ -1,0 +1,101 @@
+---
+title: "[Docker Mastery] - 8"
+description: "Docker-Compose를 이용한 다중 컨테이너 오케스트레이션"
+language: "devops"
+category: "Docker"
+update: "2024-03-11"
+hide: false
+serisenumber: 8
+---
+
+## 시작
+
+- [Maximilian Schwarzmüller 님의 Docker & Kubernetes : 실전 가이드 강의를 듣고 작성한 글입니다.](https://www.udemy.com/course/docker-kubernetes-2022/?couponCode=KEEPLEARNING)
+
+### 기존 도커만으로 불편한점
+
+이전까진 각 컨테이너 실행때마다 이미지를 빌드하고 컨테이너를 실행하면서 옵션을 매번 설정해주었죠. 이후에도 컨테이너에 적용한 옵션을 이용하려면 어딘가에 계속 기록해두어야 할 것 입니다. 또한 하나 하나씩 실행해야 합니다.  
+이 문제를 해결하기 위해 `Docker-Compsoe`가 대안입니다.
+
+### Docker Compose
+
+즉, 도커 컴포즈는 여러 컨테이너 실행에 필요한 `docker build`, `docker run`과정을 한 설정파일에서 기록하여 관리하고 실행 또한 설정파일을 기준으로 실행합니다. 이런 설정파일을 오케스트레이션 명령 셋이라고 부릅니다.  
+단, 그렇다고해서 `Dockerfile`, `이미지나 컨테이너`, `다수 호스트에서 다중 컨테이너 관리`를 완전히 대체하지는 않습니다. 도커 컴포즈는 한 호스트에서 여러 컨테이너를 실행하기에 적합합니다.  
+
+### Service
+다중 컨테이너 애플리케이션을 구성하는 컨테이너라고 이해하면 됩니다. 실제로 컨테이너이기도 합니다. 컴포즈안에서는 여러 서비스(컨테이너) 환경설정을 입력합니다. 포트, 환경변수, 볼륨, 네트워크 등 도커 명령으로 수행가능한 모든 일을 대체할 수 있습니다.
+
+### Compose 파일 작성하기
+프로젝트 컨텍스트 혹은 특정 경로에 `yaml`확장자 파일을 생성합니다. 다중 컨테이너 환경과 프로젝트 설정을 기재합니다. 익스텐션을 설치해 자동완성을 이용해보는것을 추천합니다.
+
+```yaml
+# docker-compose.yaml
+
+# 도커 컴포즈 사양의 버전(버전 별로 사용가능한 설정이 존재)
+# https://docs.docker.com/compose/compose-file/ 
+version: "3.8"
+
+# 서비스의 설정을 명시합니다.
+# 들여쓰기를 철저히 지켜야합니다. 들여쓰기는 종속됨을 표현합니다.
+services: 
+  # 각 컨테이너에 대해 구성 설정 
+  mongodb:
+    image: 'mongo'
+    volumes:
+      # 네임드 볼륨 설정
+      - data:/data/db 
+    # environment:
+      # - MONGO_INITDB_ROOT_USERNAME=max와 동일
+      # MONGO_INITDB_ROOT_USERNAME: max
+      # MONGO_INITDB_ROOT_PASSWORD: secret
+    # environment를 사용하는것이 아닌 별도 환경 변수 파일로 설정하는 경우
+    env_file:
+      - ./env/mongo.env
+    # networks:
+    #   - sample-net
+  # backend:
+
+  # foorntend:
+
+# service에서 사용중인 명명 볼륨을 명시합니다.
+# 다른 컨테이너에서 이 data 폴더를 사용할 수도 있습니다.
+# 익명 볼륨, 바인드 마운트는 명시하지 않습니다.
+volumes:
+  data:
+```
+도커 컴포즈로 실행되는 서비스의 경우 기본으로 `-d`, `--rm`옵션을 가지고 있기 때문에 해당 옵션은 설정하지 않았습니다. 또한 네트워크를 지정하지 않더라도 컴포즈 내에서 작동하는 모든 컨테이너는 생성 당시 같은 네트워크 공간에 포함됩니다. 다만 다른곳에서 참조하고싶은 경우 이를 명시해도 괜찮습니다. `networks`설정을 추가해주어야 합니다.  
+`network`옵션을 설정하지 않은 경우 yaml 파일명에 _default가 붙은채 네트워크가 생성됩니다. volume의 경우는 yaml파일명+볼륨명 으로 생성됩니다. 프로젝트 이름이 접두사로 붙게됩니다.
+
+
+### Linux에 Docker Compose 설치
+
+기본적으로 Docker Compose는 `Docker`설치시 같이 설치됩니다. Linux의 경우 별도로 설치해야 합니다.
+- [설치 방법 Docs](https://docs.docker.com/desktop/install/linux-install/)
+
+### Docker Compose Up&Down
+
+도커 컴포즈 실행시 `up`명령을 이용합니다.
+
+```bash
+docker-compose up
+```
+
+위 명령은 `attached`로 실행하며 터미널에서 나오는 경우 `--rm`옵션이 적용됩니다.
+
+`-d`옵션을 이용해 `detached`모드로 실행합니다.
+
+```bash
+docker-compose up -d
+```
+
+중지는 `down`명령을 이용합니다.
+
+```bash
+docker-compose down
+```
+
+볼륨도 같이 삭제할 경우 `-v`옵션을 이용합니다.
+
+```bash
+docker-compose down -v
+```
