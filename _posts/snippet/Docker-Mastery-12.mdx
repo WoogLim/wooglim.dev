@@ -1,89 +1,50 @@
-
 ---
-
 title:  "[Docker Mastery] - 12"
-
-description:  "쿠버네티스 아키텍쳐"
-
+description:  "쿠버네티스 핵심 이해하기 - 1"
 language:  "devops"
-
 category:  "Docker"
-
 update:  "2024-03-19"
-
 hide:  false
-
 serisenumber:  12
-
 ---
-
-  
 
 ## 시작
 
-  
-
 - [Maximilian Schwarzmüller 님의 Docker & Kubernetes : 실전 가이드 강의를 듣고 작성한 글입니다.](https://www.udemy.com/course/docker-kubernetes-2022/?couponCode=KEEPLEARNING)
-
-  
 
 ### 쿠버네티스는 인프라를 관리하지 않는다.
 
 쿠버네티스는 클러스터, 마스턴 노드, 워커 노드를 구성하고 리소스를 생산하지만 파드 모니터링, 파드 컨테이너 모니터링, 파드 교체 및 스케일링, 파드 내부 컨테이너 오케스트레이션, 워커 노드 간 컨테이너 이동 등이 주된 일입니다. 인프라 환경은 직접 구성해야합니다.
 
-  
-
 또한 클라우드 프로바이더가 아니며 컨테이너화된 앱을 배포하는 프레임워크일 뿐입니다. 보안, 시스템 관리, 인스턴스 및 운영 체제 관리 등 쿠버네티스의 역할이 아닙니다. 서버 관리 도구도 아니고 클라우드 프로바이더도 아닌 그저 파드 컨테이너 오케스트레이션 관리 도구입니다.
-
-  
 
 AWS와 같은 클라우드 프로바이더는 EKS와 같은 전용 서비스가 있어 자체 쿠버네티스 구성을 불러올 수 있습니다. ECS를 사용하지 않아도 됩니다. 이와 비슷하게 제공되는 도구인 `Kubermatic`으로 이 인프라 부분은 어느정도 보조할 수 있습니다.
 
-  
-
 즉 `파드와 컨테이너 모니터링 스케일링, 프록시 관리`가 주된 쿠버네티스의 역할입니다.
-
-  
 
 ### 인프라 환경을 로컬 환경으로 모방하기
 
 클러스터를 구성하고 마스터 노드를 구성하고 하나 이상의 워커노드를 둔다. 마스터 노드에는 API서버, 스케줄러를 설치하고 워커노드에는 kubelet, 도커가 설치되어 있어야 합니다. 이것이 전반적인 환경입니다.
 
-  
-
 로컬에는 `kubectl`도구가 필요합니다. 배포 변경과 같은 명령을 클러스터에 보내는 역할입니다. 마스터 노드는 워커 노드와 관련해 필요 작업을 수행하고(파드 생성 명령 등) kubectl 도구를 이용해 실제로 클러스터 내부로 명령을 발송하게 됩니다.
-
-  
 
 이제 더미 클러스터를 생성해 이 과정이 수행되는지 확인을 위해 `minikube`도구를 사용해보겠습니다. 이 도구는 주로 테스트 용도로 사용하는 도구입니다. 가상 머신을 사용해 다른 가상 머신을 제어하고 머신에 마스터 노드, 워커 노드 역할을 부여하죠
 
-#### Windows 설치
+### Windows 설치
 
 윈도우로 시작하는 경우에 Pro버전이 아니라면 WSL을 우선 설치합니다. [WSL](https://learn.microsoft.com/en-us/windows/wsl/install-manual#step-4---download-the-linux-kernel-update-package)
 
 이어서 [Docker Desktop](https://www.docker.com/products/docker-desktop/)도 같이 설치합니다. 설치시 WSL2를 이용하도록 설정합니다.
 
-  
-
 kubectl
-
-  
 
 minikube를 설치하기 이전에 Hypervisor를 설치해야합니다. virtualBox와 같은 드라이버를 이용할 수 있겠죠.
 
-  
-
 이후 드라이버 설치 후 클러스터에 명령할 kubectl를 우선 설치해야합니다.
-
-  
 
 관련 패키지 설치를 위한 툴 [Chocolatey](https://chocolatey.org/install)을 설치합니다.
 
-  
-
 아래 명령을 Powershell -> 관리자 권한으로 실행 후 사용합니다.
-
-  
 
 ```bash
 
@@ -91,11 +52,7 @@ Set-ExecutionPolicy  Bypass  -Scope  Process  -Force; [System.Net.ServicePointMa
 
 ```
 
-  
-
 이후 kubernetes-cli 를 설치합니다.
-
-  
 
 ```bash
 
@@ -103,11 +60,7 @@ choco  install  kubernetes-cli
 
 ```
 
-  
-
 버전을 확인합니다.
-
-  
 
 ```bash
 
@@ -115,15 +68,9 @@ kubectl  version  --client
 
 ```
 
-  
-
 이어서 가상머신 실행을 위한 [virtualBox](https://www.virtualbox.org/wiki/Downloads)를 설치합니다.
 
-  
-
 클러스터로 구성하기 위해 minikube를 설치합니다.
-
-  
 
 ```bash
 
@@ -131,11 +78,7 @@ choco  install  minikube
 
 ```
 
-  
-
 드라이버를 설정하여 minikube를 실행합니다. [드라이버 목록](https://minikube.sigs.k8s.io/docs/drivers/) 에서 어떤 드라이브가 존재하는지 확인할 수 있습니다.
-
-  
 
 ```bash
 
@@ -143,23 +86,15 @@ minikube  start  --driver=virtualbox
 
 ```
 
-  
-
 클러스터를 구성하고 마스터 노드, 워커 노드를 구성합니다. 실제로 워커와 마스터 노드가 리소스를 공유하는 하나의 노드만 설정합니다. 개발용이기 때문이죠. 쿠버네티스 소프트웨어, API서버, kubelet도 설치하여 캡슐화된 가상 머신 내부에 모든 것을 설정해줍니다.
 
-  
-
 실행과정에서 다음과 같은 트러블슈팅이 발생할 수 있습니다.
-
-  
 
 ```bash
 
 * virtualbox VM (CPUs=2, Memory=6000MB, Disk=20000MB) 를  생성하는  중  ...
 
 * Failed to start virtualbox VM. Running "minikube delete" may fix it: creating host: create: precreate: This computer is running Hyper-V. VirtualBox won't boot a 64bits VM when Hyper-V is activated. Either use Hyper-V as a driver, or disable the Hyper-V hypervisor. (To skip this check, use --virtualbox-no-vtx-check)
-
-  
 
 X Exiting due to PR_VBOX_HYPERV_64_BOOT: Failed to start host: creating host: create: precreate: This computer is running Hyper-V. VirtualBox won't boot a 64bits VM when Hyper-V is activated. Either use Hyper-V as a driver, or disable the Hyper-V hypervisor. (To  skip  this  check,  use  --virtualbox-no-vtx-check)
 
@@ -205,15 +140,13 @@ apiserver: Running
 kubeconfig: Configured
 ```
 
-대시보드를 확인합니다.
+아래 명령으로 클러스터의 대시보드를 확인할 수 있습니다.
 
 ```bash
 
 minikube dashboard
 
 ```
-
-![minikube-dashboard](/snippets/kube/chap1/minikube-dashboard.png)
 
 ### kubernetes 내부 동작 이해하기
 
@@ -233,7 +166,7 @@ Deployment  객체는 주요 객체로, 수동으로 pod를 생성해 특정 워
 
 deployment가 실패해도 롤백 혹은 이전에 작동한 상태로 되돌릴 수 있습니다. 새 deployment만 시작하면 됩니다. 또한 스케일링도 가능합니다. 더 많고 적은 파드를 생성할 수 있고, cpu메트릭을 수신해 트래픽이 증가하면 추가 파드를 생성하기도 하겠죠. 이것이 deployment객체의 모든 역할 입니다. 기본적으로 deployment객체를 구성하고 쿠버네티스 클러스터에 전송해 요구 사항을 수행합니다.
 
-##### 명령적 접근 방식으로 구성하기
+#### 명령적 접근 방식으로 구성하기
 
 우선 컨테이너를 실행하기 위해 이미지를 생성합니다.
 
@@ -262,7 +195,7 @@ $ kubectl help
 이제 deployment를 생성해봅시다.
 
 ```bash
-$ kubectl create deployment first-app --image=kub-first-ap
+$ kubectl create deployment first-app --image=kub-first-app
 deployment.apps/first-app created
 
 $ kubectl get deployments
@@ -310,4 +243,177 @@ first-app-77c589c8b6-k5pln   1/1     Running   0          58s
 
 정상적으로 앱이 실행중인 결과를 볼 수 있습니다.
 
-#### kubectl의 작동 배경 되짚어보기
+![minikube-dashboard](/snippets/kube/chap1/minikube-dashboard.png)
+
+### kubectl의 작동 배경 되짚어보기
+
+먼저 디플로이먼트 객체를 생성합니다.  이 내용을 현재는 명령적 접근 방식으로 진행해 컨트롤 플레인으로 전송합니다. (minikube status를 확인했을때, type은 마스터 노드(컨트롤 플레인)으로 실행되고 있었습니다.) 
+
+마스터 노드는 클러스터에 필요한 모든 것을 생성합니다. 워커 노드에 파드를 배포하는 일을 주로 담당하죠 마스터 노드의 스케쥴러가 실행 중인 파드를 분석해 이에 적합한 노드를 찾고 deployment 기반으로 생성합니다.
+
+파드는 워커 노드 중 하나로 보내집니다. 보통 라벨을 선택하지 않는한 가장 적은 작업을 하는 워커노드에 생성합니다.
+
+이 워커 노드에서는 kubelet서비스를 얻습니다. 파드를 관리하고 컨테이너를 생성하고 파드를 모니터링 합니다. 파드내 컨테이너는 deployment를 생성할 당시 이미지를 기반으로 실행됩니다.
+
+이번엔 클러스터 외부에서 접근할 수 있는 방법을 알아봅시다.
+
+### Service 객체
+
+클러스터의 파드를 외부에서 접근 가능하도록 하는 객체입니다.
+
+파드는 기본적으로 내부 IP주소가 있습니다. minikube 구동 시 대시보드에서 확인할 수 있습니다. 이 IP는 외부에서 접근 불가능하며 파드가 교체될 때마다 유동적입니다. 그러므로 IP로 파드에 접근하는 방식은 알맞지 않습니다. 이는 클러스터 내부라도 동일합니다.
+
+service는 파드를 그룹화하고 공유 주소, 공유 IP를 제공하며 정보는 변경되지 않습니다. 또한 클러스터 외부에서 접근 가능하도록 IP를 노출할 수 있습니다. 
+
+#### service로 deployment 노출하기
+
+아래 명령은 service를 생성하고 deployment에 의해 생성된 파드를 노출하는 명령입니다.
+
+```bash
+$ kubectl expose deployment first-app --type=LoadBalancer --port=8080
+service/first-app exposed
+
+# type
+# ClusterIP : 클러스터 내부에서만 연결 가능
+# NodePort : deployment가 실행 중인 워커 노드의 IP주소를 통해 노출
+# LoadBalancer :  클러스터가 실행되는, 인프라에 존재해야할 LoadBalancer를 이용. 
+# service에 대한 고유 주소를 생성하고 트래픽을 service의 일부인 모든 파드에 고르게 분산
+# 파드에 여러 인스턴스를 실행하는 경우 중요. aws, minikube는 이 기능이 동작하도록 클러스터내 만들어줌.
+
+$ kubectl get services
+# 클러스터 내부 IP, 외부 IP가 보이지 않는 이유는 minikube가 로컬 머신에서 실행되는 가상 머신이기 때문.
+NAME         TYPE           CLUSTER-IP       EXTERNAL-IP   PORT(S)          AGE
+first-app    LoadBalancer   10.101.202.188   <pending>     8080:30113/TCP   24s
+kubernetes   ClusterIP      10.96.0.1        <none>        443/TCP          39h
+```
+
+현재로서는 로컬의 가상머신이므로 외부에서 접속은 못하지만 minukube를 이용해 로컬 머신에서 접근할 수 있는 방법이 있습니다.
+
+단, 로드밸런서를 지원하는 클라우드 프로바이더(AWS, minikube)에서 서비스를 만든 경우에 한함.
+
+```bash
+minikube service first-app
+```
+
+만일 의도적으로 first-app 이미지 컨테이너에 충돌을 발생시켜 파드앱 상태가 Error로 변경되는 경우 이를 감지하고 재실행하게 됩니다. 재실행 횟수 또한 카운트되어 표시됩니다.
+
+```bash
+kubectl get pods
+NAME                         READY   STATUS    RESTARTS      AGE
+first-app-77c589c8b6-pkr6h   1/1     Running   2 (19s ago)   35m
+```
+
+파드와 파드내 컨테이너가 모니터링 되는 중이고, 실패하면 재시작됩니다. 이 정보 또한 minikube dashboard를 통해 확인해볼 수 있습니다.
+
+![minikube-dashboard](/snippets/kube/chap1/minikube-dashboard2.png)
+
+### 컨테이너 다수 실행하기
+
+번외로, 파드와 컨테이너를 한 번만 생성하는 것이 아니라 세번으로 생성할 수도 있습니다.
+
+```bash
+# 스케일 항목 지정
+# relicas는 파드의 인스턴스로, 3 replicas는 동일 파드/컨테이너가 3번 생성
+$ kubectl scale deployment/frist-app  --replicas=3
+deployment.apps/first-app scaled
+
+# 3개의 파드가 동일 컨테이너 실행
+$ kubectl get pods
+NAME                         READY   STATUS    RESTARTS        AGE
+first-app-77c589c8b6-mftzw   1/1     Running   0               102s
+first-app-77c589c8b6-mt2lc   1/1     Running   0               102s
+first-app-77c589c8b6-pkr6h   1/1     Running   2 (8m43s ago)   43m
+```
+
+이 경우 service를 LoadBalancer로 적용해주었기 때문에 트래픽이 동일 컨테이너를 실행하는 파드로 고르게 분산시켜 줍니다.
+
+복사본은 언제 든지 축소/확장할 수 있습니다.
+
+### deployment 수정하고 롤백하기
+
+코드를 변경하고 deployment를 수정한 다음 다른 deployment로 롤백하는 방법 또한 지원됩니다.
+
+다시 이미지를 빌드하기 전으로 돌아가 소스코드를 변경하고 이미지로 빌드합니다. 그리고 허브에 업로드합니다.
+
+```bash
+docker build -t 레포/이름:v2 .
+
+docker push 업로드할 이미지
+```
+
+그리고 deployment가 실행중인지 확인합니다.
+
+```bash
+$ kubectl get deployments
+NAME        READY   UP-TO-DATE   AVAILABLE   AGE
+first-app   1/1     1            1           56m
+
+# deployment 중 first-app의 실행중인 컨테이너의 이미지를 변경
+$ kubectl set image deployment/first-app kub-first-app=wooglim/kube-first-app:v2
+deployment.apps/first-app image updated
+
+# 기존 레플리카는 롤아웃 하여 새로 실행되는 파드로 교체
+$ kubectl rollout status deployment/first-app
+```
+
+이 경우 의도적으로 이미지의 태그에 오타를 발생시켜 이미지 업로드를 못하게하여 파드가 정상적으로 실행되지 않는 상태로 두는 경우에는 아래와 같은 상태가 됩니다.
+
+```bash
+$ kubectl get pods
+NAME                         READY   STATUS             RESTARTS   AGE
+first-app-77c589c8b6-m6mnr   1/1     Running            0          6m30s
+first-app-c979c6fdf-g6bfw    0/1     ImagePullBackOff   0          4m11s
+```
+
+이 경우 문제가 발생하는 deployment를 롤백하여 이전 상태로 되돌릴 수 있습니다.
+
+```bash
+# 최근 deployment가 undo
+$ kubectl rollout undo deployment/first-app
+deployment.apps/first-app rolled back
+
+$ kubectl get pods
+NAME                         READY   STATUS    RESTARTS   AGE
+first-app-77c589c8b6-m6mnr   1/1     Running   0          8m18s
+```
+
+만일 더 이전의 deployment 로 돌아가려면 아래 수순을 진행합니다.
+
+```bash
+# 히스토리 확인
+$ kubectl rollout history deployment/first-app
+deployment.apps/first-app
+REVISION  CHANGE-CAUSE
+2         <none>
+3         <none>
+
+# 상세 내용 확인
+$ kubectl rollout history deployment/first-app --revision=2
+deployment.apps/first-app with revision #2
+Pod Template:
+  Labels:       app=first-app
+        pod-template-hash=c979c6fdf
+  Containers:
+   kub-first-app:
+    Image:      wooglim/kube-first-app:v2
+    Port:       <none>
+    Host Port:  <none>
+    Environment:        <none>
+    Mounts:     <none>
+  Volumes:      <none>
+
+# 특정 버전으로 rollback
+$ kubectl rollout history deployment/first-app --to-revision=3
+```
+
+이 기능들을 보면 대규모 서비스를 특정 클러스터에서 운용하기에 적합하다는 것을 알 수 있었습니다.
+
+다음은 기존 서비스 및 디플로이먼트를 제거하는 명령입니다.
+
+```bash
+$ kubectl delete service first-app
+service "first-app" deleted
+
+$ kubectl delete deployment first-app
+deployment.apps "first-app" deleted
+```
