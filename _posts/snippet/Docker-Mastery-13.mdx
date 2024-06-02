@@ -1,6 +1,6 @@
 ---
 title:  "[Docker Mastery] - 13"
-description:  "쿠버네티스 핵심 이해하기 - 2"
+description:  "쿠버네티스 선언적 접근방식 이용"
 language:  "devops"
 category:  "Docker"
 update:  "2024-04-08"
@@ -12,7 +12,330 @@ serisenumber:  13
 
 - [Maximilian Schwarzmüller 님의 Docker & Kubernetes : 실전 가이드 강의를 듣고 작성한 글입니다.](https://www.udemy.com/course/docker-kubernetes-2022/?couponCode=KEEPLEARNING)
 
-### 선언전 접근방식
+### 선언적 접근방식
 
 이전 글에서는 명령적 접근 방식을 이용해 deployment를 생성하고, service를 생성했습니다. 이번엔 선언적 접근방식으로 진행합니다.
 
+Docker의 경우 명령적 접근 방식은 이용하기 어려웠고(명령어를 모두 외우고 있어야 함) docker-compose 로 대신해 선언적 접근 방식을 이용했습니다.
+
+지금 까지 보면 아래 단계를 거쳐왔습니다.
+
+위와 같이 먼저 `kubectl create deployment ...` 로 컨트롤 플레인에 명령을 보내고 deployment를 만들고, `kubectl set image deployment/first-app ...`와 같이 deployment 이미지를 업데이트하는 방법을 사용했습니다.
+
+`expose`로 서비스를 생성하기도 했죠. 명령을 모두 외우긴 해야하지만 어렵지는 않습니다. 다만 항상 이 과정을 반복해야하죠.
+
+이 모든 구성을 파일에 기록할 수 있다면 더할나위 없죠. 쿠버네티스는 이를 지원합니다. YAML 파일에 구성 옵션을 기록하여 쿠버네티스가 이해하는 객체를 구성하면 docker-compose와 같이 이용할 수 있습니다.
+
+원하는 파드 및 컨테이너 수를 지정하고 서비스의 구성 환경을 정의할 수 있죠.
+
+docker-compose의 `up`과 같이 kubectl 에는 `apply`가 존재합니다. YAML 파일을 가리키면 배포에 대한 정보를 읽어 구성 파일을 클러스터에 적용하죠.
+
+우선 환경을 다음과 같이 확인합니다.
+
+```bash
+> kubectl get deployment
+No resources found in default namespace.
+> kubectl get pods
+No resources found in default namespace.
+> kubectl get services
+NAME         TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE
+kubernetes   ClusterIP   10.96.0.1    <none>        443/TCP   5d13h
+```
+
+아래와 같이 YAML 파일을 작성합니다.
+
+```yaml
+# https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#creating-a-deployment 에서 버전 확인 가능
+apiVersion: apps/v1
+# 쿠버네티스 객체 종류 Deployment, Job, Demonset ...
+# https://kubernetes.io/docs/reference/kubernetes-api/
+kind: Deployment
+# 객체의 이름과 같은 중요 데이터 정리
+# first-app 등과 같음.
+# https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#objectmeta-v1-meta
+metadata:
+  name: second-app-deployment
+# deployment 객체를 구성할 사양
+spec:
+  # 복제본 파드/컨테이너 쌍 3개 (기본 1개)
+  replicas: 1
+  selector:
+    matchLabels:
+      # deployment와 일치하는 키-값
+      # deployment에게 관리할 Pod를 지정하기 위해 특정 파드에 지정한 Labels정보를 매칭한다.
+      app: second-app
+      tier: backend
+  # 이미지
+  template:
+    # deployment template의 기본 객체는 Pod이므로 생략 가능
+    # kind: Pod
+    # 이미지의 메타데이터
+    metadata:
+      # 라벨 키와 값은 사용자 커스텀
+      # 이 값으로 특정 객체를 집어낼 수 있다.
+      labels:
+        app: second-app
+        tier: backend
+    # pod 객체를 구성할 사양
+    # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#podspec-v1-core
+    spec:
+      # containers는 필수로 지정 한 파드당 컨테이너를 여러개 띄울 수 있음
+      containers:
+      - name: second-node-app
+        image: wooglim/kub-first-app:v2
+      # - name
+      #   image:
+```
+
+다음 명령을 실행하면 객체 정보가 적용됩니다.
+
+```bash
+kubectl apply -f=deployment.yaml
+deployment.apps/second-app-deployment created
+
+> kubectl get deployments
+NAME                    READY   UP-TO-DATE   AVAILABLE   AGE
+second-app-deployment   1/1     1            1           47s
+> kubectl get pods
+NAME                                     READY   STATUS    RESTARTS   AGE
+second-app-deployment-748c778fcd-92pvk   1/1     Running   0          51s
+```
+
+이어서 서비스도 노출시켜봅시다.
+
+```bash
+kubectl expose deployment first-app --port 6060:6060 --type=LoadBalancer
+```
+
+이전에는 위와 같은 명령적 접근 방식을 이용했습니다.
+
+```yaml
+# https://kubernetes.io/docs/concepts/services-networking/service/
+# apiVersion: core/v1 
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend
+spec:
+  selector:
+    # second-app 레이블을 가진 모든 Pod는 이 Service에 의해 제어
+    app: second-app
+  ports:
+  # 프로토콜
+  - protocol: 'TCP'
+    # 외부 노출 포트
+    port: 80
+    # 내부 포트
+    targetPort: 8080
+  # - protocol: 'TCP'
+  #   port: 443
+  #   targetPort: 443
+  # ClusterIP: 클러스터 내부에서만 이용
+  # NodePort: 실행되는 워커 노드의 IP와 포트 외부 노출
+  # LoadBalancer: 가장 기본적으로 사용되는 외부 노출 타입 트래픽 분산 지원
+  type: LoadBalance
+```
+
+이제 아래와 같이 명령을 실행해 서비스를 실행하면 됩니다.
+
+```bash
+> kubectl apply -f service.yaml
+service/backend created
+> kubectl get services
+NAME         TYPE           CLUSTER-IP       EXTERNAL-IP   PORT(S)        AGE
+backend      LoadBalancer   10.100.151.117   <pending>     80:30827/TCP   6s
+kubernetes   ClusterIP      10.96.0.1        <none>        443/TCP        5d14h
+> minikube service backend
+|-----------|---------|-------------|---------------------------|
+| NAMESPACE |  NAME   | TARGET PORT |            URL            |
+|-----------|---------|-------------|---------------------------|
+| default   | backend |          80 | http://xxx.xxx.xx.x:30827 |
+|-----------|---------|-------------|---------------------------|
+🏃  backend 서비스의 터널을 시작하는 중
+|-----------|---------|-------------|------------------------|
+| NAMESPACE |  NAME   | TARGET PORT |          URL           |
+|-----------|---------|-------------|------------------------|
+| default   | backend |             | http://127.0.0.1:51801 |
+|-----------|---------|-------------|------------------------|
+🎉  Opening service default/backend in default browser...
+❗  darwin 에서 Docker 드라이버를 사용하고 있기 때문에, 터미널을 열어야 실행할 수 있습니다
+```
+
+이것이 일반적으로 사용하는 선언적 방법의 예시입니다. 유지보수가 훨씬 쉬워지죠.
+
+변경 사항이 일어나면 그저 `apply`만 다시 수행하면 됩니다.
+
+```yaml
+replicas: 3
+```
+
+복제본을 3개로 늘려봅시다.
+
+```bash
+> kubectl apply -f=deployment.yaml
+deployment.apps/second-app-deployment configured
+
+> kubectl get pods
+NAME                                     READY   STATUS    RESTARTS   AGE
+second-app-deployment-748c778fcd-92pvk   1/1     Running   0          18m
+second-app-deployment-748c778fcd-9blls   1/1     Running   0          39s
+second-app-deployment-748c778fcd-wsst6   1/1     Running   0          39s
+```
+
+리소스를 제거할 때는 아래와 같이 생성했던 파일로 종료합니다.
+
+```bash
+> kubectl delete -f=deployment.yaml -f=service.yaml
+deployment.apps "second-app-deployment" deleted
+service "backend" deleted
+```
+
+YAML 파일을 하나로 합칠 수 있습니다. 종류 별로 `---`로 구분만 해주면 됩니다.
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend
+spec:
+  selector:
+    app: second-app
+  ports:
+  - protocol: 'TCP'
+    port: 80
+    targetPort: 8080
+  type: LoadBalancer
+---
+apiVersion: apps/v1
+metadata:
+  name: second-app-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: second-app
+      tier: backend
+  template:
+    metadata:
+      labels:
+        app: second-app
+        tier: backend
+    spec:
+      containers:
+      - name: second-node-app
+        image: wooglim/kub-first-app:v2
+```
+
+Service를 우선 생성하고 추가 리소스를 생성하는게 좋습니다. Service에 정의된 selecor정보는 자원을 항상 모니터링하기 때문에 이후 생성되는 모든 부분이 동적으로 추가됩니다.
+
+```bash
+> kubectl apply -f=master-deployment.yaml
+service/backend created
+deployment.apps/second-app-deployment created
+> minikube service backend
+|-----------|---------|-------------|---------------------------|
+| NAMESPACE |  NAME   | TARGET PORT |            URL            |
+|-----------|---------|-------------|---------------------------|
+| default   | backend |          80 | http://xxx.xxx.xx.x:30175 |
+|-----------|---------|-------------|---------------------------|
+🏃  backend 서비스의 터널을 시작하는 중
+|-----------|---------|-------------|------------------------|
+| NAMESPACE |  NAME   | TARGET PORT |          URL           |
+|-----------|---------|-------------|------------------------|
+| default   | backend |             | http://127.0.0.1:52109 |
+|-----------|---------|-------------|------------------------|
+🎉  Opening service default/backend in default browser...
+❗  darwin 에서 Docker 드라이버를 사용하고 있기 때문에, 터미널을 열어야 실행할 수 있습니다
+```
+
+### Labels와 Selector
+
+파드에서 템플릿 Labels로 정의한 키-값으로 Deploymend에서 selector로 관리할 Pod를 지정했었습니다. `matchLabels`를 이용했었죠.
+
+`macthExpressions`를 이용하면 좀 더 세부적인 조건식을 설정할 수 있습니다. 기본적으로는 `matchLabels`를 사용합니다.
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: second-app-deployment
+spec:
+  replicas: 1
+  selector:
+    # matchLabels:
+    #   app: second-app
+    #   tier: backend
+    # https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
+    matchExpressions:
+      # app 레이블키의 값이 second-app, first-app에 속하는 Pod 관리
+      - {key: app, operator: In, value: [second-app, first-app]}
+  template:
+    metadata:
+      labels:
+        app: second-app
+        tier: backend
+    spec:
+      containers:
+      - name: second-node-app
+        image: wooglim/kub-first-app:v2
+```
+
+아래와 같이 labels를 이용해 제거할 수도 있습니다.
+
+```bash
+> kubectl get service
+NAME         TYPE           CLUSTER-IP       EXTERNAL-IP   PORT(S)        AGE
+backend      LoadBalancer   10.100.165.103   <pending>     80:31822/TCP   38s
+kubernetes   ClusterIP      10.96.0.1        <none>        443/TCP        5d14h
+
+> kubectl get deployments
+NAME                    READY   UP-TO-DATE   AVAILABLE   AGE
+second-app-deployment   1/1     1            1           42s
+
+kubectl delete deployments,services -l group=example
+
+> kubectl delete deployments,services -l group=example
+service "backend" deleted
+> kubectl get service
+NAME         TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE
+kubernetes   ClusterIP   10.96.0.1    <none>        443/TCP   5d14h
+> kubectl get deployments
+No resources found in default namespace.
+```
+
+추가로 쿠버네티스가 Pod와 컨테이너가 정상 작동하는지 여부를 확인하기 위해 `livenessProbe`를 설정할 수 있습니다.
+
+```yaml
+spec:
+      # containers는 필수로 지정 한 파드당 컨테이너를 여러개 띄울 수 있음
+      containers:
+      - name: second-node-app
+        image: wooglim/kub-first-app:v2
+        # https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 8080
+          periodSeconds: 10
+          initialDelaySeconds: 5
+```
+
+10초 동안 GET 요청이 성공하는지 쿠버네티스에게 5초 주기로 알립니다. 이상이 생긴 경우 컨테이너를 재시작하게 됩니다. 
+
+Docker-compose의 경우 컨테이너를 시작하는 방법을 정의했지만 지금은 클러스터에서 컨테이너를 시작하는 방법을 정의하고 있습니다.
+
+더 큰 범위이죠. 만일 컨테이너의 이미지를 최신 버전으로 갱신하여 가져오고 싶은 경우 `latest`를 이용할 수 있겠죠 쿠버네티스에서는 아래와 같이 설정할 수 있습니다.
+
+```yaml
+spec:
+      # containers는 필수로 지정 한 파드당 컨테이너를 여러개 띄울 수 있음
+      containers:
+      - name: second-node-app
+        image: wooglim/kub-first-app:latest
+        # https://kubernetes.io/docs/concepts/containers/images/
+        imagePullPolicy: Always
+```
+
+이전에 구버전의 이미지를 컨테이너로 실행중인 경우 해당 파드는 종료되고 새로운 파드로 교체가 됩니다.
+
+더 자세한 사용을 위해서는 공식 문서를 읽어야 합니다.
