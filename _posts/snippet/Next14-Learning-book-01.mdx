@@ -1,0 +1,131 @@
+---
+title: "[Next.js V14] 정리 노트 - 1"
+description: "앱 라우터 개념 익히기"
+language: "Javascript"
+category: "NextJS"
+update: "2024-06-03"
+hide: false
+serisenumber: 1
+---
+
+## 시작
+
+- 본 내용은 강의 제공 사이트 유데미 Maximilian Schwarzmüller 강사님의 [Next.js 14 & React - The Complete Guide](https://www.udemy.com/course/nextjs-react-the-complete-guide/?couponCode=ST19MT60324) 강의를 듣고 정리하였습니다.
+
+### app 폴더
+
+우선 라우팅은 이전 버전들과 같이 파일 기반 라우팅을 지원합니다.
+
+![file-routing](/snippets/next14/chap3/file-routing.png)
+
+app 폴더 내부에는 `page.js`, `layout.js` 가 기본적으로 포함되어 있습니다. `page.js`파일은 NextJS에게 해당 페이지로 렌더링하라고 알려줍니다.
+
+리액트 컴포넌트 함수를 갖추고 있죠.
+
+```js
+export default function Home() {
+
+  // 웹 브라우저에서는 조회되지 않는다.
+  console.log('서버 사이드 인데 내가 보일까?')
+
+  return (
+    <main>
+      <img src="/logo.png" alt="A server surrounded by magic sparkles." />
+      <h1>Welcome to this NextJS Course!</h1>
+      <p>🔥 Let&apos;s get started! 🔥</p>
+    </main>
+  );
+}
+```
+
+별다른 설정을 하지 않은 경우 위 코드는 서버 사이드 렌더링으로 적용됩니다. 즉 서버 컴포넌트입니다. 이전 버전의 경우 클라이언트 컴포넌트의 경우는 `use client`로 명시해줬었죠.
+
+라우팅 얘기로 넘어가 `page.js`는 해당 라우팅 경로의 기본 페이지가 됩니다. `/about`페이지를 만들고 싶다면 `/about` 경로에 `page.js`를 생성해주면 됩니다.
+
+이외에도 app 폴더내에는 여러 구성요소가 존재합니다.
+
+![file-names](/snippets/next14/chap3/file-names.png)
+
+`/about/page.js`를 작성해봅시다.
+
+```js
+// about/page.js
+export default function AboutPage() {
+  return (
+    <main>
+      <h1>About Us</h1>
+    </main>
+  );
+}
+```
+
+#### Link 태그
+
+이제 Home에서 `/about` 접속을 위해 페이지 이동을 위한 태그를 추가해봅시다.
+
+```js
+// app/page.js
+import Link from 'next/link'
+
+export default function Home() {
+  return (
+    <main>
+      <img src="/logo.png" alt="A server surrounded by magic sparkles." />
+      <h1>Welcome to this NextJS Course!</h1>
+      <p>🔥 Let&apos;s get started! 🔥</p>
+      <a href="/about">About Us</a>
+    </main>
+  );
+}
+```
+
+여기서 a태그의 경우 백엔드로 Get HTTP 요청을 보내기 때문에, Next의 장점을 상쇄시켜버립니다.
+
+Next.js는 기본적으로 서버사이드 렌더링을 이용해 풀스텍 앱을 만드는 것이므로 이런 부분을 프론트에서 처리하지 않아도 됩니다. SPA의 특징을 살리기위해 `a` 태그 보다는 [Link](https://nextjs.org/docs/pages/api-reference/components/link) 태그를 이용해야 합니다.
+
+```js
+// app/page.js
+import Link from 'next/link';
+
+export default function Home() {
+  return (
+    <main>
+      <img src="/logo.png" alt="A server surrounded by magic sparkles." />
+      <h1>Welcome to this NextJS Course!</h1>
+      <p>🔥 Let&apos;s get started! 🔥</p>
+      <p><Link href="/about">About Us</Link></p>
+    </main>
+  );
+}
+```
+
+HTTP 요청에 의해 재로딩 없이 클라이언트에 보내진 코드만으로도 SPA의 특징을 살릴 수 있습니다.
+
+#### Page와 Layouts
+
+최소 하나의 layout.js 파일이 app 루트에 존재해야합니다. 이 layout.js 파일의 경우 리액트에서 모든 컴포넌트가 사용할 수 있는 표준 children 속성을 Body태그 사이에 내용을 추가합니다.
+
+```js
+// app/layout.js
+import './globals.css'
+
+// metadata 이름 또한 Next에서 목적 있게 사용되는 명칭으로 메타데이터를 정의한다. 이 위치에서는 루트의 메타데이터를 설정
+// SEO 적용시 중요하며 head 태그에 자동으로 import된다.
+export const metadata = {
+  title: 'NextJS Course App',
+  description: 'Your first NextJS app!',
+};
+
+export default function RootLayout({ children }) {
+  return (
+    <html lang="en">
+      <head></head>
+      <body>{children}</body>
+    </html>
+  );
+}
+```
+
+공통된 스타일의 경우 이 layout.js 를 이용해 children요소들을 wrapping 합니다.
+
+children의 내용들은 `page.js`가 되겠죠.
