@@ -1,0 +1,61 @@
+---
+title:  "[Docker Mastery] - 15"
+description:  "쿠버네티스 Persistent Volume"
+language:  "devops"
+category:  "Docker"
+update:  "2024-04-14"
+hide:  false
+serisenumber:  15
+---
+
+## 시작
+
+- [Maximilian Schwarzmüller 님의 Docker & Kubernetes : 실전 가이드 강의를 듣고 작성한 글입니다.](https://www.udemy.com/course/docker-kubernetes-2022/?couponCode=KEEPLEARNING)
+
+### 영구 볼륨 정의하기
+
+현재는 minikube를 사용하므로 싱글 노드만 지원되는 환경인 관계로 `hostPath`를 이용해 `Persistent Volume`을 정의합니다.
+
+아래와 같이 정의 후 적용합니다. 이 `Persistent Volume`은 Pod에서 분리된 독립형 볼륨으로 설정됩니다. Node하고는 독립적이지는 않습니다.
+
+여러 deployment가 있고, 다른 유형의 Pod가 있는 환경에서도 동일 볼륨을 이용할 수 있게 됩니다.
+
+새로운 Persistent Volume yaml을 작성해봅시다.
+
+```yaml
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: host-pv
+spec:
+  # 여러 파드에서 나눠 사용할 수 있는 용량
+  # https://kubernetes.io/docs/concepts/storage/persistent-volumes/#capacity
+  capacity:
+    # 최대 공간은 4GB
+    storage: 4Gi
+  # Filesystem, Block 타입 지원
+  # 가상 머신 내부 파일 시스템의 디렉토리를 이용하므로 Filesystem.
+  volumeMode: Filesystem
+  # 접근 모드
+  accessModes:
+  # 이 볼륨이 단일 노드에 의해 읽기/쓰기 볼륨으로 마운트될 수 있다.
+  # 여러 파드에 의해 수행. 모두 동일 노드에 존재해야함.
+  - ReadWriteOnce
+  # 읽기 전용이지만 여러 노드에서 이용
+  # 서로 다른 노드의 여러 파드가 동일 영구 볼륨 요청
+  # - ReadOnlyMany
+  # 읽기/쓰기 전용이고 나머지는 ReadOnlyMany와 같음
+  # - ReadWriteMany
+  # 노드가 하나인 경우 동작하는 유형
+  hostPath:
+    path: /data
+    type: DirectoryOrCreate
+```
+
+번외로 파일 시스템과 블록 스토리지의 차이점은 다음 사이트를 참고합니다. [Storage-pros-and-cons-Block-vs-file-vs-object-storage](https://www.computerweekly.com/feature/Storage-pros-and-cons-Block-vs-file-vs-object-storage)
+
+이어서 위와 같이 설정한 PersistentVolume 이 적용되면 이 볼륨을 사용할 파드의 설정도 변경해줍니다.
+
+```yaml
+
+```
