@@ -39,7 +39,7 @@ spec:
   # 접근 모드
   accessModes:
   # 이 볼륨이 단일 노드에 의해 읽기/쓰기 볼륨으로 마운트될 수 있다.
-  # 여러 파드에 의해 수행. 모두 동일 노드에 존재해야함.
+  # 여러 파드에 의해 수행. 단 모두 동일 노드에 존재해야함.
   - ReadWriteOnce
   # 읽기 전용이지만 여러 노드에서 이용
   # 서로 다른 노드의 여러 파드가 동일 영구 볼륨 요청
@@ -54,8 +54,55 @@ spec:
 
 번외로 파일 시스템과 블록 스토리지의 차이점은 다음 사이트를 참고합니다. [Storage-pros-and-cons-Block-vs-file-vs-object-storage](https://www.computerweekly.com/feature/Storage-pros-and-cons-Block-vs-file-vs-object-storage)
 
-이어서 위와 같이 설정한 PersistentVolume 이 적용되면 이 볼륨을 사용할 파드의 설정도 변경해줍니다.
+이어서 위와 같이 설정한 PersistentVolume 이 적용되면 이 볼륨을 파드에서 사용해야겠죠. 이를 위해 `pv-claim` yaml을 작성합니다.
 
 ```yaml
-
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: host-pvc
+spec:
+  # 영구 볼륨 지정 이름이 아닌 리소스별로도 지정이 가능하다.
+  volumeName: host-pv
+  accessModes:
+  - ReadWriteOnce
+  # 리소스 요청
+  # 파드에서 클레임을 사용할때 용량 보다 더 사용하려고 문제 발생
+  resources:
+    requests:
+      storage: 1Gi
 ```
+
+이어서 deployment yaml 도 재설정합니다.
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: story-deployment
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: story
+  template:
+    # kind: Pod
+    metadata:
+      labels:
+        app: story
+    spec:
+      containers:
+      - name: story
+        image: wooglim/kub-data-demo:1
+        volumeMounts:
+        # 아래 호스트 경로의 데이터를 공유받게 됨
+        - mountPath: /app/story
+          # 볼륨 중 사용할 볼륨 name을 명시
+          name: story-volume
+      volumes:
+      - name: story-volume
+        persistentVolumeClaim:
+          claimName: host-pvc
+```
+
+
