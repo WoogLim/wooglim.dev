@@ -2,7 +2,7 @@
 title: "[Next.js V14] 정리 노트 - 1"
 description: "앱 라우터 개념 익히기"
 language: "Javascript"
-category: "NextJS"
+category: "NextJS-v14"
 update: "2024-06-03"
 hide: false
 serisenumber: 1
@@ -173,13 +173,57 @@ export default function Home() {
 | 파일명 | 설명 |
 |------|------|
 | page.js | 해당 라우팅 경로 접속시 기본으로 표시되는 유니크한 페이지 |
-| layout.js | 데이터 2 |
-| not-found.js | 데이터 2 |
-| error.js | 데이터 2 |
-| loading.js | 데이터 2 |
-| route.js | 데이터 2 |
-| default.js | 데이터 2 |
-| instrumentation.js | 데이터 2 |
-| middleware.js | 데이터 2 |
-| route.js | 데이터 2 |
-| template.js | 데이터 2 |
+| layout.js | 여러 하위 페이지에 공통적으로 적용되는 레이아웃을 정의하는 파일 |
+| not-found.js | 존재하지 않는 페이지에 접근했을 때 표시되는 오류 페이지 |
+| error.js | 예상치 못한 오류가 발생했을 때 표시되는 오류 페이지 |
+| loading.js | 페이지 로딩 중에 표시되는 로딩 페이지 |
+| route.js | 서버 측 라우팅을 위한 코드를 포함하는 파일 |
+| default.js | 특정 라우팅 경로에 대한 기본 페이지 역할을 하는 파일 |
+| instrumentation.js | 코드 분석 및 디버그 등 성능 추적을 위한 코드를 포함하는 파일 |
+| middleware.js | 페이지 요청 및 응답을 가로채고 처리하는 미들웨어 함수를 포함하는 파일 |
+| template.js | 페이지 템플릿을 정의하는 파일 |
+| _app.js | Next.js 애플리케이션의 전역 레이아웃 |
+| getStaticProps.js | 정적 사이트 생성(SSG)을 위해 서버 측에서 데이터를 페치하고 페이지를 렌더링하는 함수를 정의 |
+| getServerSideProps.js | 서버 측에서 데이터를 페치하고 페이지를 렌더링하기 전에 실행되는 함수를 정의 |
+
+### 동적 경로 지정 및 환경변수 설정
+
+```TEXT
+  app
+    └blog
+      └[slug]
+      └page.js
+```
+
+위 파일에 다음과 같이 컴포넌트를 작성합니다.
+
+```js
+// app/blog/page.js
+
+export default function BlogPage() {
+  return <main>
+    <h1>The Blog</h1>
+    <p><Link href="/blog/post-1"></Link></p>
+    <p><Link href="/blog/post-2"></Link></p>
+  </main>
+}
+```
+
+이어서 `[slug]`폴더내 `page.js`를 만듭니다. `slug`의 동작방식에 대해 알아봅시다.
+
+```js
+// app/blog/page.js
+
+export default function BlogPostPage({ params }) {
+  return <main>
+    <h1>Blog Post</h1>
+    <p>{params.slug}</p>
+  </main>
+}
+```
+
+`[slug]`는 동적 경로입니다. `/blog/start-docs`로 접속해봅시다. 페이지에는 start-docs가 표시될겁니다. 
+
+이러한 동적인 값으로 데이터베이스 등에서 실제로 해당 포스트의 Key로 사용하여 블로그 포스트 정보를 불러올 수 있습니다.
+
+이것이 동적 라우팅입니다. `slug` 가 아니라 다른 값으로 넣어도 됩니다. `[blogId]`와 같이 말이죠.

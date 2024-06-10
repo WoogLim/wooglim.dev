@@ -1,0 +1,212 @@
+---
+title: "[Next.js V14] 정리 노트 - 2"
+description: "Layout.js와 Image태그 그리고 CSS 모듈"
+language: "Javascript"
+category: "NextJS-v14"
+update: "2024-06-03"
+hide: false
+serisenumber: 2
+---
+
+## 시작
+
+- 본 내용은 강의 제공 사이트 유데미 Maximilian Schwarzmüller 강사님의 [Next.js 14 & React - The Complete Guide](https://www.udemy.com/course/nextjs-react-the-complete-guide/?couponCode=ST19MT60324) 강의를 듣고 정리하였습니다.
+
+### layout.js
+
+공통된 UI 컴포넌트를 다른 하위 페이지에 적용할 수 있도록 보호된 파일명 `layout.js`로 지정할 수 있습니다. root 폴더 `app/` 에 생성한다면 모든 하위 파일에 적용됩니다.
+
+```js
+// app/layout.js
+
+import './globals.css';
+
+export const metadata = {
+  title: 'NextLevel Food',
+  description: 'Delicious meals, shared by a food-loving community.',
+};
+
+export default function RootLayout({ children }) {
+  return (
+    <html lang="en">
+      <body>
+        <div className="header-background">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320">
+            <defs>
+              <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop
+                  offset="0%"
+                  style={{ stopColor: '#59453c', stopOpacity: '1' }}
+                />
+                <stop
+                  offset="100%"
+                  style={{ stopColor: '#8f3a09', stopOpacity: '1' }}
+                />
+              </linearGradient>
+            </defs>
+            <path
+              fill="url(#gradient)"
+              d="M0,256L48,240C96,224,192,192,288,181.3C384,171,480,181,576,186.7C672,192,768,192,864,181.3C960,171,1056,149,1152,133.3C1248,117,1344,107,1392,101.3L1440,96L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"
+            ></path>
+          </svg>
+        </div>
+
+        {children}
+      </body>
+    </html>
+  );
+}
+```
+
+이어서 `meals`라는 하위 경로에도 `layout.js`를 생성합니다.
+
+```js
+// app/meals/layout.js
+
+export default function MealsLayout({ children }) {
+  // children
+  return <>
+    <p>Meals layout</p>
+  </>
+}
+```
+
+`layout.js`의 경우 경로 간 공유되는 UI를 정의하며 루트 app 폴더내 `layout.js`는 최상위 레이아웃으로 동작하며 다른 하위 페이지에서도 공통적으로 적용됩니다.
+
+```js
+<RootLayout><MealsLayout>같은 경로내 page 요소</MealsLayout></RootLayout>
+```
+
+### 커스텀 컴포넌트 구성
+
+```js
+// app/layout.js
+export default function RootLayout({ children }) {
+  return (
+    <html lang="en">
+      <body>
+        <MainHeader/>
+        {children}
+      </body>
+    </html>
+  );
+}
+```
+
+위 코드 중 `<MainHeader>`태그 내용을 커스텀 컴포넌트로 생성해봅시다. 우선 app 형제 폴더 `component`폴더를 생성하여 작업을 진행합니다.
+
+```js
+// component/main-header.js
+import Link from 'next/link';
+
+import logoImg from '@/assets/logo.png';
+
+export default function MainHeader() {
+  return <header>
+    <Link href="/">
+      {/* next 에서는 logoImg.src로 경로 읽음. */}
+      <img src={logoImg.src} alt="A plate with food on it"/>
+      NextLevel Food
+    </Link>
+
+    <nav>
+      <ul>
+        <li>
+          <Link href="/meals">Browse Meals</Link>
+        </li>
+        <li>
+          <Link href="/community">Foodies Community</Link>
+        </li>
+      </ul>
+    </nav>
+  </header>
+}
+```
+
+이제 모든 페이지에서 `<MainHeader>`컴포넌트가 적용됩니다.
+
+### CSS 모듈 적용하기
+
+먼저 루트 app 폴더내 `globals.css`파일이 존재합니다. 이 파일은 말그대로 전역 CSS를 정의합니다. 모든 페이지에서 적용되죠.
+
+일반적인 CSS 말고도 Next.js 에서 지원되는 [CSS Modules](https://nextjs.org/docs/app/building-your-application/styling/css-modules#css-modules)가 존재합니다.
+
+css 파일에 특정 이름을 지정하여 컴포넌트로 제공하는 방식이죠 `emotion`과, `style component`와 흡사합니다.
+
+파일 명은 `파일명.module.css`와 같이 정의합니다.
+
+```css
+/* component/css/main-header.module.css */
+.logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+  text-decoration: none;
+  color: #ddd6cb;
+  font-weight: bold;
+  font-family: 'Montserrat', sans-serif;
+  letter-spacing: 0.15rem;
+  text-transform: uppercase;
+  font-size: 1.5rem;
+}
+```
+
+위와 같이 정의한 CSS를 적용할 컴포넌트에서 import하여 사용합니다.
+
+```js
+// component/main-header.js
+
+import classes from './main-header.module.css'
+
+export default function MainHeader() {
+  return <header>
+    {/* <Link className={classes['logo']} href="/"> */}
+    <Link className={classes.logo} href="/">
+      {/* next 에서는 logoImg.src로 경로 읽음. */}
+      <img src={logoImg.src} alt="A plate with food on it"/>
+      NextLevel Food
+    </Link>
+```
+
+### 이미지 최적화 하기
+
+Next.js 에서 기본 이미지 요소 `<img>` 보다 이미지를 받아오기까지 기다릴 필요없이 지연로딩으로 화면을 그려내는 [<Image>](https://nextjs.org/docs/pages/api-reference/components/image)요소가 지원됩니다.
+
+우선 코드는 다음과 같이 변경합니다.
+
+```js
+// component/main-header.js
+
+import classes from './main-header.module.css'
+import Image from 'next/image'
+
+export default function MainHeader() {
+  return <header>
+    <Link className={classes.logo} href="/">
+      <Image src={logoImg} alt="A plate with food on it"/>
+      NextLevel Food
+    </Link>
+```
+
+실제로 렌더링된 `img` 요소를 개발자 도구로 조회하면 다음과 같습니다.
+
+```html
+<img alt="A plate with food on it" loading="lazy" width="1024" 
+height="1024" decoding="async" data-nimg="1" 
+style="color:transparent" 
+srcset="/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Flogo.5daadb4d.png&amp;w=1080&amp;q=75 1x, /_next/image?url=%2F_next%2Fstatic%2Fmedia%2Flogo.5daadb4d.png&amp;w=2048&amp;q=75 2x"
+src="/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Flogo.5daadb4d.png&amp;w=2048&amp;q=75">
+```
+
+위 태그내 props 는 다음과 같습니다.
+
+- loading="lazy" : 지연 로딩
+- srcset= : 접속기기(모바일,테블릿 등) 뷰포트가 변환되는 경우 기기에 따라 크기가 조정된 이미지가 로딩. 또한 브라우저에 알맞은 이미지 포맷 `.webp`로 지원
+
+또한 아래와 같이 `priority`옵션을 적용해 로딩 우선순위를 높게 설정할 수 있습니다. 즉 지연로딩이 적용되지 않고 사전에 렌더링합니다.
+
+```js
+<Image src={logoImg} alt="A plate with food on it" priority />
+```
+
