@@ -1,0 +1,138 @@
+---
+title: "[Next.js V14] 정리 노트 - 4"
+description: "에러 처리하기"
+language: "Javascript"
+category: "NextJS-v14"
+update: "2024-06-04"
+hide: false
+serisenumber: 4
+---
+
+## 시작
+
+- 본 내용은 강의 제공 사이트 유데미 Maximilian Schwarzmüller 강사님의 [Next.js 14 & React - The Complete Guide](https://www.udemy.com/course/nextjs-react-the-complete-guide/?couponCode=ST19MT60324) 강의를 듣고 정리하였습니다.
+
+### error
+
+아래와 같이 데이터를 DB로부터 받아오는 부분에서 에러를 발생시킵니다.
+
+```js
+import sql from 'better-sqlite3'
+
+const db = sql('meals.db');
+
+export async function getMeals() {
+  await new Promise((resolve) => setTimeout(resolve, 2000));
+  throw new Error('Loading meals failed');
+  return db.prepare('SELECT * FROM meals ').all();
+}
+```
+
+그리고 이 데이터를 불러오는 폴더 경로에 error.js 를 생성합니다.
+
+```js
+// app/meals/error.js
+
+'use client'
+
+export default function Error({ error }) {
+
+  return(
+    <main className="error">
+      <h1>An error occurred</h1>
+      <p>Failed to fetch meal data. Please try again later.</p>
+    </main>
+  );
+}
+```
+
+`server_url/meals` 접속 시 에러페이지가 보이는 것을 확인할 수 있습니다. 클라이언트 사이드에서 렌더링되어야 하므로 `use client`를 명시해야합니다.
+
+Next.js에서 `error.js`는 기본적으로 서버에서 렌더링 된 후 클라이언트 측에서 오류를 포함한 컴포넌트의 오류를 잡을 수 있도록 합니다. 그래서 클라이언트 컴포넌트로 정의해야 합니다.
+
+### not-found
+
+이번에는 app 폴더에 `not-found.js`를 생성합니다.
+
+```js
+export default function NotFound() {
+  return 
+  <main className="not-found">
+    <h1>Not found</h1>
+    <p>Unfortunately, we could not find the requested page or resource.</p>
+  </main>
+}
+```
+
+이 `Not-Found`페이지는 app 하위 폴더(경로) 에서 페이지를 찾을 수 없는 경우 화면에 보여집니다.
+
+특정 경로에서만 사용하는 `Not-Found`페이지를 만들 경우 해당 폴더(경로)에 추가로 `not-found.js`파일을 생성해줘야 합니다.
+
+```js
+// app/meal/not-found.js
+
+export default function NotFound() {
+  return (
+    <main className="not-found">
+      <h1>Meal not found</h1>
+      <p>Unfortunately, we could not find the requested page or meal.</p>
+    </main>
+  );
+}
+```
+
+### 동적 경로와 동적 매개변수를 이용해 부분 렌더링하기
+
+동적 경로 `[mealSlug]` 에서 동적 매개변수를 받는 경우(DB등으로 부터) 특정 부분을 렌더링하는 것을 더 집중적으로 봅시다.
+
+여기서 `mealSlug`는 키가 되며 동적인 경로가 값이 됩니다. 때문에 `params.mealSlug`와 같이 해당 동적 경로의 텍스트를 가져올 수 있습니다.
+
+```js
+// app/meals/[mealSlug]/page.js
+
+import { getMeal } from '@/lib/meals'
+import classes from './page.module.css'
+
+import Image from 'next/image'
+
+export default function MealDeatailsPage({ params }) {
+
+  // getMeal은 Promise를 반환하지 않음.
+  const meal = getMeal(params.mealSlug)
+
+  // meal 이 없는 경우 해당 폴더 경로 혹은 부모 폴더의 not-found.js 페이지를 불러온다. 
+  if(!meal) {
+    notFound();
+  }
+
+  meal.instructions = meal.instructions.replace(/\n/g, '<br />')
+
+  return <>
+    <header className={classes.header}>
+      <div className={classes.image}>
+        {/* 클라이언트가 어떤 이미지를 보낼지 모르므로 fill */}
+        <Image src={meal.image} alt={meal.title} fill/>
+      </div>
+      <div className={classes.headerText}>
+        <h1>{meal.title}</h1>
+        <p className={classes.creator}>
+          by <a href={`mailto:${meal.creator_email}`}>{meal.creator}</a>
+        </p>
+        <p className={classes.summary}>{meal.summary}</p>
+      </div>
+    </header>
+    <main>
+      {/* 컨텐츠를 html 등으로 import하여 표시하는 경우 XSS 공격에 노출 되기 때문에 dangerouslySetInnerHTML props를 설정한다. */}
+      <p className={classes.instructions} 
+      dangerouslySetInnerHTML={{
+        __html: meal.instructions, 
+      }}></p>
+    </main>
+  </>
+```
+
+위 코드에서 `dangerouslySetInnerHTML`는 특정 HTML 콘텐츠를 삽입할 때 사용하며 다음과 같이 동작합니다.
+- __html 속성은 리액트가 이 HTML 문자열을 신뢰하고 DOM에 삽입하도록 지시합니다.
+- 단, 외부 경로는 악의적인 스크립트가 잔존할 수 있으므로 HTML 문자열의 출처를 신뢰할 수 있어야 합니다.
+- dangerouslySetInnerHTML은 강력한 기능이지만, 신중하게 사용해야 합니다. 필요한 경우에만 사용하고, 가능하면 안전한 리액트 컴포넌트와 JSX를 사용하여 콘텐츠를 렌더링하는 것이 좋습니다.
+

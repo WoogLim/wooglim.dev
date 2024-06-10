@@ -22,10 +22,6 @@ Next.js는 풀스텍 어플리케이션으로 서버사이드에서 데이터를
 
 당장 코드 안에서 `console.log()`를 찍어보면 브라우저에서는 표시되지않지만 서버 터미널에서는 표시됩니다. 즉 서버 사이드 렌더링으로 작동하기 때문입니다.
 
-### 서버 컴포넌트
-
-서버 컴포넌트는 사전에 렌더링되어 클라이언트에서 다운로드 받는 자바스크립트 코드를 받지 않아도 되어 성능이 향상됩니다. 또한 사전에 모든 정보가 렌더링되기 때문에 SEO에 유리합니다.
-
 ### 클라이언트 컴포넌트
 
 리액트 훅 및 클라이언트에서 작동하는 코드(setInterval 등)나 기능을 사용할 수 있습니다. 이 경우 해당 파일 최상단에 `"use client"`를 명시합니다.
@@ -82,3 +78,141 @@ export default function MainHeader() {
   </>
 }
 ```
+
+#### 규격이 불분명한 이미지
+
+```js
+import logoImg from '@/assets/logo.png'
+```
+
+위 코드에서 가져오는 이미지 정보의 경우 여러 정보들이 내포되어 있습니다. 때문에 `<Image>`태그가 아닌 `<img>`태그를 이용했을때, `<img src=${logoImg.src}>`로 이미지 경로를 정의했었죠.
+
+하지만 `<Image>`태그의 경우 `<Image src={logoImg} />`만 정의해도 괜찮습니다. `<Image>`태그 내에서 이런 많은 정보들을 패칭시켜주기 때문입니다.
+
+이 뿐만 아니라 규격이 불분명한 이미지(사용자가 업로드하는 이미지)의 경우의 대안으로 `fill`와 같은 속성을 지원합니다. 이미지 규격을 알 수 없는 이유는 빌드시는 알 수 없고 런타임시에만 알 수 있기 때문이죠.
+
+`fill` 속성은 부모 컴포넌트의 크기를 채웁니다. 
+
+만일 사전에 규격을 알고 있는 경우 `width`, `height` props를 설정하여 이미지 크기를 조정하면 됩니다.
+
+### 서버 컴포넌트
+
+서버 컴포넌트는 사전에 렌더링되어 클라이언트에서 다운로드 받는 자바스크립트 코드를 받지 않아도 되어 성능이 향상됩니다. 또한 사전에 모든 정보가 렌더링되기 때문에 SEO에 유리합니다.
+
+#### 서버 컴포넌트 활용하기
+
+SQLite3와 같은 데이터베이스에서 음식 정보들을 가져온다고 합시다.
+
+```js
+// libe/meals.js
+
+import sql from 'better-sqlite3'
+
+const db = sql('meals.db');
+
+export async function getMeals() {
+  await new Promise((resolve) => setTimeout(resolve, 2000));
+  return db.prepare('SELECT * FROM meals ').all();
+}
+```
+
+위와 같이 데이터베이스에서 데이터를 서버 컴포넌트에서 가져와 데이터를 패칭합니다. 
+
+```js
+import { getMeals } from '@/lib/meals';
+
+export default async function MealsPage(){
+
+  // 서버 컴포넌트 이므로 async 비동기 함수의 프로미스를 기다리는 await 사용이 가능하다.
+  const meals = await getMeals();
+  return <>
+    <main className={classes.main}>
+      <MelasGrid meals={meals} />
+    </main>
+  </>
+}
+
+// MelasGrid 컴포넌트
+export default function MelasGrid({ meals }) {
+  return <ul className={classes.meals}>
+    {meals.map(meal => <li key={meal.id}>
+        <MealItem {...meal}/>
+    </li>)}
+  </ul>
+}
+
+// MealItem 컴포넌트
+export default function MealItem({ title, slug, image, summary, creator }) {
+  return (
+    <article className={classes.meal}>
+      <header>
+        <div className={classes.image}>
+          <Image src={image} alt={title} fill />
+        </div>
+        <div className={classes.headerText}>
+          <h2>{title}</h2>
+          <p>by {creator}</p>
+        </div>
+      </header>
+      <div className={classes.content}>
+        <p className={classes.summary}>{summary}</p>
+        <div className={classes.actions}>
+          <Link href={`/meals/${slug}`}>View Details</Link>
+        </div>
+      </div>
+    </article>
+  );
+}
+```
+
+이 상태에서 렌더링된 하면을 새로고침하면 2초 후 렌더링되는것을 볼 수 있습니다. 이제 다른 메뉴로 이동한 뒤 새로고침 없이 현재 메뉴로 다시 돌아오면 2초를 기다리지 않고도 이전에 렌더링된 화면을 볼 수 있습니다.
+
+이는 Next.js에서 내부에서 캐시에 저장하기 때문입니다.
+
+### 로딩 페이지 추가하기
+
+이전 단계와 같이 구현한 경우 2초를 기다려야 렌더링된 페이지를 볼 수 있었습니다. 로딩 페이지를 추가해봅시다.
+
+앱 디렉토리 경로에 `loading.js`파일을 생성합니다. 이 파일의 경우 app 폴더 하위 폴더내 파일에 별도의 `loading.js`가 없는한 모두 적용됩니다.
+
+```js
+// app/loading.js
+import classes from './loading.module.css'
+
+export default function MelasLoadingPage() {
+  return <p className={classes.loading}>Fetching melas...</p>
+}
+```
+
+### Suspense & Streamed Response를 이용한 로딩 세분화
+
+`loading.js`에서만 로딩 스타일을 정의하는 것이 아닌 컴포넌트에서도 데이터 패칭이 필요한 부분들만을 처리하고 싶은 경우도 있을것이다. 이 경우 React의 `Suspense`태그를 이용한다.
+
+이전 코드를 수정하고 `Suspense`로 데이터 패칭이 일어나는 부분은 Wrapping한다.
+
+이를 통해 부분 로딩을 적용하고 완료되는데로 화면에 표시해 더 나은 사용자 경험을 제공할 수 있다.
+
+```js
+import { Suspense } from 'react';
+
+async function Meals() {
+  // DB에서 데이터를 가져오는 부분
+  const meals = await getMeals();
+
+  return <MelasGrid meals={meals} />
+}
+
+export default async function MealsPage(){
+
+  return <>
+    <main>
+      {/* Suspense는 Wrapping된 데이터 정보가 로드될 때까지 대체하여 보여줌 loading의 대안 */}
+      <Suspense fallback={<p className={classes.loading}>Fetching melas...</p>}>
+        {/* 패칭하는 컴포넌트를 따로 작성한다. */}
+        <Meals />
+      </Suspense>
+    </main>
+  </>
+}
+```
+
