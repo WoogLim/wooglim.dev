@@ -1,0 +1,255 @@
+---
+title: "[Next.js V14] 정리 노트 - 5"
+description: "라우팅과 페이지 서버/클라이언트 컴포넌트 깊게 알아보기"
+language: "Javascript"
+category: "NextJS-v14"
+update: "2024-06-13"
+hide: false
+serisenumber: 5
+---
+
+## 시작
+
+- 본 내용은 강의 제공 사이트 유데미 Maximilian Schwarzmüller 강사님의 [Next.js 14 & React - The Complete Guide](https://www.udemy.com/course/nextjs-react-the-complete-guide/?couponCode=ST19MT60324) 강의를 듣고 정리하였습니다.
+
+### 라우팅
+
+파일 기반 라우팅만을 해왔다면 이번에는 병렬 라우팅을 알아봅시다.
+
+#### 병령 라우팅
+
+병렬 라우트는 두 개의 콘텐츠를 동일 페이지에서 렌더링 하는 기능입니다. 병렬 라우트 갯수는 제한이 없으며 아래와 같은 방식으로 폴더 구조를 가집니다. `@폴더명`이 병렬 라우트입니다.
+
+```TEXT
+  app
+    └ archive
+      └ @archive 
+        └ page.js
+      └ @latest
+        └ page.js
+      └ layout.js
+```
+
+동일 라우트 폴더내 `layout.js`에서 `@archive`, `@latest`는 다음과 같이 동시에 렌더링 됩니다.
+
+```js
+// app/archive/layout.js
+
+export default function ArchiveLayout({ archive, latest }) {
+  // 레이아웃 컴포넌트는 children을 기본적으로 인자로 받습니다.
+  // 병렬 라우트 폴더의 레이아웃 컴포넌트 경우 @폴더명 에서 각 폴더명이 children 프로퍼티로 등록됩니다.
+
+  return (
+    <div>
+      <h1>News Archive</h1>
+      <section id='archive-filter'>{archive}</section>
+      <section id='archive-latest'>{latest}</section>
+    </div>
+  )
+}
+```
+
+다음과 같이 말이죠.
+
+![parallel-routing-exam](/snippets/next14/chap4/parallel-routing-exam.png)
+
+#### default.js
+
+`default.js` 파일명은 라우팅된 경로에 구체적인 컨텐츠가 없는 경우 (`not-found` 등) 기본으로 보여주는 페이지 입니다. `page.js`와 역할이 겹친다면 `default.js`를 남겨두고 제거해도 무방합니다.
+
+뉴스 페이지를 보면 본문이 있고 최하단에는 최신 뉴스가 고정적으로 표시된 경우가 많습니다. 이 경우 병렬 라우트에 적합하며 `ArchiveLayout`에서 또한 두 콘텐츠를 렌더링 하고 있으므로 `/archive/2024` 등으로 접속해도
+
+`latest`섹션은 사용자가 접속한 링크에 구애받지 않고 최신 뉴스만 보여주면 됩니다. `default.js` 페이지를 추가하여 이와 같은 사항을 적용할 수 있습니다.
+
+```js
+// app/archive/@latest/default.js
+
+import NewsList from "@/components/news-list";
+import { getLatestNews } from "@/lib/news";
+
+export default function LatestNewsPage() {
+  const latestNews = getLatestNews();
+
+  return (
+    <>
+      <h2>Latest News</h2>
+      <NewsList news={latestNews} />
+    </>
+  )
+}
+```
+
+아래는 `server_url/archive`(병렬 라우트 시작점), `server_url/archive/2024`(2024라는 값의 동적인 경로 접속) 에 접속한 결과입니다. 최신 뉴스는 변함이 없죠.
+
+![default-page-exam](/snippets/next14/chap4/default-page-exam.png)
+
+![default-page-exam2](/snippets/next14/chap4/default-page-exam2.png)
+
+#### Catch-All 라우트 구성
+
+이번엔 News Archive에서 특정 연도를 선택해 특정 연도의 글을 조회할 때 다른 연도를 네비게이션으로 표시하고 월별로도 상세 조회할 수 있도록 수정해봅시다. 파일 구조로 생각했을 때, @archive폴더 하위에 `layout.js`를 추가하면 되겠지만 Next.js 의 `Catch-All`를 이용해 구현해봅시다.
+
+```TEXT
+  app
+    └ archive
+      └ @archive 
+        └ [year]
+          └ page.js
+        └ layout.js
+        └ page.js
+      └ @latest
+        └ defeault.js
+      └ layout.js
+```
+
+@archive 폴더 하위 `[year]` 폴더 이름을 `Catch-All`방식을 적용하기 위해 약속된 명칭 `[[...동적경로값]]`으로 수정합니다.
+
+```TEXT
+  app
+    └ archive
+      └ @archive 
+        └ [[...filter]]
+          └ page.js
+        └ layout.js
+        └ page.js
+      └ @latest
+        └ defeault.js
+      └ layout.js
+```
+
+이 `[[...filter]]` 폴더의 경우 내부 경로 page.js 파일이 `archive/` 이후 모든 경로에 대해 활성화되도록 보장합니다.
+
+`@archive/[[...filter]]`하위 파일`page.js`가 말이죠. `archive/`의 경우 인자 0개 `/archive/2024`에 방문한다면 인자 하나를 캐치. `/archive/2024/3`인 경우 인자 2개를 캐치합니다.
+
+단 이와 같이 적용한 경우 `archive/` 경로로 접속했을 때, `@archive/page.js`가 화면에 보여져야 하는데, `@archive/[[..filter]]/page.js` 또한 렌더링하려고 하기 때문에 충돌이 발생합니다.
+
+`@archive/page.js`는 제거하고 내부 내용은 `@archive/[[..filter]]/page.js`로 옮겨야 합니다.
+
+```js
+// app/archive/@archive/[[..filter]]/page.js
+
+import NewsList from "@/components/news-list";
+import { getAvailableNewsYears, getNewsForYear } from "@/lib/news";
+import Link from "next/link";
+
+export default function FilteredNewsPage({ params }) {
+
+  const filter = params.filter;
+
+  // archive/ 로 접속하면 undefined
+  // archive/2024 로 접속하면 ['2024']
+  console.log(filter)
+
+  const links = getAvailableNewsYears();
+
+  return (
+    // @archive/page.js 내용 포함
+    <header id="archive-header">
+      <nav>
+        <ul>
+          {links.map((link) => (
+            <li key={link}>
+              <Link href={`/archive/${link}`}>{link}</Link>
+            </li>
+          ))}
+        </ul>
+      </nav>
+    </header>
+  )
+}
+```
+
+최종 완성 코드는 다음과 같습니다.
+
+```js
+// app/archive/@archive/[[..filter]]/page.js
+
+import NewsList from "@/components/news-list";
+import { getAvailableNewsMonths, getAvailableNewsYears, getNewsForYear, getNewsForYearAndMonth } from "@/lib/news";
+import Link from "next/link";
+
+export default function FilteredNewsPage({ params }) {
+
+  const filter = params.filter;
+  
+  const selectedYear = filter?.[0];
+  const selectedMonth = filter?.[1];
+
+  let news;
+  let links = getAvailableNewsYears();
+
+  if (selectedYear && !selectedMonth) {
+    news = getNewsForYear(selectedYear);
+    // 해당 연도로 뉴스가 개시된 월을 가져옵니다.
+    links = getAvailableNewsMonths(selectedYear);
+  }
+
+  // /archive/2021/7 인 경우
+  if(selectedYear && selectedMonth) {
+    news = getNewsForYearAndMonth(selectedYear, selectedMonth)
+    links = [];
+  }
+
+  let newsContent = <p> No news found for the selected period. </p>
+
+  if(news && news.length > 0) {
+    newsContent = <NewsList news={news} />
+  }
+
+  // + : number 타입으로 캐스팅 
+  if(
+    (selectedYear && !getAvailableNewsYears().includes(+selectedYear)) || 
+    (selectedMonth && !getAvailableNewsMonths(selectedYear).includes(+selectedMonth))
+  ) {
+    // /archive/2021/~ or /archive/2021/6 이 아닌 엉뚱한 경로로 요청된 경우
+    throw new Error('Invalid filter.')
+  }
+
+  return (
+    // @archive/page.js 내용 포함
+    <>
+      <header id="archive-header">
+        <nav>
+          <ul>
+            {links.map((link) => {
+              const href = selectedYear 
+              ? `/archive/${selectedYear}/${link}` 
+              : `/archive/${link}`
+
+              return (
+                <li key={link}>
+                  <Link href={href}>{link}</Link>
+                </li>
+              )
+            })}
+          </ul>
+        </nav>
+      </header>
+      {newsContent}
+    </>
+  )
+}
+```
+
+#### error.js
+
+`throw new Error`부분을 보완해 실제로 잘못된 경로를 요청한 것이니 에러페이지로 이동되도록합니다. 단 이 경우 동적인 경로를 요청하는 클라이언트 사이드에서 에러를 발생시킨 상황이므로 `use client`로 명시해주어야 합니다.
+
+```js
+// app/archive/@archive/[[..filter]]/error.js
+"use client"
+
+export default function FilterError() {
+  return (
+    <div id="error">
+      <h2>An error occurred!</h2>
+      <p>Invalid path.</p>
+    </div>
+  )
+}
+```
+
+### 렌더링
+
+서버 사이드 렌더링, 클라이언트 사이드 렌더링 두 가지를 정확히 어느 상황에 적용할지 더 깊게 살펴보겠습니다.
+

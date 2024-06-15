@@ -1,9 +1,9 @@
 ---
 title: "[Next.js V14] 정리 노트 - 4"
-description: "에러 처리하기"
+description: "입력 Form 생성과 동적 데이터 조회하기"
 language: "Javascript"
 category: "NextJS-v14"
-update: "2024-06-04"
+update: "2024-06-10"
 hide: false
 serisenumber: 4
 ---
@@ -136,3 +136,503 @@ export default function MealDeatailsPage({ params }) {
 - 단, 외부 경로는 악의적인 스크립트가 잔존할 수 있으므로 HTML 문자열의 출처를 신뢰할 수 있어야 합니다.
 - dangerouslySetInnerHTML은 강력한 기능이지만, 신중하게 사용해야 합니다. 필요한 경우에만 사용하고, 가능하면 안전한 리액트 컴포넌트와 JSX를 사용하여 콘텐츠를 렌더링하는 것이 좋습니다.
 
+### 폼 제출 하기
+
+회원가입, 게시글 작성 등 데이터 생성을 위해 form 을 사용합니다. form 을 구현해봅시다.
+
+```js
+
+import ImagePicker from '@/component/melas/image-picker';
+import classes from './page.module.css';
+
+export default function ShareMealPage() {
+  return (
+    <>
+      {/* ... */}
+        <form className={classes.form}>
+          <div className={classes.row}>
+            <p>
+              <label htmlFor="name">Your name</label>
+              <input type="text" id="name" name="name" required />
+            </p>
+            <p>
+              <label htmlFor="email">Your email</label>
+              <input type="email" id="email" name="email" required />
+            </p>
+          </div>
+          <p>
+            <label htmlFor="title">Title</label>
+            <input type="text" id="title" name="title" required />
+          </p>
+          <p>
+            <label htmlFor="summary">Short Summary</label>
+            <input type="text" id="summary" name="summary" required />
+          </p>
+          <p>
+            <label htmlFor="instructions">Instructions</label>
+            <textarea
+              id="instructions"
+              name="instructions"
+              rows="10"
+              required
+            ></textarea>
+          </p>
+          <ImagePicker />
+          <p className={classes.actions}>
+            <button type="submit">Share Meal</button>
+          </p>
+        </form>
+      {/* ... */}
+    </>
+  );
+}
+```
+
+#### 이미지 피커 컴포넌트 만들기
+
+이미지 입력 컴포넌트입니다. 로컬에서 선택한 이미지의 프리뷰를 조회하는 기능이 포함됩니다.
+
+```js
+'use client'
+
+import { useRef, useState } from 'react'
+import classes from './image-picker.module.css'
+
+import Image from 'next/image';
+
+export default function ImagePicker({ label, name }) {
+
+  const [pickedImage, setPickedImage] =useState();
+
+  const imageInput = useRef();
+
+  function handlePickClick() {
+    imageInput.current.click();
+  }
+
+  function handleImageChange(event) {
+    // multiple 타입인 경우 별도 처리 진행
+    const file = event.target.files[0];
+
+    if(!file) {
+      setPickedImage(null);
+      return;
+    }
+
+    const fileReader = new FileReader();
+
+    // read 분기가 일어난 경우 수행
+    fileReader.onload = () => {
+      setPickedImage(fileReader.result);
+    }
+
+    fileReader.readAsDataURL(file);
+  }
+
+  return <div className={classes.picker}>
+    <label htmlFor={name}>
+      {
+        label
+      }
+    </label>
+    <div className={classes.controls}>
+      <div className={classes.preview}>
+        {!pickedImage && <p> No image picked yet.</p>}
+        {pickedImage && 
+        <Image 
+          src={pickedImage} 
+          alt="The image selected by the user." 
+          fill 
+        />}
+      </div>
+      <input
+        className={classes.input}
+        type="file"
+        id={name}
+        accept="image/png, image/jpeg"
+        name={name}
+        ref={imageInput}
+        onChange={handleImageChange}
+        required
+      />
+      <button className={classes.button} type="button" onClick={handlePickClick}>
+        Pick an Image
+      </button>
+    </div>
+  </div>
+}
+```
+
+#### 백엔드로 양식 제출하기
+
+백엔드 또한 Next.js에서 구현가능하죠. 서버만의 컨트롤러를 구현해봅시다. 함수내 `use server`라고 명시하면 이 함수는 서버에서만 동작합니다. 콘솔을 찍으면 서버에서만 보이는 거죠.
+
+함수가 아닌 파일 자체에도 명시해줄 수 있습니다. 그럼 해당 파일은 백엔드 서버의 시작점이라도 봐도 됩니다.
+
+```js
+import ImagePicker from '@/component/melas/image-picker';
+import classes from './page.module.css';
+
+export default function ShareMealPage() {
+
+  async function shareMeal(formData) {
+    // 함수 안에 이 함수는 server에서 실행됨을 명시 함수 내부에 이렇게 명시하면
+    // 반드시 서버에서만 작동한다. 프론트/백을 나누기 위한 일종의 구분책이라고 보면 됨.
+    'use server'
+
+    // name의 값을 키로하여 각 요소들의 값을 추출하자.
+    const meal = {
+      title: formData.get('title'),
+      summary: formData.get('summary'),
+      instructions: formData.get('instructions'),
+      image: formData.get('image'),
+      name: formData.get('name'),
+      email: formData.get('email')
+    }
+
+    console.log(meal);
+  }
+
+  return (
+    <>
+      {/* ... */}
+        <form className={classes.form} action={shareMeal}>
+          <div className={classes.row}>
+            <p>
+              <label htmlFor="name">Your name</label>
+              <input type="text" id="name" name="name" required />
+            </p>
+            <p>
+              <label htmlFor="email">Your email</label>
+              <input type="email" id="email" name="email" required />
+            </p>
+          </div>
+          <p>
+            <label htmlFor="title">Title</label>
+            <input type="text" id="title" name="title" required />
+          </p>
+          <p>
+            <label htmlFor="summary">Short Summary</label>
+            <input type="text" id="summary" name="summary" required />
+          </p>
+          <p>
+            <label htmlFor="instructions">Instructions</label>
+            <textarea
+              id="instructions"
+              name="instructions"
+              rows="10"
+              required
+            ></textarea>
+          </p>
+          <ImagePicker label="Your Image" name="image"/>
+          <p className={classes.actions}>
+            <button type="submit">Share Meal</button>
+          </p>
+        </form>
+      {/* ... */}
+    </>
+  );
+}
+```
+
+JSX에서 프론트, 백엔드 코드 둘다 있으면 안되겠죠. 분리합니다.
+
+```js
+// lib/action.js
+'use server';
+
+export async function shareMeal(formData) {
+  const meal = {
+    title: formData.get('title'),
+    summary: formData.get('summary'),
+    instructions: formData.get('instructions'),
+    image: formData.get('image'),
+    name: formData.get('name'),
+    email: formData.get('email')
+  }
+
+  console.log(meal);
+}
+
+// JSX 파일에서 import 하여 사용
+import ImagePicker from '@/component/melas/image-picker';
+import classes from './page.module.css';
+import { shareMeal } from '@/lib/action';
+```
+
+#### slug와 html입력 요소로 부터 XSS 보호
+
+우선 아래 라이브러리들을 설치합니다.
+
+```bash
+yarn add slugify xss
+```
+
+DB에 안전하게 데이터가 입력될 수 있도록 다음과 같이 라이브러리를 이용합니다.
+
+`prisma`와 같은 ORM 라이브러리를 이용해 내장된 기능을 이용하는것 또한 방법입니다.
+
+```js
+import sql from 'better-sqlite3'
+import slugify from 'slugify';
+import xss from 'xss';
+
+const db = sql('meals.db');
+
+export function saveMeal(meal) {
+  meal.slug = slugify(meal.title, { lower: true });
+  meal.instructions = xss(meal.instructions);
+}
+```
+
+#### 이미지는 DB에 저장하지 않습니다
+
+이미지 바이너리를 그대로 DB에 저장하면 용량이 엄청날겁니다. 당연히 DB에는 저장하지 않으며 웹서버에 우선 저장하도록 합니다.
+
+```js
+import sql from 'better-sqlite3'
+import slugify from 'slugify';
+import xss from 'xss';
+
+import fs from 'node:fs'
+
+const db = sql('meals.db');
+
+export async function saveMeal(meal) {
+  meal.slug = slugify(meal.title, { lower: true });
+  meal.instructions = xss(meal.instructions);
+
+  const extension = meal.image.name.split('.').pop();
+  const fileName = `${meal.slug}.${extension}`
+
+  const stream = fs.createWriteStream(`public/images/${fileName}`)
+  const bufferedImage = await meal.image.arrayBuffer();
+
+  // chunk 단위로 쪼개어 저장합니다.
+  stream.write(Buffer.from(bufferedImage), (error) => {
+    if(error) {
+      throw new Error('Saving image failed!');
+    }
+  });
+
+  // 이미지에 관한 요청은 모두 public을 참조하게 되어 public 경로는 포함하지 않아도 됨.
+  meal.image = `/images/${fileName}`
+
+  db.prepare(`
+    INSERT INTO meals
+      (title, summary, instructions, creator, creator_email, image, slug)
+    VALUES (
+      @title,
+      @summary,
+      @instructions,
+      @creator,
+      @creator_email,
+      @image,
+      @slug
+    )
+    `).run(meal);
+}
+
+// lib/action.js
+'use server';
+
+import { redirect } from "next/dist/server/api-utils";
+import { saveMeal } from "./meals";
+
+export async function shareMeal(formData) {
+  const meal = {
+    title: formData.get('title'),
+    summary: formData.get('summary'),
+    instructions: formData.get('instructions'),
+    image: formData.get('image'),
+    creator: formData.get('name'),
+    creator_email: formData.get('email')
+  }
+
+  await saveMeal(meal);
+  redirect('/meals');
+}
+```
+
+이번엔 form의 제출 상태에 따라 제출중이면 로딩 버튼이 보이도록 해봅시다. `react-dom`의 `useFormStatus`를 이용하여 구현합니다.
+
+이 훅은 status를 받기를 원하는 form내부에 있어야만 하므로 내부에 존재하는 컴포넌트로서 존재해야합니다.
+
+```js
+// component/meal-form-submit.js
+
+'use client'
+
+import { useFormStatus } from 'react-dom'
+
+export default function MealsFormSubmit() {
+  const { pending } = useFormStatus();
+
+  // form이 제출중일때 disabled
+  return <button disabled={pending}>
+    {pending? 'Submitting...' : 'Share Meal'}
+  </button>
+}
+
+// meal/share/page.js
+<ImagePicker label="Your Image" name="image"/>
+<p className={classes.actions}>
+  <MealsFormSubmit />
+</p>
+```
+
+#### 서버 사이드에서 유효성 검사하기
+
+DB 엑세스 단계 이전 계층에서 유효성 검사를 진행하게 됩니다. 
+
+```js
+'use server';
+
+import { redirect } from "next/dist/server/api-utils";
+import { saveMeal } from "./meals";
+
+function isInvalidText(text) {
+  return !text || text.trim() === '';
+}
+
+export async function shareMeal(formData) {
+  const meal = {
+    title: formData.get('title'),
+    summary: formData.get('summary'),
+    instructions: formData.get('instructions'),
+    image: formData.get('image'),
+    creator: formData.get('name'),
+    creator_email: formData.get('email')
+  }
+
+  if (
+    isInvalidText(meal.title) ||
+    isInvalidText(meal.summary) ||
+    isInvalidText(meal.instructions) ||
+    isInvalidText(meal.creator) ||
+    isInvalidText(meal.creator_email) ||
+    !meal.creator_email.includes('@') ||
+    !meal.image || image.image.size === 0
+  ) {
+    throw new Error('Invalid input')
+  }
+
+  await saveMeal(meal);
+  redirect('/meals');
+}
+```
+
+#### 응답의 state 추척하기
+
+요청을 보냈으면 응답을 받아야 겠죠. 응답에 따라 분기 처리도 진행해야합니다.
+
+`react-dom`의 `useFormState`를 사용합니다. useFormState의 첫 인자로는, 요청을 보낼 백엔드 컨트롤러, 두번째 인자로는 응답의 초기값을 설정합니다.
+
+도한 요청을 받는 백엔드 함수에서는 첫 인자로 `prevState`를 가지고 있어야만 합니다. formData는 두번째 인자로 픽스되어있습니다.
+
+```js
+'use client'
+
+import { useFormState } from 'react';
+
+import ImagePicker from '@/component/melas/image-picker';
+import classes from './page.module.css';
+import { shareMeal } from '@/lib/action';
+import MealsFormSubmit from '@/component/melas/meals-form-submit';
+
+export default function ShareMealPage() {
+  // state 값에 따라 분기 처리가 가능 성공 메시지 출력 등.
+  const [state, formAction] = useFormState(shareMeal, {message: null})
+  // ...
+  <form className={classes.form} action={formAction} >
+  </form>
+  // ...
+}
+
+// lib/action.js
+export async function shareMeal(prevState, formData) {
+```
+
+### 캐싱 구축 이해하기
+
+개발 환경이 아닌 운영용으로 서버를 시작해봅시다.
+
+```bash
+yarn run build
+
+yarn start
+```
+
+음식을 추가해보도록 합니다. 곧바로 `/meals`페이지로 이동되었지만 새로 등록한 음식이 보이지 않을겁니다. Next.js가 공격적인 캐싱을 지원하기 때문입니다.
+
+운영 환경은 사전에 `build`과정에서 렌더링된 페이지를 제공하기 때문입니다. 그럼 동적인 페에지를 조회하는 방법에 대해 알아봅시다.
+
+#### 동적 데이터 조회하기
+
+`next/cache`의 `revalidatePath`을 이용하면 동적으로 생성된 최근 데이터들을 모두 재로드 할 수 있습니다.
+
+
+```js
+import { revalidatePath } from "next/cache";
+
+export async function shareMeal(prevState, formData) {
+  await saveMeal(meal);
+
+  // revalidatePath('/meals', 'layout');
+  // 해당 경로 page.js 는 매번 변경사항은 없는지 검색한다.
+  revalidatePath('/meals');
+
+  redirect('/meals');
+}
+```
+
+#### 로컬 FileSystem에 이미지를 저장해야 할까?
+
+현재는 `public/images`에 이미지를 저장하고 있습니다. Next.js를 이용하는 경우 해당 애플리케이션에는 해당 파일을 사용할 수 없습니다. AWS S3와 같은 클라우드 환경의 오브젝트 스토리지를 이용하거나 별도의 방법을 강구해야합니다.
+
+`@aws-sdk/client-s3`패키지를 이용해 클라이언트 환경에서 S3에 이미지를 저장하고 생성된 URL을 DB에 입력하면 페이지에서는 해당 URL을 S3에 요청하기만 하면 됩니다. 단, 이과정에서 S3 키가 유출되지 않도록 조심해야 합니다.
+
+### 정적 메타데이터 추가하기
+
+메타데이터는 아래와 같이 설정합니다.
+
+```js
+// app/layout.js
+
+import MainHeader from '@/component/main-header/main-header';
+import './globals.css';
+
+export const metadata = {
+  title: 'NextLevel Food',
+  description: 'Delicious meals, shared by a food-loving community.',
+};
+```
+
+이런 [정적 메타데이터](https://nextjs.org/docs/app/building-your-application/optimizing/metadata)는 링크를 공유하거나 구글 SEO에서 크롤링시 유용하게 사용되며 디테일하게 명시해두면 방문율도 늘릴 수 있습니다. 또한 메타데이터로 DB에 저장된 값도 가져와 설정할 수 있죠. 그 부분은 동적데이터 설정시 알아보겠습니다.
+
+### 동적 메타데이터 설정하기
+
+동적 페이지에서의 메타데이터는 `generateMetadata` 라는 명시된 함수명을 이용해 설정할 수 있습니다. 이 또한 Next.js에서 약속된 함수명입니다.
+
+```js
+import { getMeal } from '@/lib/meals'
+import classes from './page.module.css'
+
+import Image from 'next/image'
+import { notFound } from 'next/navigation'
+
+export async function generateMetadata({ params }) {
+  const meal = getMeal(params.mealSlug);
+
+  if (!meal) {
+    notFound();
+  }
+
+  return {
+    title: meal.title,
+    description: meal.summary,
+  }
+}
+
+export default function MealDeatailsPage({ params }) {
+```
