@@ -1,0 +1,519 @@
+---
+title: "[Next.js V14] 정리 노트 - 7"
+description: "데이터 패칭 깊게 알아보기"
+language: "Javascript"
+category: "NextJS-v14"
+update: "2024-06-16"
+hide: false
+serisenumber: 7
+---
+
+## 시작
+
+- 본 내용은 강의 제공 사이트 유데미 Maximilian Schwarzmüller 강사님의 [Next.js 14 & React - The Complete Guide](https://www.udemy.com/course/nextjs-react-the-complete-guide/?couponCode=ST19MT60324) 강의를 듣고 정리하였습니다.
+
+## 데이터 변형
+
+최초 데이터를 받아오고 일부 신규 데이터가 추가된 경우 동기화 하는 법에 대해 알아봅시다.
+
+`Mutation`, `Server Action`을 주로 이용하게됩니다.
+
+## Server Action
+
+[서버 액션과 변형](https://nextjs.org/docs/app/building-your-application/data-fetching/server-actions-and-mutations)을 구성해봅시다.
+
+NesxJS 특유 기능은 아니며 React에서 지원되는 기능으로 기본 React에서는 이용하지 않지만 이를 wrapping하는 Next.js 에서는 해금되어 사용할 수 있습니다.
+
+### ActionForm
+
+우선 `Server Action`과는 다른 방법인 React 의 [ActionForm](https://react.dev/reference/react-dom/components/form) 예제를 봅시다.
+
+클라이언트측에서 양식 제출을 위한 방법을 제공하는데, 방법은 간단합니다. 코드는 다음과 같습니다. 단, 이 방법은 클라이언트 컴포넌트로서 작동해야 합니다.
+
+```js
+// app/new-post/page.js
+export default function NewPostPage() {
+  function createPost(formData) {
+
+    // 자바스크립트 기본 내장된 formData에서 요소를 가져오는 방법 MDN 참고.
+    // formData.get()
+    const title = formData.get('title');
+    const image = formData.get('image');
+    const content = formData.get('content');
+
+    console.log(title, image, content);
+
+  }
+
+  return (
+    <>
+      <h1>Create a new post</h1>
+      {/* React의 경우 action은 기본 내장 action요소와 다르게 동작함. 
+      URL대신 함수를 받으며 URL요청을 방지하며 양식이 제출될 때 함수를 수행하게 합니다.*/}
+      <form action={createPost}>
+    </>
+  )
+}
+```
+
+### Server Action
+
+서버 액션은 비동기 함수로 설정해야하며 (`async & await`) `"use server"`임을 함수내 명시해야 합니다.
+
+함수를 다음과 같이 변경합니다.
+
+```js
+// app/new-post/page.js
+async function createPost(formData) {
+  // 이 함수는 서버 에서만 작동됨을 명시
+  "use server";
+  const title = formData.get('title');
+  const image = formData.get('image');
+  const content = formData.get('content');
+
+  console.log(title, image, content);
+}
+```
+
+form 양식을 제출하면 아래와 같은 데이터가 서버 콘솔에 표시되는 것을 확인할 수 있습니다. 즉 서버에서만 작동합니다.
+
+```TEXT
+TEST File {
+  size: 35647,
+  type: 'image/jpeg',
+  name: '0cec81a159a5f519c1e2306a2917ccfd.jpeg',
+  lastModified: 1718503412780
+} HI
+```
+
+### use server와 use client가 겹치는 경우의 해결
+
+다음 코드에서 `createPost`은 `use server`임을 명시한 상태였고, 추가적으로 form의 응답값을 클라이언트 측에서 수신받기 위해 `useFormState`와 같은 훅을 동시에 이용할 때, 충돌이 발생합니다.
+
+```js
+// app/new-post/page.js
+"use client"
+
+import { useFormState } from 'react-dom';
+
+export default function NewPostPage() {
+
+  async function createPost(formData) {
+    // 이 함수는 서버 에서만 작동됨을 명시
+    "use server";
+    const title = formData.get('title');
+    const image = formData.get('image');
+    const content = formData.get('content');
+
+    // ...
+
+    redirect('/feed');
+  }
+
+  // 첫 인자: 제출로 작동할 함수
+  // 두 번째 인자: 응답 초기화 값
+  // useFormState(createPost, {});
+
+  // state: 응답 데이터
+  // formAction: react가 수신하는 액션 반환 데이터
+  const [state, formAction] = useFormState(createPost, {});
+
+  return (
+    <>
+      <h1>Create a new post</h1>
+      {/* React의 경우 action은 기본 내장 action요소와 다르게 동작함. 
+      URL대신 함수를 받으며 URL요청을 방지하며 양식이 제출될 때 함수를 수행하게 합니다.*/}
+      <form action={formAction}>
+        {/* ... */}
+      </form>
+    </>
+  );
+}
+```
+
+이 경우 `useFormState`는 별도의 컴포넌트로 분리가 필요하겠죠.
+
+```js
+// component/post-form.js
+"use client"
+
+import { useFormState } from 'react-dom'
+import FormSubmit from "@/components/form-submit";
+
+// 서버 액션을 프로퍼티로 받고 이를 useFormState에 등록합니다.
+export default function PostForm({ action }) {
+  const [state, formAction] = useFormState(action, {});
+}
+```
+
+`newpost/page.js`는 다음과 같이 수정합니다.
+
+```js
+// app/new-post/page.js
+import PostForm from "@/components/post-form";
+export default function NewPostPage() {
+
+  async function createPost(formData) {
+    "use server";
+    const title = formData.get('title');
+    const image = formData.get('image');
+    const content = formData.get('content');
+
+    // ...
+
+    redirect('/feed');
+  }
+
+  return <PostForm action={createPost} />
+}
+```
+
+[Next14 핵심](https://www.wooglim.dev/snippets/Next14-Learning-book-04)에서 보았듯이 이 경우 `useFormState`의 인자로서 `Server Action` 함수가 들어가므로 이 함수도 수정되어야 합니다.
+
+```js
+// app/new-post/page.js
+import PostForm from "@/components/post-form";
+export default function NewPostPage() {
+
+  async function createPost(prevState, formData) {
+    "use server";
+    const title = formData.get('title');
+    const image = formData.get('image');
+    const content = formData.get('content');
+
+    // ...
+
+    redirect('/feed');
+  }
+
+  return <PostForm action={createPost} />
+}
+```
+
+아래는 완성된 `post-form.js` 컴포넌트 입니다.
+
+```js
+"use client"
+
+import { useFormState } from 'react-dom'
+import FormSubmit from "@/components/form-submit";
+
+// 서버 액션을 프로퍼티로 받고 이를 useFormState에 등록합니다.
+export default function PostForm({ action }) {
+  const [state, formAction] = useFormState(action, {});
+
+  return (
+    <>
+      <h1>Create a new post</h1>
+      {/* React의 경우 action은 기본 내장 action요소와 다르게 동작함. 
+      URL대신 함수를 받으며 URL요청을 방지하며 양식이 제출될 때 함수를 수행하게 합니다.*/}
+      <form action={formAction}>
+        <p className="form-control">
+          <label htmlFor="title">Title</label>
+          <input type="text" id="title" name="title" />
+        </p>
+        <p className="form-control">
+          <label htmlFor="image">Image URL</label>
+          <input
+            type="file"
+            accept="image/png, image/jpeg"
+            id="image"
+            name="image"
+          />
+        </p>
+        <p className="form-control">
+          <label htmlFor="content">Content</label>
+          <textarea id="content" name="content" rows="5" />
+        </p>
+        <p className="form-actions">
+          <FormSubmit />
+        </p>
+        {state.errors && (
+          <ul className="form-errors">
+            {state.errors.map((error) => (
+              <li key={error}>
+                {error}
+              </li>
+            ))}
+          </ul>
+        )}
+      </form>
+    </>
+  )
+}
+```
+
+### Server Action 관리하기 
+
+`Server Action` 함수 또한 `lib`, `component`하위 파일과 같이 관리하는게 좋습니다. 루트 폴더 등에 `actions`폴더(이름 상관X)를 생성하여 `new-post/page.js`의 내용 일부를 가져와 `export`설정만 해줍니다.
+
+```js
+// actions/posts.js
+"use server"
+
+import { redirect } from "next/navigation";
+import { storePost } from "@/lib/posts";
+
+export async function createPost(prevState, formData) {
+  // 이 함수는 서버 에서만 작동됨을 명시
+  "use server";
+  // ...
+  redirect('/feed');
+}
+```
+
+### use server는 서버 측 실행을 보장하지 않는다.
+
+만일 클라이언트에서 중요 변수 `s3 접근키`등을 노출시키고 싶지 않은 경우 `use server`가 아닌 [server-only](https://nextjs.org/docs/app/building-your-application/rendering/composition-patterns#keeping-server-only-code-out-of-the-client-environment) 방식을 이용해야 합니다.
+
+`use server`로 아무리 명시한다 한들 클라이언트 구성 요소 모듈 간 공유될 수 있으므로 유출될 우려가 있습니다.
+
+먼저 `server-only`패키지를 설치합니다.
+
+```bash
+npm install server-only
+```
+
+그 다음 서버 전용 코드가 포함된 모듈에서 패키지를 사용합니다.
+
+```js
+import 'server-only'
+
+export async function getData() {
+  const res = await fetch('https://external-service.com/data', {
+    headers: {
+      authorization: process.env.API_KEY,
+    },
+  })
+
+  return res.json()
+}
+```
+
+자세한 방법은 추후 예제 링크를 통해 제공
+
+### 이미지 저장하기
+
+이미지 스토리지로 [Cloudinary](https://cloudinary.com/)를 이용하겠습니다.
+
+클라이언트 SDK 사용을 위해 환경변수로 등록되어야 할 키가 있으므로 루트 폴더내 `.env`파일을 생성하여 관리합니다.
+
+```env
+CLOUDINARY_CLOUD_NAME=***********
+CLOUDINARY_API_KEY==***********
+CLOUDINARY_API_SECRET==***********
+```
+
+이후 `actions/posts.js` 파일을 수정합니다.
+
+```js
+  let imageUrl;
+
+  try {
+    imageUrl = await uploadImage(image);
+  } catch (error) {
+    throw new Error('Image upload failed, post was not created. Please try again later.');
+  }
+
+  await storePost({
+    imageUrl,
+    title,
+    content,
+    userId: 1,
+  })
+```
+
+![pizza-feed](/snippets/next14/chap5/pizza-feed.png)
+
+### 좋아요 기능을 이용해 캐싱 문제 이해하기
+
+이전에 작성한 게시글에 좋아요/싫어요 기능을 추가해봅시다. 단 사용자 인증은 구현하지 않았으므로 이 부분은 하드코딩으로 대체합니다.
+
+현재 `app/feed/page.js` 에서 아래와 같이 포스트를 보여주고 있습니다.
+
+```js
+// app/feed/page.js
+export default async function FeedPage() {
+  const posts = await getPosts();
+  return (
+    <>
+      <h1>All posts by all users</h1>
+      <Posts posts={posts} />
+    </>
+  );
+}
+```
+
+`Posts`컴포넌트를 여러 `Post`컴포넌트들을 목록으로 표시하고 있으며 각 `Post`는 좋아요/싫어요 기능을 포함합니다.
+
+```js
+function Post({ post }) {
+  return (
+    <article className="post">
+      {/* Post 정보 ... */}
+
+      {/* 
+      bind는 자바스크립트 내장 함수로 전달될 값을 설정할 수 있다. 
+      첫 인수는 함수 내부 참조 대상이며
+      두 번째 인수는 첫 번째 인자로 해당 함수에 적용됩니다.
+      */}
+      <form action={togglePostLikeStatus.bind(null, post.id)} className={
+        post.isLiked ?
+        'liked' : ''
+      }>
+        <LikeButton action={togglePostLikeStatus} />
+      </form>
+    </article>
+  );
+}
+```
+
+`Server Action`으로 수행되는 `togglePostLikeStatus`는 다음과 같이 동작합니다.
+
+```js
+export async function togglePostLikeStatus(postId, formData) {
+  // 2는 하드코딩
+  updatePostLikeStatus(postId, 2);
+  // 모든 페이지가 최신 데이터를 가져온다.
+  revalidatePath('/', 'layout');
+}
+```
+
+이 구성요소들을 이용해 좋아요/싫어요 기능을 사용할 수 있지만 DB로부터 데이터를 가져오는 시차가 발생합니다. 때문에 좋아요를 누르더라도 사용자 화면에는 나중에 반영되죠.
+
+이를 위해 `낙관적 업데이트`패턴이 수행되어야 합니다.
+
+#### 낙관적 업데이트 패턴을 이용해 사용자 경험 살리기
+
+리액트 훅 `useOptimistic`을 이용해 해결할 수 있습니다. 아래는 최종 완성 코드입니다.
+
+```js
+// component/posts.js
+"use client"
+
+import { useOptimistic } from 'react';
+import { formatDate } from '@/lib/format';
+import LikeButton from './like-icon';
+import { togglePostLikeStatus } from '@/actions/posts';
+
+function Post({ post, action }) {
+  return (
+    <article className="post">
+      <div className="post-image">
+        <img src={post.image} alt={post.title} />
+      </div>
+      <div className="post-content">
+        <header>
+          <div>
+            <h2>{post.title}</h2>
+            <p>
+              Shared by {post.userFirstName} on{' '}
+              <time dateTime={post.createdAt}>
+                {formatDate(post.createdAt)}
+              </time>
+            </p>
+          </div>
+          <div>
+            {/* 
+            action 수정
+            */}
+            <form action={action.bind(null, post.id)} className={
+              post.isLiked ?
+              'liked' : ''
+            }>
+              <LikeButton action={togglePostLikeStatus} />
+            </form>
+          </div>
+        </header>
+        <p>{post.content}</p>
+      </div>
+    </article>
+  );
+}
+
+export default function Posts({ posts }) {
+
+  // 서버 처리가 발생하기 이전 클라이언트에서 포스트 게시물(posts) 배열 수정
+  const [optimisticPosts, updateOptimisticPosts] = useOptimistic(posts, (prevPosts, updatePostId) => {
+    // 첫 인자는 기존 게시물 상태
+    // 두 번째 updateOptimisticPosts로 전달되는 데이터
+
+    // 현재 게시글에서 업데이트한 게시글 Index 추출
+    const updatedPostIndex = prevPosts.findIndex(post => post.id === updatePostId)
+
+    if(updatedPostIndex === -1){
+      // 업데이트된 포스트가 없는 경우 이전 게시물 반환
+      return prevPosts;
+    }
+
+    // 업데이트가 필요한 포스트 추출
+    const updatedPost = { ...prevPosts[updatedPostIndex] };
+
+    // 좋아요 한 경우 +1 반대인 경우 -1
+    updatedPost.likes = updatedPost.likes + (updatedPost.isLiked ? -1 : 1);
+    // 좋아요 인 경우 기존 false에서 true 
+    updatedPost.isLiked = !updatedPost.isLiked;
+
+    const newPosts = [...prevPosts];
+
+    // 기존 포스트에서 좋아요한 게시글만 교체
+    newPosts[updatedPostIndex] = updatedPost;
+
+    return newPosts;
+  });
+
+  if (!optimisticPosts || optimisticPosts.length === 0) {
+    return <p>There are no posts yet. Maybe start sharing some?</p>;
+  }
+
+  async function updatePost(postId) {
+    // "use server"
+
+    // 업데이트가 발생한 경우 useOptimisticPosts 작동
+    updateOptimisticPosts(postId);
+    await togglePostLikeStatus(postId);
+  }
+
+  return (
+    <ul className="posts">
+      {optimisticPosts.map((post) => (
+        <li key={post.id}>
+          <Post post={post} action={updatePost}/>
+        </li>
+      ))}
+    </ul>
+  );
+}
+```
+
+### 캐싱의 차이점(개발 vs 운영)
+
+개발/운영 환경에서 캐싱의 차이를 알아보기 위해 운영 서버로 실행합니다.
+
+```bash
+yarn run build
+yarn run start
+```
+
+이후 포스트를 새로 작성하고 피드로 이동되지만 새로 추가한 포스트는 보이지 않습니다. 캐싱에 집중한 Next.js에서 발생하는 첫 문제이죠.
+
+해결책은 이전 좋아요 기능에 사용했던 `revalidatePath`를 이용해 캐시를 제거하고 재생성하라는 요청을 보내야합니다.
+
+`action/posts.js`를 다음과 같이 수정합니다.
+
+```js
+// action/posts.js
+// ...
+  await storePost({
+    imageUrl,
+    title,
+    content,
+    userId: 1,
+  })
+
+  revalidatePath('/', 'layout')
+  redirect('/feed');
+// ...
+```
+
+이후 화면에서는 포스트 작성후 리다이렉트된 `feed`페이지에서 최신의 데이터로 다시 가져온것을 확인할 수 있습니다.

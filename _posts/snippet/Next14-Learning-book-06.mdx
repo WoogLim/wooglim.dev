@@ -1,0 +1,247 @@
+---
+title: "[Next.js V14] 정리 노트 - 6"
+description: "데이터 패칭"
+language: "Javascript"
+category: "NextJS-v14"
+update: "2024-06-14"
+hide: false
+serisenumber: 6
+---
+
+## 시작
+
+- 본 내용은 강의 제공 사이트 유데미 Maximilian Schwarzmüller 강사님의 [Next.js 14 & React - The Complete Guide](https://www.udemy.com/course/nextjs-react-the-complete-guide/?couponCode=ST19MT60324) 강의를 듣고 정리하였습니다.
+
+## 데이터 패치
+
+이번에는 더미 데이터가 아닌 실제 데이터를 DB로 부터 가져와 API를 구성하고 데이터를 패칭해보겠습니다.
+
+### 클라이언트에서 패칭하기
+
+더미데이터를 제거하고 백엔드에서 API를 호출하는 방식으로 변경합니다. 기존 React와 같이 클라이언트에서 백엔드로부터 API 요청을 보내 응답 데이터를 화면에 렌더링하는 방식으로 진행해보겠습니다.
+
+```js
+// app/(content)/news/page.js
+"use client"
+
+import NewsList from "@/components/news-list"
+import { useState, useEffect } from "react";
+
+export default function NewsPage() {
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState();
+  const [news, setNews] = useState();
+
+  useEffect(() => {
+
+    async function fetchNews() {
+      setIsLoading(true);
+      // 백엔드 API 요청
+      const response = await fetch('http://localhost:8080/news');
+    
+      if(!response.ok) {
+        setError('Failed to fetch news.');
+        setIsLoading(false);
+      }
+
+      const news = await response.json();
+      console.log(news);
+      setIsLoading(false);
+      setNews(news);
+    }
+
+    fetchNews();
+  }, []);
+
+  if(isLoading) {
+    return <p>Loading...</p>
+  }
+
+  if(error) {
+    return <p>{error}</p>
+  }
+
+  let newsContent;
+
+  if (news) {
+    newsContent = <NewsList news={news} />
+  }
+
+  return (
+    <>
+      <h1>News Page</h1>
+      {newsContent}
+    </>
+  )
+}
+```
+
+### 서버 사이드에서 패칭하기
+
+이번에는 NextJS에서 기본적으로 제공하는 서버 컴포넌트 방식을 이용합니다.
+
+```js
+// app/(content)/news/page.js
+import NewsList from "@/components/news-list"
+
+export default async function NewsPage() {
+  const response = await fetch('http://localhost:8080/news');
+
+  if(!response.ok) {
+    throw new Error('Failed to fetch news.');
+  }
+
+  const news = await response.json();
+
+  return (
+    <>
+      <h1>News Page</h1>
+      <NewsList news={news} />
+    </>
+  )
+}
+```
+
+### next.js 프로젝트 내부에서 가져오기
+
+뉴스페이지 등 작은 규모의 서비스의 경우 별도의 백엔드 없이도 next.js 내부에 포함해 구축해도 됩니다.
+
+코드는 훨씬 간결해집니다.
+
+```js
+// app/(content)/news/page.js
+import NewsList from "@/components/news-list"
+import { getAllNews } from "@/lib/news";
+
+export default async function NewsPage() {
+
+  const news = getAllNews();
+
+  return (
+    <>
+      <h1>News Page</h1>
+      <NewsList news={news} />
+    </>
+  )
+}
+
+// lib/news.js
+import sql from 'better-sqlite3';
+
+const db = sql('data.db')
+
+export function getAllNews() {
+  const news = db.prepare('SELECT * FROM news').all();
+  return news;
+}
+```
+
+개발 환경에서는 페이지를 매번 렌더링하죠 로딩 페이지를 추가하는게 사용자 경험에서 보다 좋습니다.
+
+```js
+// app/(content)/news/loading.js
+export default function NewsLoading() {
+  return <p>Loading...</p>;
+}
+```
+
+만일 `/news` 하위 `[slug]` 동적 라우트 경로(자식 경로) 에서도 별도의 로딩페이지를 보여주고 싶다면 `[slug]`폴더내 `loading.js`파일을 작성해야합니다.
+
+그렇지 않은 경우 상위의 `loading.js`로 대체되어 사용됩니다.
+
+#### 서스펜스로 부분 컴포넌트 로딩하기
+
+세밀하게 특정 부분 렌더 화면의 로딩 화면을 구현할 경우 `react`의 `Suspense`를 이용합니다.
+
+```js
+// app/(content)/article/@archive/[[...filter]]/page.js
+import Link from "next/link";
+import { Suspense } from "react";
+import NewsList from "@/components/news-list";
+import { 
+  getAvailableNewsMonths, 
+  getAvailableNewsYears, 
+  getNewsForYear, 
+  getNewsForYearAndMonth 
+} from "@/lib/news";
+
+async function FilterHeader({ year, month }) {
+
+  const availableYears = await getAvailableNewsYears();
+  let links = availableYears;
+
+  if(
+    (year && !year.includes(year)) || 
+    (month && !getAvailableNewsMonths(year).includes(month))
+  ) {
+    throw new Error('Invalid filter.')
+  }
+
+  if (year && !month) {
+    links = getAvailableNewsMonths(year);
+  }
+
+  if(year && month) {
+    links = [];
+  }
+
+  return (
+    <header id="archive-header">
+      <nav>
+        <ul>
+          {links.map((link) => {
+            const href = year 
+            ? `/archive/${year}/${link}` 
+            : `/archive/${link}`
+
+            return (
+              <li key={link}>
+                <Link href={href}>{link}</Link>
+              </li>
+            )
+          })}
+        </ul>
+      </nav>
+    </header>
+  )
+}
+
+async function FilteredNews({ year, month }) {
+  let news;
+
+  if(year && !month){
+    news = await getNewsForYear(year);
+  } else if (year && month) {
+    news = await getNewsForYearAndMonth(year, month)
+  }
+
+  let newsContent = <p> No news found for the selected period. </p>
+
+  if(news && news.length > 0) {
+    newsContent = <NewsList news={news} />
+  }
+
+  return newsContent;
+
+}
+
+export default async function FilteredNewsPage({ params }) {
+
+  const filter = params.filter;
+  
+  const selectedYear = filter?.[0];
+  const selectedMonth = filter?.[1];
+
+  return (
+    <>
+    {/* fallback 데이터를 가져오는 동안 대체 */}
+      <Suspense fallback={<p>Loading filter...</p>}>
+        <FilterHeader year={selectedYear} month={selectedMonth} />
+      </Suspense>
+      <Suspense fallback={<p>Loading news...</p>}>
+        <FilteredNews year={selectedYear} month={selectedMonth} />
+      </Suspense>
+    </>
+  )
+}
+```
