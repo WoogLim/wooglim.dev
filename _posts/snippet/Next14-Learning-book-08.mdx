@@ -36,6 +36,8 @@ serisenumber: 8
 
 ### 요청 기억(Request Memoization)
 
+`Request Memoization`은 이전에 요청한 URL 등의 요청 정보를 기록합니다.
+
 layout 에서 1번, page.js 에서 1번 요청을 보내봅시다. 2개의 요청을 보내게 될텐데, 요청 기억에 의해 중복 요청이 방지되는지 확인해봅시다.
 
 ```js
@@ -75,6 +77,8 @@ export default async function MessagesPage() {
 [참고] 캐시에 관한 데이터는 `.next`폴더에 저장되므로 캐시 테스트를 하고 싶다면 폴더를 제거합니다.
 
 ### 데이터 캐시(Data Cache)
+
+`Request Memoization`은 이전에 요청한 URL 등의 요청 정보를 기록하지만 `Data Cache`는 응답 데이터를 기록합니다. `URL`이 일종의 키가 됩니다.
 
 한번 렌더링된 페이지에서 다른 메뉴로 이동한 뒤 직전 페이지로 돌아갈때, 백엔드 로그 혹은 개발자도구 네트워크 탭을 보면 더 이상 요청이 발생하지 않습니다. 이는 `데이터 캐시`가 존재하기 때문입니다.
 
@@ -168,11 +172,11 @@ export default async function MessagesPage() {
 
 ### 전체 라우트 캐시(Full Route Cache)
 
-전체 라우트 캐시의 효과는 이전 데이터 캐시에서 이미 보고있었습니다.
+`Full Route Cache`는 서버에 있는 경로의 렌더링된 결과를 캐시하는 것입니다.
 
-build를 하게 디면 동적 매개변수가 있는 동적 페이지를 제외하고는 페이지를 미리생성합니다.
+빌드 시 또는 재검증 중에 정적으로 렌더링된 경로에 적용됩니다.
 
-다시 캐시 정책을 기본으로 되돌린 후
+다시 아래와 같이 캐시 정책을 기본으로 되돌린 후
 
 ```js
 // messages/page.js
@@ -248,8 +252,8 @@ Route (app)                              Size     First Load JS
 
 #### revalidatePath와 revalidateTag를 이용한 캐시 무효화
 
-[revalidatePath](https://nextjs.org/docs/app/api-reference/functions/revalidatePath)는 캐시를 제거하는 또 다른 방법중 하나로 `dynamic`, `force-dynamic`, `no-store`의 경우 캐시 자체를 막거나 `expired`옵션을 추가해 유효시간을 설정하는것인 반면
-revalidatePath는 특정 캐시 분분을 필요할 때만 재검증 하는 방법입니다. 어느정도 조건부로 적용할 수 있는것이죠.
+[revalidatePath](https://nextjs.org/docs/app/api-reference/functions/revalidatePath)말고 캐시를 제거하는 또 다른 방법중 하나로 `dynamic`, `force-dynamic`, `no-store`를 사용하는 방법이 있었습니다. 다만 캐시 자체를 막거나 `expired`옵션을 추가해 유효시간을 설정하는것인 반면
+revalidatePath는 특정 캐시 부분을 필요할 때만 호출하여 재검증합니다. 어느정도 조건부로 적용할 수 있는것이죠.
 
 ```js
 // messages/new/page.js
