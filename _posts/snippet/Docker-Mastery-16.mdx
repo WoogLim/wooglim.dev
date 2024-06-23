@@ -1,0 +1,52 @@
+---
+title:  "[Docker Mastery] - 16"
+description:  "쿠버네티스 Network"
+language:  "devops"
+category:  "Docker"
+update:  "2024-04-17"
+hide:  false
+serisenumber:  16
+---
+
+## 시작
+
+- [Maximilian Schwarzmüller 님의 Docker & Kubernetes : 실전 가이드 강의를 듣고 작성한 글입니다.](https://www.udemy.com/course/docker-kubernetes-2022/?couponCode=KEEPLEARNING)
+
+### 구성
+
+업무 생성 백엔드 서버, 유저 관리 백엔드 서버, 인증 백엔드 서버 3가지 도메인으로 나뉜 백엔드가 있는 환경으로 구성된 배경을 바탕으로 내용이 진행됩니다.
+
+유저, 인증 서버는 한 파드내 각각의 컨테이너로 작동할 것이고, 파드 내부 통신이 이루어집니다. 업무 생성 서버는 별도의 파드로 구성되며 유저 서버, 업무 생성 서버는 외부에서 이용할 수 있도록 서비스와 연결합니다.
+
+`compose`로 구성하면 아래와 같습니다.
+
+```yaml
+version: "3"
+services:
+  auth:
+    build: ./auth-api
+  users:
+    build: ./users-api
+    ports: 
+      - "8080:8080"
+  tasks:
+    build: ./tasks-api
+    ports: 
+      - "8000:8000"
+    environment:
+      TASKS_FOLDER: tasks
+```
+
+이제 이 구성을 쿠버네티스로 옮겨봅시다.
+
+그 전에 먼저 더미로 테스트를 진행할 것이므로 유저 백엔드 서버에서 단순히 문자열만 입력하면 회원가입에 성공하게 한 후 로그인은 무조건 성공하되 아래와 같은 응답 데이터를 받도록 변경합니다.
+
+```json
+{
+  status: 200,
+  data: {
+    token: 'abc'
+  }
+}
+```
+

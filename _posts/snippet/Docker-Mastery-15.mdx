@@ -54,7 +54,7 @@ spec:
 
 번외로 파일 시스템과 블록 스토리지의 차이점은 다음 사이트를 참고합니다. [Storage-pros-and-cons-Block-vs-file-vs-object-storage](https://www.computerweekly.com/feature/Storage-pros-and-cons-Block-vs-file-vs-object-storage)
 
-이어서 위와 같이 설정한 PersistentVolume 이 적용되면 이 볼륨을 파드에서 사용해야겠죠. 이를 위해 `pv-claim` yaml을 작성합니다.
+이어서 위와 같이 설정한 PersistentVolume 이 적용되면 이 볼륨을 파드에서 사용해야겠죠. 이를 위해 clame `pv-claim` yaml을 작성한 후 볼륨을 사용할 pod에 설정이 필요합니다.
 
 ```yaml
 apiVersion: v1
@@ -101,8 +101,183 @@ spec:
           name: story-volume
       volumes:
       - name: story-volume
+        # 클러스터 전체를 위해 생성한 클레임명을 설정
         persistentVolumeClaim:
           claimName: host-pvc
 ```
 
+이렇듯 PV 및 PVC를 생성하면 종속성이 파드에 설정되지 않기 때문에 파드가 종료되더라도 볼륨내 데이터는 보존되게 됩니다.
 
+PersistentVolume 구성에 중요한 정보를 지닌 스토리지 클래스는 쿠버네티스에서 관리자에게 스토리지 관리 방법과 볼륨 구성 방법을 세부적으로 제어 가능하게 해주는 개념으로 현재 디폴트 스토리지가 기본으로 minikube에 의해 설정되어 있습니다.
+
+```bash
+> kubectl get sc
+NAME                 PROVISIONER                RECLAIMPOLICY   VOLUMEBINDINGMODE   ALLOWVOLUMEEXPANSION   AGE
+standard (default)   k8s.io/minikube-hostpath   Delete          Immediate           false                  26d
+```
+
+hostpath에 대한 기본 설정이 완료되어있으므로 PV 를 정상적으로 이용할 수 있게 됩니다.
+
+때문에 storageClass를 사용하기 위해 아래와 같이 `host-pv.yaml`, `host-pvc.yaml`의 내용이 변경되어야 합니다.
+
+```yaml
+# host-pv.yaml
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: host-pv
+spec:
+  capacity:
+    storage: 1Gi
+  volumeMode: Filesystem
+  storageClassName: standard
+  accessModes:
+  - ReadWriteOnce
+  hostPath:
+    path: /data
+    type: DirectoryOrCreate
+```
+
+```yaml
+# host-pvc.yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: host-pvc
+spec:
+  volumeName: host-pv
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: standard
+  resources:
+    requests:
+      storage: 1Gi
+```
+
+PV > PVC > Deplyment 수순으로 설정을 적용합니다.
+
+```bash
+> kubectl apply -f=host-pv.yaml
+persistentvolume/host-pv created
+> kubectl apply -f=host-pvc.yaml
+persistentvolumeclaim/host-pvc created
+> kubectl apply -f=deployment.yaml
+deployment.apps/story-deployment configured
+
+> kubectl get pv
+NAME      CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS   CLAIM              STORAGECLASS   REASON   AGE
+host-pv   1Gi        RWO            Retain           Bound    default/host-pvc   standard
+
+> kubectl get pvc
+NAME       STATUS   VOLUME    CAPACITY   ACCESS MODES   STORAGECLASS   AGE
+host-pvc   Bound    host-pv   1Gi        RWO            standard       73s
+
+> kubectl get deployment
+NAME               READY   UP-TO-DATE   AVAILABLE   AGE
+story-deployment   2/2     2            2           20d
+```
+
+이젠 볼륨이 Pod로 부터 독립적이므로 파드에 생애주기와 상관없이 데이터는 보존됩니다.
+
+### 볼륨 VS 영구 볼륨
+
+Pod 정의와 함께 정의된 일반 볼륨, PV로 구성된 영구 볼륨을 어느 순간에 이용해야 하는지 정리해봅시다.
+
+#### 일반 볼륨
+- 컨테이너와는 독립적이지만 Pod와는 아니다. Pod와 같은 생명주기가 설정
+- emptyDir은 파드가 재생성되면 비어있는 폴더로 생성
+- 다만 hostPath 및 특정 클라우드 프로바이더 유형은 데이터가 손실되지 않음. 이는 사용 중인 드라이버 유형에 따라 다르다.
+- 위와 같은 드라이버 유형을 이용하더라도 이런 특정 볼륨으로만 작업하면 반복적인 작업을 수행해야한다. 관리에 어려움
+
+#### 영구 볼륨
+- Pod로 부터 독립적으로 쿠버네티스 클러스터에 사용 준비된 볼륨 유형으로 작동한다.
+- PVC로 생성함으로 필요할때 Pod와 연결할 수 있다.
+- 구성이 한 파일에 있어 재사용이 쉬워 스토리지, 볼륨 관리에 용이하다.
+
+### 환경변수 사용
+
+`GET /api/story`의 경우 `story`폴더내 text.txt 를 사용해왔었습니다. 또 text.txt의 내용을 저장할 수 있도록 VolummMounts 설정도 해주었죠.
+
+```yaml
+# deployment.yaml
+volumeMounts:
+- mountPath: /app/story
+```
+
+위 설정 그대로 실제 코드에서 명시적으로 마운트된 위치를 명시해주었습니다. 이를 환경변수로 대체해봅시다.
+
+```js
+// app.js
+// const filePath = path.join(__dirname, 'story', 'text.txt');
+const filePath = path.join(__dirname, process.env.STORY_FOLDER, 'text.txt');
+```
+
+우선 app.js 내용중 파일 경로를 가져오는 부분을 환경 변수 참조로 변경한 후 도커 이미지를 새로 빌드합니다.
+
+`deployment.yaml`의 내용을 변경합니다. `containers`설정에서 `env`옵션을 설정합니다.
+
+```yaml
+# deployment.yaml
+containers:
+- name: story
+  image: wooglim/kub-data-demo:2
+  env:
+  - name: STORY_FOLDER
+    value: 'story'
+  volumeMounts:
+  # 아래 호스트 경로의 데이터를 공유받게 됨
+  - mountPath: /app/story
+    # 볼륨 중 사용할 볼륨 name을 명시
+    name: story-volume
+```
+
+```bash
+> kubectl apply -f=deployment.yaml
+deployment.apps/story-deployment configured
+
+kubectl get pods
+NAME                               READY   STATUS             RESTARTS   AGE
+story-deployment-5674c8cc7-6t8lw   1/1     Running            0          20m
+story-deployment-5674c8cc7-7tfbq   1/1     Running            0          21m
+story-deployment-8f5cf975-klk7m    0/1     ImagePullBackOff   0          19s
+```
+
+이번엔 환경 변수를 컨테이너 spec에 추가하지 않고 별도의 파일 혹은 리소스로 관리하는 방법도 있습니다. `ConfigMap`을 이용하는 것입니다.
+키-값 쌍을 관리하는 유형이죠.
+
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: data-store-env
+data:
+  folder: 'story'
+  # key: value..
+```
+
+```bash
+> kubectl apply -f=environment.yaml
+configmap/data-store-env created
+
+> kubectl get configmap
+NAME               DATA   AGE
+data-store-env     1      17s
+kube-root-ca.crt   1      26d
+```
+
+설정된 내용을 아래와 같이 적용하여 사용합니다.
+
+```yaml
+containers:
+- name: story
+  image: wooglim/kub-data-demo:2
+  env:
+  # app.js 에 노출할 환경변수 이름을 설정해야하므로 
+  - name: STORY_FOLDER
+    # value: 'story'
+    valueFrom:
+      # ConfigMap 에서 값을 가져와 STORY_FOLDER 환경변수의 값으로 설정
+      configMapKeyRef:
+        name: data-store-env
+        key: folder 
+```
