@@ -1,0 +1,420 @@
+---
+title: "[Next.js V14] 정리 노트 - 8"
+description: "Next14의 캐싱 방식 이해하기"
+language: "Javascript"
+category: "NextJS-v14"
+update: "2024-06-22"
+hide: false
+serisenumber: 8
+---
+
+## 시작
+
+- 본 내용은 강의 제공 사이트 유데미 Maximilian Schwarzmüller 강사님의 [Next.js 14 & React - The Complete Guide](https://www.udemy.com/course/nextjs-react-the-complete-guide/?couponCode=ST19MT60324) 강의를 듣고 정리하였습니다.
+
+## NextJS의 캐싱
+
+[NextJS의 캐싱](https://nextjs.org/docs/app/building-your-application/caching)은 다음과 같은 요소들로 적용됩니다.
+
+![caching-overview](/snippets/next14/chap6/caching-overview.avif)
+
+- 요청 기억(Request Memoization)
+  - 단일 요청시 발생 동일 설정을 가진 데이터 요청을 캐싱하여 중복 요청을 방지
+- 데이터 캐시(Data Cache)
+  - 데이터 소스에 변경된 사항이 없는 경우 데이터를 저장하고 재사용한다. 중복 요청을 줄이거나 방지하는 용도로 사용되진 않는다.
+  - 데이터가 변경되지 않는 한 요청 자체를 하지 않게 된다.
+  - 사용자가 수동으로 재검증 할 때까지 지속된다.
+- 전체 라우트 캐시(Full Route Cache)
+  - 전체 페이지, HTML, 전체 React 서버 컴포넌트 페이로드를 내부적으로 관리하고 렌더링한다.
+  - 데이터 소스로 추가적인 왕복을 방지하는 것 뿐 아니라 전체 HTML 페이지가 다시 렌더링 되는 것을 방지해 페이지에 빠르게 접속
+  - 캐시가 재검증되기까지 지속되며 업데이트된 데이터가 있을 때만 페이지가 다시 렌더링
+- 라우터 캐시(Router Cache)
+  - 요청 기억(Request Memoization), 전체 라우트 캐시(Full Route Cache), 라우터 캐시(Router Cache)의 경우 서버 측에서 관리된다.
+  - 라우터 캐시는 클라이언트마다 관리 브라우저의 메모리에 일부 React 서버 컴포넌트 페이로드를 저장. 페이지 간 이동이 더 빨리 일어날 수록 한다.
+  - 전체 라우트 캐시가 존재하더라도 캐시된 페이지를 가져오기 위해 서버측에 요청을 보내야 하는데, 클라이언트에서 이미 관리되고 있는 경우 요청을 보내지 않아도 됨.
+  - 서버에 의해 새 페이지가 렌더링 될 때, NextJS로 렌더링 된 웹을 벗어났다가 다시 돌아올 때 캐시가 무효화 된다.
+
+### 요청 기억(Request Memoization)
+
+layout 에서 1번, page.js 에서 1번 요청을 보내봅시다. 2개의 요청을 보내게 될텐데, 요청 기억에 의해 중복 요청이 방지되는지 확인해봅시다.
+
+```js
+// FrontEnd
+// messages/layout.js
+export default async function MessagesLayout({ children }) {
+  const response = await fetch('http://localhost:8080/messages', {
+    headers: {
+      'X-ID': 'layout',
+    },
+  });
+
+// messages/page.js
+export default async function MessagesPage() {
+  const response = await fetch('http://localhost:8080/messages', {
+    headers: {
+      'X-ID': 'page',
+    },
+  });
+```
+
+결과적으로 헤더의 내용이 다르므로 중복 요청으로 보지 않고 2번 요청을 보내게 됩니다.
+
+```bash
+# backend
+2024-06-22T00:39:17.237Z: EXECUTING /messages on backend from page
+2024-06-22T00:39:17.242Z: EXECUTING /messages on backend from layout
+```
+
+헤더 요소를 제거한 직후에는 중복 요청을 피하고 1번의 요청만 보냅니다.
+
+```bash
+# backend
+2024-06-22T00:43:45.106Z: EXECUTING /messages on backend from undefined
+```
+
+[참고] 캐시에 관한 데이터는 `.next`폴더에 저장되므로 캐시 테스트를 하고 싶다면 폴더를 제거합니다.
+
+### 데이터 캐시(Data Cache)
+
+한번 렌더링된 페이지에서 다른 메뉴로 이동한 뒤 직전 페이지로 돌아갈때, 백엔드 로그 혹은 개발자도구 네트워크 탭을 보면 더 이상 요청이 발생하지 않습니다. 이는 `데이터 캐시`가 존재하기 때문입니다.
+
+만일 페이지 접속시 최신의 데이터 페이로드를 가져오고 싶은 경우 이전에 사용했던 `revalidatePath`를 이용하거나 [확장된 fetch](https://nextjs.org/docs/app/building-your-application/data-fetching/fetching-caching-and-revalidating#fetching-data-on-the-server-with-fetch)에 `cache`옵션을 추가해 이용하면 됩니다.
+
+```js
+// messages/page.js
+export default async function MessagesPage() {
+  const response = await fetch('http://localhost:8080/messages', {
+    cache: 'no-store' // 캐시에 저장하지 않음.
+  });
+  const messages = await response.json();
+```
+
+이외에 `cache`옵션의 값으로는 다음과 같은 값들이 존재합니다.
+- default
+  - 캐시에서 일치하는 페이로드를 찾습니다.
+    - 새로운 항목(fresh): 캐시에서 반환됩니다.
+    - 오래된 항목(stale): 조건부 요청을 서버에 전송하여 리소스가 변경되었는지 확인합니다.
+      - 변경된 경우: 캐시를 업데이트하고 응답을 반환합니다.
+      - 변경되지 않은 경우: 캐시된 응답을 반환합니다.
+  - 일치하는 중복 요청 항목이 없으면 정상적인 요청을 수행하고 다운로드된 리소스로 캐시를 업데이트합니다.
+- force-cache
+  - 브라우저 캐시에서 일치하는 요청을 무조건 찾습니다.
+  - 새로운 항목이든 오래된 항목이든 상관없이 캐시를 사용합니다
+- no-cache
+  - 캐시를 확인하지 않고 모든 요청마다 원격 서버에서 리소스를 직접 가져옵니다.
+  - 다운로드된 리소스는 캐시에 저장되지 않습니다.
+- no-store
+  - 캐시를 확인하지 않고 모든 요청마다 원격 서버에서 리소스를 직접 가져옵니다.
+  - 다운로드된 리소스도 캐시에 저장되지 않습니다.
+  - 서버측에서 응답에 Cache-Control: no-store 헤더를 추가하여 브라우저 캐싱을 완전히 비활성화
+- only-if-cached
+  - 캐시에서 일치하는 항목을 찾습니다.
+    - 일치하는 항목이 있으면 캐시에서 반환됩니다.
+    - 일치하는 항목이 없으면 오류를 발생시킵니다.
+  - 이 옵션은 오프라인 모드 또는 캐시된 데이터만 사용해야 하는 경우에 유용합니다.
+- reload
+  - 모든 캐싱을 무시하고 항상 원격 서버에서 최신 리소스를 가져옵니다.
+  - 응답에 Cache-Control: no-cache 헤더를 추가하여 브라우저 캐싱을 비활성화합니다.
+  -  이 옵션은 데이터가 항상 최신 상태인지 확인해야 하는 경우에 유용합니다.
+
+또한 캐시내 저장할 데이터의 expired 옵션을 설정할 수 있는데, 방법은 다음과 같습니다.
+
+```js
+// messages/page.js
+export default async function MessagesPage() {
+  const response = await fetch('http://localhost:8080/messages', {
+    next: {
+      revalidate: 5 // 5초간 캐시에 저장
+    }
+  });
+```
+
+#### 파일 단위로 캐싱 관리하기
+
+컴포넌트단위가 아닌 파일 단위로, 해당 파일 내 모든 요청의 캐싱 옵션을 제어할 수도 있습니다.
+
+`NextJS` 명시적으로 설정된 명명방식을 이용하면 됩니다.
+
+```js
+// messages/page.js
+import Messages from '@/components/messages';
+
+// 1. revalidate 상수를 export하면 page.js내 요청들은 옵션이 모두 적용된다.
+export const revalidate = 5;
+// 2. 아래는 fetch 내 cache 값으로 'no-stored'와 같이 동작
+// export const dynamic = 'force-dynamic';
+
+export default async function MessagesPage() {
+  // ...
+}
+```
+
+[참고] `no-stored`를 `export const dynamic = 'force-dynamic'`으로 사용하는 방법 보다 `next/cache`내 함수를 이용하는 것을 권장합니다.
+
+```js
+// messages/page.js
+import { unstable_noStore } from 'next/cache'; 
+
+import Messages from '@/components/messages';
+
+// revalidate 상수를 export하면 page.js내 요청들은 옵션이 모두 적용된다.
+// export const dynamic = 5;
+
+export default async function MessagesPage() {
+  unstable_noStore(); // 컴포넌트에서 요청하는 데이터를 캐시에 저장하지 않음.
+  // ...
+}
+```
+
+### 전체 라우트 캐시(Full Route Cache)
+
+전체 라우트 캐시의 효과는 이전 데이터 캐시에서 이미 보고있었습니다.
+
+build를 하게 디면 동적 매개변수가 있는 동적 페이지를 제외하고는 페이지를 미리생성합니다.
+
+다시 캐시 정책을 기본으로 되돌린 후
+
+```js
+// messages/page.js
+import Messages from '@/components/messages';
+
+export default async function MessagesPage() {
+  const response = await fetch('http://localhost:8080/messages');
+  const messages = await response.json();
+
+  if (!messages || messages.length === 0) {
+    return <p>No messages found</p>;
+  }
+
+  return <Messages messages={messages} />;
+}
+```
+
+운영 서버로 실행하기 위해 빌드합니다.
+
+```bash
+npm run build
+
+Route (app)                              Size     First Load JS
+┌ ○ /                                    148 B          84.4 kB
+├ ○ /_not-found                          885 B          85.2 kB
+├ ○ /icon.png                            0 B                0 B
+├ ○ /messages                            148 B          84.4 kB
+└ ○ /messages/new                        148 B          84.4 kB
++ First Load JS shared by all            84.3 kB
+  ├ chunks/69-c292296505fe2927.js        29 kB
+  ├ chunks/fd9d1056-c7082c319cc53ced.js  53.4 kB
+  └ other shared chunks (total)          1.86 kB
+
+○  (Static)   prerendered as static conten
+```
+
+`/`, `/_not-found`, `/icon.png`, `messages`, `/messages/new` 가 미리 생성된 것을 볼 수 있고. 운영 모드로 실행하여 `/messages` 경로로 이동하면 최초 요청 또한 보내지 않는 것을 확인할 수 있다.
+
+왜냐하면 빌드과정에서 이미 캐시된 페이지이기 때문에 요청을 하지 않는것입니다.
+
+이번엔 아래와 같이 `messages/page.js` 파일에 `force-dynamic`옵션을 `page.js`파일 전체에 적용해 빌드해봅시다.
+
+```js
+// messages/page.js
+import Messages from '@/components/messages';
+
+export const dynamic = 'force-dynamic';
+
+export default async function MessagesPage() {
+  const response = await fetch('http://localhost:8080/messages');
+  // ...
+}
+```
+
+```bash
+Route (app)                              Size     First Load JS
+┌ ○ /                                    148 B          84.4 kB
+├ ○ /_not-found                          885 B          85.2 kB
+├ ○ /icon.png                            0 B                0 B
+├ λ /messages                            148 B          84.4 kB
+└ ○ /messages/new                        148 B          84.4 kB
++ First Load JS shared by all            84.3 kB
+  ├ chunks/69-c292296505fe2927.js        29 kB
+  ├ chunks/fd9d1056-c7082c319cc53ced.js  53.4 kB
+  └ other shared chunks (total)          1.86 kB
+
+
+○  (Static)   prerendered as static content
+λ  (Dynamic)  server-rendered on demand using Node.js
+```
+
+결과를 보면 캐시를 저장하지 않는 `messages` 페이지는 동적 페이지로, 미리 생성되지 않았음을 볼 수 있습니다.
+
+#### revalidatePath와 revalidateTag를 이용한 캐시 무효화
+
+[revalidatePath](https://nextjs.org/docs/app/api-reference/functions/revalidatePath)는 캐시를 제거하는 또 다른 방법중 하나로 `dynamic`, `force-dynamic`, `no-store`의 경우 캐시 자체를 막거나 `expired`옵션을 추가해 유효시간을 설정하는것인 반면
+revalidatePath는 특정 캐시 분분을 필요할 때만 재검증 하는 방법입니다. 어느정도 조건부로 적용할 수 있는것이죠.
+
+```js
+// messages/new/page.js
+import { revalidatePath, revalidateTag } from 'next/cache'
+
+import { addMessage } from '@/lib/messages';
+
+export default function NewMessagePage() {
+  async function createMessage(formData) {
+    // ...
+    // messages 경로와 관련된 캐시 데이터 모두 삭제 revalidatePath('/messages', 'page')와 같음.
+    revalidatePath('/messages')
+    // messages 경로와 관련된 캐시 재검증, 모든 중첩된 페이지의 캐시도 재검증
+    revalidatePath('/messages', 'layout')
+    // 모든 페이지 캐시 재검증
+    revalidatePath('/', 'layout')
+  }
+}
+```
+
+데이터를 가져오고 캐시된 데이터에 요청을 보낼 때, 태그를 설정할 수 있습니다. `fetch`의 옵션으로 추가가 가능하죠.
+
+```js
+// messages/page.js
+import Messages from '@/components/messages';
+
+export default async function MessagesPage() {
+  const response = await fetch('http://localhost:8080/messages', {
+    next: {
+      tags: ['msg']
+    }
+  })
+}
+
+// message/new/page.js
+import { revalidatePath, revalidateTag } from 'next/cache'
+
+import { addMessage } from '@/lib/messages';
+
+export default function NewMessagePage() {
+  async function createMessage(formData) {
+    'use server';
+
+    const message = formData.get('message');
+    addMessage(message);
+    // 특정 태그의 캐시를 제거
+    revalidateTag('msg');
+    redirect('/messages');
+  }
+```
+
+### 커스텀 데이터 소스에 대한 메모화 설정
+
+외부 API 호출(Backend 별도 사용 X)이 아닌 내부에 데이터베이스를 포함(NextJS 프로젝트내 같이 포함)하는 경우 캐시에 대한 방법도 알아보겠습니다.
+
+기존 코드에서 `fetch`로 외부 API 요청을 보낸 방법에서 NextJS내 자차 데이터베이스 연결을 통한 방법을 이용하도록 변경합니다.
+```js
+// messages/layout.js
+import { getMessages } from "@/lib/messages";
+
+export default async function MessagesLayout({ children }) {
+  // const response = await fetch('http://localhost:8080/messages');
+  const messages = getMessages();
+}
+
+// messages/page.js
+import Messages from '@/components/messages';
+import { getMessages } from '@/lib/messages';
+
+export const dynamic = 'force-dynamic';
+
+export default async function MessagesPage() {
+  const messages = getMessages();
+}
+```
+
+단, 이 방법은 `fetch`와 달리 중복 요청을 제거하는 방법이 없기 때문에 동일 요청이더라도 중복 요청이 발생하게 됩니다. 이 부분은 `react`의 `cache`를 이용해 보완이 가능합니다.
+
+중복 요청 제거가 발생해야하는 함수를 감싸므로서 보완이 가능합니다.
+
+```js
+// lib/messages.js
+import { cache } from 'react';
+import sql from 'better-sqlite3';
+
+export const getMessages = cache(function getMessages() {
+  console.log('Fetching messages from db');
+  return db.prepare('SELECT * FROM messages').all();
+});
+```
+
+기존과 달리 호출이 한번만 발생하는 것을 확인할 수 있습니다.
+
+```bash
+Fetching messages from db
+```
+
+### 커스텀 데이터 소스에 대한 데이터 캐싱 설정
+
+`react`의 `cache`는 단순히 클라이언트에서 동일 요청을 제거하기 위해 사용했었고, `NextJS`데이터 캐시에 데이터를 존재하기 위해서는 또 다른 방법이 필요합니다.  
+`next`의 `unstable_cache`(명칭이 차후 변경될 수 있음)로 한번 더 감싸 응답데이터를 데이터 캐시에 저장할 수 있죠.
+
+```js
+// lib/messages.js
+import { cache } from 'react';
+import { unstable_cache as nextCache } from 'next/cache'; 
+
+// nextCache는 프로미스를 반환
+// 두 번째 인수는 캐시 키의 배열로 지정하며 내부적으로 캐시된 데이터를 식별하는 데 사용된다.(fetch의 태그와는 다른것으로 혼동 X 캐시된 데이터에 태그를 할당하는게 아님)
+export const getMessages = nextCache(
+  cache(function getMessages() {
+  console.log('Fetching messages from db');
+  return db.prepare('SELECT * FROM messages').all();
+  }), ['messages']
+);
+```
+
+이전 방법인 `react`의 `cache`만으로는 영속성을 보장할 수 없죠. `next`의 `cache`를 통해 _next 폴더 자체에 저장되기 때문에 서버를 중단하더라도 기존 캐싱된 데이터를 계속 이용할 수 있어 중복 요청을 보내지 않게 됩니다.
+
+### 커스텀 데이터 소스 데이터 무효화
+
+이전 과정의 방법으로 데이터 캐시에도 저장되도록 하였습니다. 그럼 데이터를 무효화해 새 데이터를 가져오는 방법에 대해 알아봅시다.
+
+첫 번째 방법은 데이터 캐시와 라우팅 캐시를 제거하는 `revalidatePath`함수 사용입니다.
+
+```js
+// messages/new/page.js
+import { redirect } from 'next/navigation';
+
+import { addMessage } from '@/lib/messages';
+import { revalidatePath, revalidateTag } from 'next/cache';
+
+export default function NewMessagePage() {
+  async function createMessage(formData) {
+    'use server';
+
+    const message = formData.get('message');
+    addMessage(message);
+    // messages 페이지의 모든 데이터와 전체 라우팅 캐시 삭제
+    revalidatePath('/messages');
+```
+
+두 번째 방법은 할당된 태그가 붙은 캐시를 제거하는 `revalidateTag`함수 사용입니다.
+
+기존 코드의 변경이 필요합니다.
+
+```js
+// lib/messages.js
+export const getMessages = nextCache(
+  cache(function getMessages() {
+  console.log('Fetching messages from db');
+  return db.prepare('SELECT * FROM messages').all();
+  }), ['messages'], {
+    // revalidate: 5,
+    tags: ['msg']
+  }
+);
+
+// messages/new/page.js
+export default function NewMessagePage() {
+  async function createMessage(formData) {
+    'use server';
+
+    const message = formData.get('message');
+    addMessage(message);
+    // msg 태그가 붙은 캐시 삭제
+    revalidateTag('msg');
+```
