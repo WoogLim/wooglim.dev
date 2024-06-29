@@ -1,0 +1,364 @@
+---
+title: "[Next.js V14] 정리 노트 - 10"
+description: "세션방식의 사용자 인증 구현"
+language: "Javascript"
+category: "NextJS-v14"
+update: "2024-06-26"
+hide: false
+serisenumber: 10
+---
+
+## 시작
+
+- 본 내용은 강의 제공 사이트 유데미 Maximilian Schwarzmüller 강사님의 [Next.js 14 & React - The Complete Guide](https://www.udemy.com/course/nextjs-react-the-complete-guide/?couponCode=ST19MT60324) 강의를 듣고 정리하였습니다.
+
+### 회원가입 유효성 관리 useFormState
+
+리액트의 `useFormState`함수를 이용해 서버 액션을 관리하고 처리 함수를 회원가입 `Form`애 등록하여 `Form`의 상태를 제어해보겠습니다.
+
+```js
+'use server'
+
+import { createAuthSession } from "@/lib/auth";
+import { hashUserPassword } from "@/lib/hash";
+import { createUser } from "@/lib/users";
+import { redirect } from "next/navigation";
+
+// 서버 액션 역할
+
+// useFormState로 관리할 것이기 때문에 prevState, formDate 2개의 인자를 가짐
+export async function signup(prevState, formData) {
+  const email = formData.get('email');
+  const password = formData.get('password');
+
+  let errors = {};
+
+  if(!email.includes('@')){
+    errors.email = 'Please enter a valid email address.';
+  }
+
+  if(password.trim().length < 8) {
+    errors.password = 'Password must be at least 8 characters long.'
+  }
+
+  if(Object.keys(errors).length > 0) {
+    // 클라이언트에 반환
+    return {
+      errors
+    };
+  }
+
+  // 데이터 베이스 저장
+  const hashedPassword = hashUserPassword(password);
+  try {
+    const id = createUser(email, hashedPassword);
+    await createAuthSession(id);
+    redirect('/training');
+  } catch (error) {
+    if (error.code === "SQLITE_CONSTRAINT_UNIQUE") {
+      return {
+        errors: {
+          email: "이미 사용중인 이메일 입니다."
+        }
+      };
+    }
+    // 기타 에러
+    throw error;
+  }
+}
+```
+
+위 서버 액션을 사용할 클라이언트입니다.
+
+
+```js
+// component/auth-form.js
+'use client'
+import Link from 'next/link';
+import { useFormState } from 'react';
+
+import { signup } from '@/actions/auth-actions';
+
+export default function AuthForm() {
+  
+  // 서버 함수 전달
+  // signup함수를 감싸 액션을 수신하고 formState가 대신 관리하게됨. 아래 form에 서버 액션을 설정해주면 폼의 관리를 하게됨.
+  const [formState, formAction] = useFormState(signup, {});
+  
+  return (
+    <form id="auth-form" action={formAction}>
+      {/* ... */}
+    <p>
+      {
+        formState.errors && (<ul id="form-errors">
+          {
+            // 키 배열을 추출하고 에러 출력
+            Object.keys(formState.errors).map((error) => <li key={error}>
+              {formState.errors[error]}
+            </li>)
+          }
+        </ul>)
+      }
+    </p>
+```
+
+유효성 검사를 마친 뒤에는 회원 정보를 DB에 저장합니다.
+
+### 세션 방식 인증
+
+세션 방식 인증을 구현하기 위 `Lucia` 라이브러리를 이용합니다.
+
+```bash
+yarn add lucia @lucia-auth/adapter-sqlite
+```
+
+세션 생성 및 저장 설정 코드는 다음과 같습니다.
+
+```js
+const adapter = new BetterSqlite3Adapter(db, {
+  user: 'users', // 사용자 정보 저장 경로를 지정한다.
+  session: 'sessions' // 세션 저장 테이블을 설정
+});
+
+const lucia = new Lucia(adapter, {
+  sessionCookie: {
+    expires: false,
+    attributes: {
+      secure: process.env.NODE_ENV === 'production' // 운영 환경에서는 https 통해 사용되도록 설정
+    }
+  } // 세션 ID가 포함된 쿠키 생성
+});
+
+export async function createAuthSession(userId) {
+  const session = await lucia.createSession(userId, {}) // 테이블에 세션 생성
+  const sessionCookie = lucia.createSessionCookie(session.id); // 쿠키에 세션을 설정
+
+  cookies().set(
+    sessionCookie.name, 
+    sessionCookie.value, 
+    sessionCookie.attributes
+  ); // 헤더내 쿠키 설정 객체 인스턴스 설정 옵션을 그대로 반영
+}
+
+export async function verifyAuth() {
+  // 요청마다 들어 오는 세션의 검증
+  const sessionCookie = cookies().get(lucia.sessionCookieName);
+
+  // 세션 데이터 존재하지 않음/
+  if(!sessionCookie){
+    return {
+      use: null,
+      ssession: null
+    }
+  }
+
+  // 세션의 값이 존재하는지 검증
+  const sessionId = sessionCookie.value;
+
+  if(!sessionId){
+    return {
+      use: null,
+      ssession: null
+    }
+  }
+
+  // 유효 ID인지 검증 DB에 존재하는지 검증
+  // 이전에 설정한 사용자 정보, 세션 정보 반환받음.
+  const result = await lucia.validateSession(sessionId);
+
+  try {
+    // 세션이 존재하며 만료된 경우 재설정한다.
+    if(result.session && result.session.fresh){
+      lucia.createSessionCookie(result.session.id);
+
+      cookies().set(
+        sessionCookie.name, 
+        sessionCookie.value, 
+        sessionCookie.attributes
+      )
+    }
+    // 세션 자체가 없는 경우 새로운 데이터로 재설정한다.
+    if(!result.session){
+      const sessionCookie = lucia.createBlankSessionCookie();
+      cookies().set(
+        sessionCookie.name, 
+        sessionCookie.value, 
+        sessionCookie.attributes
+      )
+    }
+  } catch {}
+
+  // 설정한 사용자 정보, 세션 정보를 넘겨준다.
+  return result;
+}
+```
+
+사용자가 로그인하고 redirect 되기 이전 쿠키를 셋업하므로 최초 페이지 요청시 네트워크 도구를 보면 세팅된 쿠키를 조회할 수 있습니다.
+
+### 로그인
+
+전달된 쿼리 파라미터에 따라 로그인/회원가입 페이지를 보여주기 위해 조건부 렌더링을 수행합니다. 우선 로그인 페이지가 루트 페이지 이므로 
+
+루트 `page.js`에서 파라미터를 추출합니다.
+
+```js
+// /app/page.js
+import AuthForm from '@/components/auth-form';
+
+export default async function Home({ searchParams }) {
+  const formMode = searchParams.mode || 'login';
+  return <AuthForm mode={formMode}/>;
+}
+```
+
+mode가 `login`이면 로그인 아니라면 회원가입 화면을 렌더링합니다.
+
+```js
+// /component/auth-form.js
+// ...
+<p>
+  {mode === 'login' && <Link href="/?mode=signup">Create an account.</Link>}
+  {mode === 'signup' && <Link href="/?mode=login">Login with existing account.</Link>}
+</p>
+```
+
+서버 액션 코드도 수정합니다.
+
+```js
+// action/auth-action.js
+export async function login(prevState, formData) {
+  const email = formData.get('email');
+  const password = formData.get('password');
+
+  const existingUser = getUserByEmail(email);
+
+  if(!existingUser) {
+    return {
+      errors: {
+        email: '해당 계정은 존재하지 않습니다.'
+      }
+    }
+  }
+
+  const isValidPassword = verifyPassword(existingUser.password, password);
+
+  if(!isValidPassword){
+    return {
+      errors: {
+        email: '해당 계정은 존재하지 않습니다.'
+      }
+    }
+  }
+
+  await createAuthSession(existingUser.id);
+  redirect('/training');
+}
+
+export async function auth(mode, prevState, formData) {
+  if(mode === 'login') {
+    return login(prevState, formData)
+  }
+  return signup(prevState, formData)
+}
+```
+
+이어서 서버액션을 이용하는 클라이언트 폼에도 적용합니다.
+
+```js
+// component/auth-form.js
+// ...
+  const [formState, formAction] = useFormState(auth.bind(null, mode), {});
+```
+
+### 인증 이용자 전용 레이아웃 설정하기
+
+우선 도메인별 그룹 라우팅 폴더에 옮겨둡니다. 그리고 그룹 라우팅 폴더내 공통 레아이웃을 생성합니다. 만일 루트 경로에 `layout`이 있다고 하더라도 그룹 라우팅 폴더 자체는 경로 세그먼트로서 존재하지 않으므로 루트의 `layout`과 중첩되게 됩니다.
+
+대체가 아닌 중첩이기 때문에 그룹라우팅 폴더내에 레이아웃을 여러개 둬선 안되겠죠. 렌더링 요소가 중첩되는 일은 피해야 합니다.
+
+```text
+app
+  └ (auth)
+    └ training
+      └ page.js
+    └ layout.js
+```
+
+기존 루트 레이아웃을 중첩되므로 기존 코드를 가져온 후 요구사항에 맞게 코드를 다시 정리합니다.
+
+```js
+// app/(auth)/layout.js
+import '../globals.css';
+
+export const metadata = {
+  title: 'Next Auth',
+  description: 'Next.js Authentication',
+};
+
+export default function RootLayout({ children }) {
+  return (
+    <html lang="en">
+      <body>
+        <header id="auth-header">
+          <p>
+            재방문을 환영합니다.
+          </p>
+          <form>
+            <button>Logout</button>
+          </form>
+        </header>
+        {children}
+      </body>
+    </html>
+  );
+}
+```
+
+### 로그아웃 추가
+
+쿠키를 제거하는 데이터 엑세스 함수를 생성합니다.
+
+```js
+// app/lib/auth.js
+export async function destroySession() {
+  const { session } = await verifyAuth();
+
+  // 세션이 존재하지 않는 경우 권한 없음.
+  if(!session){
+    return {
+      error: 'Unauthorized!'
+    }
+  }
+
+  // 세션을 무효화하고 쿠키 종료 - 테이블에서 쿠키 제거
+  await lucia.invalidateSession(session.id);
+
+  // 헤더내 쿠키를 빈 세션으로 설정한다.
+  const sessionCookie = lucia.createBlankSessionCookie();
+  cookies().set(
+    sessionCookie.name, 
+    sessionCookie.value, 
+    sessionCookie.attributes
+  )
+}
+```
+
+서버 액션 함수로 `logout`함수를 추가하고 세션 제거 메서드를 호출합니다.
+
+```js
+// app/action/auth-action.js
+export async function logout() {
+  await destroySession();
+  redirect('/');
+}
+```
+
+공통 레이아웃에 `logout`액션을 설정합니다.
+
+```js
+// app/(auth)/layout.js
+// ...
+<form action={logout}>
+  <button>Logout</button>
+</form>
+```
