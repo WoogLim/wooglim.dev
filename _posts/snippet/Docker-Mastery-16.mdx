@@ -166,3 +166,155 @@ users-deployment-88c9f4b57-nw57w    1/1     Terminating   0          25m
 deplyoment 설정을 변경하여 내부 통신이 가능하도록 변경됩니다.
 
 ![volume-error-get](/snippets/kube/chap3/in-communication-pods.png)
+
+### 다중 deployments 생성
+
+추가로 tasks api 파드를 실행해야 합니다. 또한 외부 노출이 되어야 합니다. 추가로 auth api 와도 연계가 필요하기 때문에
+
+auth api도 결국 별도의 파드로 분리하고 파드내 통신이 아닌 클러스터내 통신으로 변경해야 합니다.
+
+결국 각 api 서버는 별도 파드에 생성되는 그림이 되어야 합니다.
+
+#### users api deployment
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: users-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: users
+  template:
+    metadata:
+      labels:
+        app: users
+    spec:
+      containers:
+      - name: users
+        image: wooglim/kub-demo-users:latest
+        env:
+        - name: AUTH_ADDRESS
+          value: localhost
+```
+
+#### auth api deployment
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-deployment
+spec:
+  # Pod 인스턴스 1개
+  replicas: 1
+  selector:
+    matchLabels:
+      app: auth
+  template:
+    metadata:
+      labels:
+        app: auth
+    spec:
+      containers:
+      - name: auth
+        image: wooglim/kub-demo-auth:latest
+```
+
+이어서 auth api service를 생성합니다.
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth-service
+spec:
+  selector:
+    app: auth
+  # 클러스터 내부에서만 통신할 것이므로 ClusterIP 타입 설정
+  type: ClusterIP
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80
+``` 
+
+### service의 IP주소 설정하기
+
+service의 IP는 변경되지 않습니다. users 의 연결 내용을 수정하여 auth api 와 내부 통신할 수 있도록 주소를 설정해봅시다.
+
+우선 추가 사항을 반영합니다.
+
+```bash
+> kubectl apply -f=auth-service.yaml -f=auth-deployment.yaml
+service/auth-service created
+deployment.apps/auth-deployment created
+
+> kubectl get services
+NAME           TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)   AGE
+# 클러스터 내부 통신만 가능
+auth-service   ClusterIP   10.99.190.110   <none>        80/TCP    33s
+```
+
+이제 위의 고정된 IP로 users api 에서 auth api를 불러오는 부분을 수정해줍니다.
+
+```yaml
+# users-deployment.yaml
+- name: AUTH_ADDRESS
+  # 80포트로 서버 실행하므로 생략.
+  value: 10.99.190.110
+```
+
+내용을 반영합니다.
+
+```bash
+> kubectl apply -f=users-service.yaml -f=users-deployment.yaml
+service/users-service created
+deployment.apps/users-deployment created
+> kubectl get pods
+NAME                                READY   STATUS    RESTARTS   AGE
+auth-deployment-796bccd658-lmpm5    1/1     Running   0          3m12s
+users-deployment-5844949b68-km8hv   1/1     Running   0          13s
+```
+
+# 자동으로 IP주소 가져오기
+
+쿠버네티스는 서비스를 실행하면 내부적으로 환경변수로 저장합니다. 이를 이용해 다른 서비스의 IP주소를 가져와 봅시다.
+
+auth-service의 경우 내용은 다음과 같았습니다.
+
+```yaml
+# auth-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth-service
+```
+
+위 서비스 내용 중 메타데이터의 네임을 기준으로 `AUTH_SERVICE`가 붙고, 이 서비스의 호스트를 나타내는 `SERVICE_HOST`를 합쳐 `AUTH_SERVICE_SERVICE_HOST`라는 key로, IP가 value로 생성됩니다.
+
+users api 의 백엔드 코드에서 위 환경변수를 사용하도록 변경합니다.
+
+```js
+// users-app.js
+const response = await axios.get(
+  `http://${process.env.AUTH_SERVICE_SERVICE_HOST}/token/` + hashedPassword + '/' + password
+);
+```
+
+만일 docker-compose 혹은 내부 백엔드에서 위와 같은 환경병수를 사용하고 있다면 다른 이름으로 사용하도록 검토가 필요합니다.
+
+이미지를 빌드한 후 다시 hub에 push 합니다.
+
+다시 deployment 를 `apply` 합니다. `containers`의 `image`에 `:latest`로 태그를 설정했으므로 최신의 이미지를 가져오고 대조하게 됩니다.
+
+```bash
+> kubectl delete -f=users-deployment.yaml
+deployment.apps "users-deployment" deleted
+> kubectl apply -f=users-deployment.yaml
+deployment.apps/users-deployment created
+```
+
+### Pod간 통신에 DNS 사용하기
