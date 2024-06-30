@@ -18,6 +18,8 @@ serisenumber:  16
 
 유저, 인증 서버는 한 파드내 각각의 컨테이너로 작동할 것이고, 파드 내부 통신이 이루어집니다. 업무 생성 서버는 별도의 파드로 구성되며 유저 서버, 업무 생성 서버는 외부에서 이용할 수 있도록 서비스와 연결합니다.
 
+권한의 경우 외부 통신은 하지 않고 유저 API 컨테이너와 동일 파드내 내부 통신을 진행합니다.
+
 `compose`로 구성하면 아래와 같습니다.
 
 ```yaml
@@ -39,14 +41,128 @@ services:
 
 이제 이 구성을 쿠버네티스로 옮겨봅시다.
 
-그 전에 먼저 더미로 테스트를 진행할 것이므로 유저 백엔드 서버에서 단순히 문자열만 입력하면 회원가입에 성공하게 한 후 로그인은 무조건 성공하되 아래와 같은 응답 데이터를 받도록 변경합니다.
+### users deployment 구성
 
-```json
-{
-  status: 200,
-  data: {
-    token: 'abc'
-  }
-}
+우선 auth 내부 통신은 제외한 채 구성합니다. 이미지를 빌드하고 docker hub에 push 합니다.
+
+```yaml
+# users-deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: users-deployment
+spec:
+  # Pod 인스턴스 1개
+  replicas: 1
+  selector:
+    matchLabels:
+      app: users
+  template:
+    metadata:
+      labels:
+        app: users
+    spec:
+      containers:
+      - name: users
+        image: wooglim/kub-demo-users
 ```
 
+### users service 구성
+
+Pod는 제거되거나 다른 워커노드로 옮겨지면 기본 IP가 변경됩니다. 고정적인 IP를 지원하여 파드와 label로 연결되어 외부로 통신할 수 있게 해주는 `service`설정이 필요합니다.
+
+```yaml
+# users-service
+apiVersion: v1
+kind: Service
+metadata:
+  name: users-service
+spec:
+  selector:
+    # 파드 label 매칭
+    app: users
+  # 실행 노드 관계 없이 모든 포트에 들어오는 요청을 여러 레플리카에 분배
+  type: LoadBalancer
+  ports:
+  - protocol: TCP
+    # 외부 요청 받는 포트
+    port: 8080
+    targetPort: 8080
+```
+
+구성한 YAML 환경을 적용합니다.
+
+```bash
+kubectl apply -f=users-deployment.yaml -f=users-service.yaml
+minikube service users-service
+
+🏃  Starting tunnel for service users-service.
+|-----------|---------------|-------------|------------------------|
+| NAMESPACE |     NAME      | TARGET PORT |          URL           |
+|-----------|---------------|-------------|------------------------|
+| default   | users-service |             | http://127.0.0.1:50601 |
+|-----------|---------------|-------------|------------------------|
+```
+
+이후 users API 인 로그인, 회원가입 요청을 보낼 수 있겠지만 아직 더미로만 작동할 뿐, auth API와 파드내 내부 통신이 가능하도록 변경해야 합니다.
+
+docker-compose 의 경우 서비스 명으로 같은 네트워크에 포함된 컨테이너라면 이름으로 치환이 가능했지만 쿠버네티스의 경우 다릅니다. 실행중인 환경에 따라 유동적입니다.
+
+기존 users api 서버 코드를 수정 하고 변경사항을 허브에 push 합니다.
+
+```js
+// users signup api
+// const hashedPW = await axios.get('http://auth/hashed-password/' + password);
+const hashedPW = await axios.get(`http://${process.env.AUTH_ADDRESS}/hashed-password/` + password);
+```
+
+이어서 auth api 백엔드 서버를 이미지 빌드 후 도커 허브에 push 합니다.
+
+동일 파드내 존재해야하므로 기존 `users-deployment.yaml`에 추가 컨테이너를 설정합니다. auth api의 경우 파드내 통신만 지원할 것이므로 `service`를 별도로 설정하지 않습니다.
+
+### 내부 통신 설정하기
+
+users API에서 auth API를 내부에서 요청할 수 있도록 반영해봅시다.
+
+다시 deployment yaml 파일을 수정합니다.
+```yaml
+# users-deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: users-deployment
+spec:
+  # Pod 인스턴스 1개
+  replicas: 1
+  selector:
+    matchLabels:
+      app: users
+  template:
+    metadata:
+      labels:
+        app: users
+    spec:
+      containers:
+      - name: users
+        image: wooglim/kub-demo-users:latest
+        env:
+        - name: AUTH_ADDRESS
+          # 동일 파드에서 작동하므로 localhost 를 이용해 auth와 연결 auth는 80포트로 서버 실행하므로 생략.
+          value: localhost
+      - name: auth
+        image: wooglim/kub-demo-auth:latest
+```
+
+```bash
+> kubectl apply -f=users-deployment.yaml
+deployment.apps/users-deployment configured
+
+> kubectl get pods
+NAME                                READY   STATUS        RESTARTS   AGE
+users-deployment-655d9785dd-gvwxs   2/2     Running       0          29s
+users-deployment-88c9f4b57-nw57w    1/1     Terminating   0          25m
+```
+
+deplyoment 설정을 변경하여 내부 통신이 가능하도록 변경됩니다.
+
+![volume-error-get](/snippets/kube/chap3/in-communication-pods.png)
