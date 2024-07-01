@@ -318,3 +318,41 @@ deployment.apps/users-deployment created
 ```
 
 ### Pod간 통신에 DNS 사용하기
+
+최신 버전의 쿠버네티스는 [CoreDNS](https://coredns.io/)가 내제되어 있습니다. 클러스터 내부에서 사용할 수 있는 도메인이죠.
+
+```bash
+> kubectl get services
+NAME            TYPE           CLUSTER-IP      EXTERNAL-IP   PORT(S)          AGE
+auth-service    ClusterIP      10.99.190.110   <none>        80/TCP           13h
+kubernetes      ClusterIP      10.96.0.1       <none>        443/TCP          34d
+users-service   LoadBalancer   10.106.212.21   <pending>     8080:31323/TCP   13h
+```
+
+바로 위 서비스의 NAME 요소들이 클러스터 내부에서 접근 가능한 DNS가 됩니다. 그럼 아래와 같이 설정해도 무방합니다.
+
+```yaml
+# users-deployment
+containers:
+- name: users
+  image: wooglim/kub-demo-users:latest
+  env:
+  - name: AUTH_ADDRESS
+    # 80포트로 서버 실행하므로 생략.
+    # 서비스명.네임스페이스
+    value: "auth-service.default"
+```
+
+다시 코드로 돌아가 환경변수를 다시 바꿔줍니다.
+
+```js
+// users-app.js
+const hashedPW = await axios.get(`http://${process.env.AUTH_ADDRESS}/hashed-password/` + password);
+```
+
+### 파드에 여러 컨테이너를 띄우는게 좋을까
+
+대부분의 경우 서로 밀집하게 연관되어 있는 경우를 제외하고는 파드당 여러 컨테이너를 가지려고 하지는 않습니다. 다른 파드의 컨테이너와의 상호작용을 위해서라면 분리하는게 좋죠. 
+
+동일 클러스터라면 쿠버네티스에서 자동으로 생성해주는 환경 변수 혹은 services 로, `ClusterIP`로 등록되면 `coreDNS`를 이용해 `서비스명.네임스페이스`로 환경변수로 등록해 상호작용할 수 있죠.
+
