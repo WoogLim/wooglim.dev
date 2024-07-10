@@ -1,0 +1,112 @@
+---
+title: "[FastAPI] 정리 노트 - 1"
+description: "FastAPI 환경 설정"
+language: "Python"
+category: "FastAPI"
+update: "2024-07-07"
+hide: false
+serisenumber: 1
+---
+## Intro
+---
+- [Eric Roby,Chad Darby 강사님들의 FastAPI - The Complete Course 2024 (Beginner + Advanced) 강의를 듣고 정리한 글입니다.](https://www.udemy.com/course/fastapi-the-complete-course/?couponCode=KEEPLEARNING)
+
+## 파이썬 가상 환경
+다른 파이썬 환경과 격리된 파이썬 가상 환경이 필요합니다. 필요 패키지만을 사용하고 종속성에 추가하기 위함입니다.  
+독립적인 애플리케이션 구동을 위해 필요합니다.
+
+### PIP
+패키지 매니저인 pip가 설치되어야 합니다. 보통 python 설치시 pip도 같이 설치됩니다.
+
+```bash
+> python3 -m pip --version
+pip 23.3.1 from /opt/homebrew/lib/python3.11/site-packages/pip (python 3.11)
+```
+
+venv 환경아래 FastAPI 환경을 구성하고 필요 디펜던시를 추가해봅시다.
+
+## FastAPI와 venv 설치
+
+아래 명령을 실행해 venv 환경을 구성합니다.
+
+```bash
+> mkdir project_folder
+> cd project_folder
+> python3 -m venv fastapienv
+> ls
+fastapienv
+```
+
+서버를 실행합니다.
+
+### mac
+
+```bash
+> source fastapienv/bin/activate
+> pip list
+Package    Version
+---------- -------
+pip        23.2.1
+setuptools 68.2.2
+```
+
+### windows
+
+```bash
+> ./fastapienv/Scripts/activate.bat
+```
+
+venv 실행 후 fastapi를 설치합니다.
+
+```bash
+> pip install fastapi
+```
+
+웹서버로 제공하기 위해 uvicorn도 이어서 설치합니다.
+
+```bash
+> pip install "uvicorn[standard]"
+
+> pip list
+Package           Version
+----------------- --------
+annotated-types   0.7.0
+anyio             4.4.0
+certifi           2024.7.4
+click             8.1.7
+dnspython         2.6.1
+email_validator   2.2.0
+fastapi           0.111.0
+fastapi-cli       0.0.4
+h11               0.14.0
+httpcore          1.0.5
+httptools         0.6.1
+httpx             0.27.0
+idna              3.7
+Jinja2            3.1.4
+markdown-it-py    3.0.0
+MarkupSafe        2.1.5
+mdurl             0.1.2
+orjson            3.10.6
+pip               23.2.1
+pydantic          2.8.2
+pydantic_core     2.20.1
+Pygments          2.18.0
+python-dotenv     1.0.1
+python-multipart  0.0.9
+PyYAML            6.0.1
+rich              13.7.1
+setuptools        68.2.2
+shellingham       1.5.4
+sniffio           1.3.1
+starlette         0.37.2
+typer             0.12.3
+typing_extensions 4.12.2
+ujson             5.10.0
+uvicorn           0.30.1
+uvloop            0.19.0
+watchfiles        0.22.0
+websockets        12.0
+```
+
+만일 가상환경을 종료할 경우 `deactivate`를 입력합니다. 앞으로 특정 어플리케이션 개발에 들어가기전에 해당 애플리케이션의 가상환경을 실행한 후 개발을 진행해야합니다.

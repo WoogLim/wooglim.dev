@@ -350,6 +350,56 @@ containers:
 const hashedPW = await axios.get(`http://${process.env.AUTH_ADDRESS}/hashed-password/` + password);
 ```
 
+이어서 task api 백엔드 코드도 위와 같이 환경변수로 변경한 후 delployment, service yaml을 작성합니다.
+
+```yaml
+# tasks-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tasks-deployment
+spec:
+  # Pod 인스턴스 1개
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tasks
+  template:
+    metadata:
+      labels:
+        app: tasks
+    spec:
+      containers:
+      - name: tasks
+        image: wooglim/kub-demo-tasks:latest
+        env:
+        - name: AUTH_ADDRESS
+          # 80포트로 서버 실행하므로 생략.
+          value: "auth-service.default"
+```
+
+환경변수를 설정하며 서비스의 경우 외부로 노출이 되어야 하므로 `LoadBalancer`로 설정합니다.
+
+```yaml
+# tasks-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: tasks-service
+spec:
+  selector:
+    # 파드 label 매칭
+    app: tasks
+  # 실행 노드 관계 없이 모든 포트에 들어오는 요청을 여러 레플리카에 분배
+  type: LoadBalancer
+  ports:
+  - protocol: TCP
+    # 외부 요청 받는 포트
+    port: 8000
+    targetPort: 8000
+
+```
+
 ### 파드에 여러 컨테이너를 띄우는게 좋을까
 
 대부분의 경우 서로 밀집하게 연관되어 있는 경우를 제외하고는 파드당 여러 컨테이너를 가지려고 하지는 않습니다. 다른 파드의 컨테이너와의 상호작용을 위해서라면 분리하는게 좋죠. 

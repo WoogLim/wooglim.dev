@@ -1,0 +1,81 @@
+---
+title: "[FastAPI] 정리 노트 - 1"
+description: "FastAPI 환경 설정"
+language: "Python"
+category: "FastAPI"
+update: "2024-07-07"
+hide: false
+serisenumber: 1
+---
+## Intro
+---
+- [Eric Roby,Chad Darby 강사님들의 FastAPI - The Complete Course 2024 (Beginner + Advanced) 강의를 듣고 정리한 글입니다.](https://www.udemy.com/course/fastapi-the-complete-course/?couponCode=KEEPLEARNING)
+
+## 종단 API 만들기
+이전에 설정한 폴더를 파이참으로 실행한 후 인터프리터 설정을 해줘야 합니다. `Python`최신 버전으로 선택한 후 venv 환경을 활성화한 상태에서 진행합니다.
+
+```python
+from fastapi import FastAPI
+
+app = FastAPI()
+
+@app.get("/")
+async def first_api():
+    return {"message": "Helloo LIM!"}
+```
+위와 같은 코드를 작성한 후 `uvicorn`을 이용해 웹서버로 실행합니다.
+
+```bash
+> uvicorn books:app --reload
+```
+
+이후 `127.0.0.1/` 경로로 GET 요청을 보내면 아래와 같은 데이터를 받을 수 있게되죠.
+
+```json
+{"message": "Helloo LIM!"}
+```
+
+아래와 같은 방법으로 `uvicorn`을 사용하지 않고도 fastapi를 이용해 실행할 수도 있습니다.
+
+```bash
+> fastapi run books.py
+INFO     Using path books.py                                                                                                                                      
+INFO     Resolved absolute path /Users/wooglim/dev/fast_api/fastapi/books.py                                                                                      
+INFO     Searching for package file structure from directories with __init__.py files                                                                             
+INFO     Importing from /Users/wooglim/dev/fast_api/fastapi                                                                                                       
+                                                                                                                                                                  
+ ╭─ Python module file ─╮                                                                                                                                         
+ │                      │                                                                                                                                         
+ │  🐍 books.py         │                                                                                                                                         
+ │                      │                                                                                                                                         
+ ╰──────────────────────╯                                                                                                                                         
+                                                                                                                                                                  
+INFO     Importing module books                                                                                                                                   
+INFO     Found importable FastAPI app                                                                                                                             
+                                                                                                                                                                  
+ ╭─ Importable FastAPI app ─╮                                                                                                                                     
+ │                          │                                                                                                                                     
+ │  from books import app   │                                                                                                                                     
+ │                          │                                                                                                                                     
+ ╰──────────────────────────╯                                                                                                                                     
+                                                                                                                                                                  
+INFO     Using import string books:app                                                                                                                            
+                                                                                                                                                                  
+ ╭─────────── FastAPI CLI - Production mode ───────────╮                                                                                                          
+ │                                                     │                                                                                                          
+ │  Serving at: http://0.0.0.0:8000                    │                                                                                                          
+ │                                                     │                                                                                                          
+ │  API docs: http://0.0.0.0:8000/docs                 │                                                                                                          
+ │                                                     │                                                                                                          
+ │  Running in production mode, for development use:   │                                                                                                          
+ │                                                     │                                                                                                          
+ │  fastapi dev                                        │                                                                                                          
+ │                                                     │                                                                                                          
+ ╰─────────────────────────────────────────────────────╯                                                                                                          
+                                                                                                                                                                  
+INFO:     Started server process [15845]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+```
+
