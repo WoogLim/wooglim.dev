@@ -29,21 +29,27 @@ VirtualBox를 실행하고 왼쪽 상단 파일 > 도구 > 네트워크 관리�
 ![virtualbox-host-internet-setting-2](/posts/article/virtualbox/virtual-box-network-2.png)
 
 네트워크 상태 및 작업 보기 클릭 후 좌측의 `어댑터 설정 변경`메뉴를 클릭한다. 로컬 컴퓨터에서 인터넷 연결을 위한 이더넷을 클릭하고 `이더넷 속성`으로 진입한다.
+
 ![virtualbox-host-internet-setting-3](/posts/article/virtualbox/virtual-box-network-3.png)
 
 이후 공유탭으로 이동해 `다른 네트워크 사용자가 이 컴퓨터의 인터넷 연결을 ...`체크 후 확인 버튼을 누른다. `192.168.137.1 로 변경해야 합니다...`가 표시되면 확인 버튼을 누른다.
+
 ![virtualbox-host-internet-setting-4](/posts/article/virtualbox/virtual-box-network-4.png)
 
 다시 VirtualBox로 돌아가 이전에 만든 호스트 전용 네트워크 어댑터 정보에서 `수동으로 어댑터 설정`체크 후 IPv4 주소를 `192.168.137.1`로 변경한다.
+
 ![virtualbox-host-internet-setting-5](/posts/article/virtualbox/virtual-box-network-5.png)
 
 DHCP 서버탭을 클릭하고 서버 활성화를 체크한 후 서버 주소, 최저 주소 한계, 최고 주소 한계를 입력한 후 환경을 적용한다.
+
 ![virtualbox-host-internet-setting-6](/posts/article/virtualbox/virtual-box-network-6.png)
 
 VirtualBox 상단 탭에서 머신 > 새로 만들기 후 이전에 다운로드한 Ubuntu20.04 ISO 이미지를 선택하고 머신으로 생성한 후 실행해 OS 설치를 마친다. 이후 VM을 복제한다. 갯수는 필요한 만큼 복제한다. 이 포스팅에서는 3개 이용.(VM수 만큼 최대 주소를 늘릴 필요가 있다.)
+
 ![virtualbox-host-internet-setting-7](/posts/article/virtualbox/virtual-box-network-7.png)
 
 Ubuntu VM 설치 및 복제가 끝난 이후 VM을 종료하고 각 VM을 클릭한 후 설정 버튼을 눌러 네트워크 어댑터 설정을 진행한다. 어댑터 1은 `NAT`으로, 어댑터 2는 호스트 전용 어댑터를 선택한 후 이전에 만든 호스트 전용 어댑터를 선택한다.
+
 ![virtualbox-host-internet-setting-8](/posts/article/virtualbox/virtual-box-network-8.png)
 ![virtualbox-host-internet-setting-9](/posts/article/virtualbox/virtual-box-network-9.png)
 
