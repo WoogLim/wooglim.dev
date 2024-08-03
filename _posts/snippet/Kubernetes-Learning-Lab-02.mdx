@@ -2,7 +2,7 @@
 title: "[K8s Learning Lab] - 2"
 description: "클러스터 구축"
 language: "k8s"
-category: "devops"
+category: "k8s"
 update: "2024-07-20"
 hide: false
 serisenumber: 2
@@ -14,11 +14,79 @@ serisenumber: 2
 
 ### Kubespray와 K3s를 이용한 클러스터 구축
 
-- `Kubespray`는 다양한 설치 옵션 및 OS를 지원하는 앤서블(애플리케이션 배포와 설정을 자동화)기반 쿠버네티스 설치 자동화 도구입니다.
-- `K3s`는 시스템 자원이 부족한 환경에 적합한 경량화된 쿠버네티스 설치 도구 입니다.
+- `Kubespray`는 다양한 설치 옵션 및 OS를 지원하는 앤서블(애플리케이션 배포와 설정을 자동화)기반 쿠버네티스 설치 자동화 도구다.
+- `K3s`는 시스템 자원이 부족한 환경에 적합한 경량화된 쿠버네티스 도구다.
 
 Kubespray 를 이용해 쿠버네티스 클러스터를 설치합니다. 도커 대신 containerd를 사용합니다.(1.20 ~ 부터 도커는 지원하지 않음.) containerd는 쿠버네티스용 OCI를 준수하는 컨테이너 런타임입니다.
 
 #### Kubespray 설치
 
-[kubespray](https://github.com/kubernetes-sigs/kubespray) 를 마스터가 될 1번 노드에 설치합니다.
+[kubespray](https://github.com/kubernetes-sigs/kubespray) 를 마스터가 될 1번 노드에 설치한다.
+
+```bash
+git clone https://github.com/kubernetes-sigs/kubespray.git
+```
+
+공식 가이드에 따라 pip3를 설치하고 requirements.txt에 명시적 필수 모듈을 설치한다. 책의 경우 ansible-5.7.1 버전을 사용하기 때문에
+`requirements.txt`파일을 열고 버전을 `5.7.1`버전으로 변경한 후 설치한다.
+
+```text
+ansible==5.7.1
+...
+```
+
+```bash
+sudo apt update -y
+
+# pip3 설치
+sudo apt install -y python3-pip
+
+pip3 --version
+
+cd kubespray
+
+# 필요 모듈 설치
+sudo pip3 install -r requirements.txt
+```
+
+쿠버네티스가 설치될 노드를 지정하고 설치 옵션을 수정한다. inventory/sample 디렉터리 전체를 inventory/mycluster 경로로 복사한다.
+
+```bash
+cp -rfp inventory/sample/ inventory/mycluster
+```
+
+이후 hosts.yml 파일을 열어 내용을 수정한다. 각 VM은 컨트롤 플레인 이면서 워커노드로 동작한다.
+
+```yaml
+all:
+  hosts:
+    ubun20-1:
+      ansible_host: ubun20-1
+    ubun20-2:
+      ansible_host: ubun20-2
+    ubun20-3:
+      ansible_host: ubun20-3
+  children:
+    kube_control_plane:
+      hosts:
+        ubun20-1:
+        ubun20-2:
+        ubun20-3:
+    kube_node:
+      hosts:
+        ubun20-1:
+        ubun20-2:
+        ubun20-3:
+    etcd:
+      hosts:
+        ubun20-1:
+        ubun20-2:
+        ubun20-3:
+    k8s_cluster:
+      children:
+        kube_control_plane:
+        kube_node:
+        calico_rr:
+    calico_rr:
+      hosts: {}
+```
