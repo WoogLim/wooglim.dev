@@ -1,0 +1,111 @@
+---
+postnumber: "5"
+date: "2024-08-03"
+thumbnail: "/posts/thumbnail/virtual-box.png"
+title: "VirtualBox 호스트 전용 네트워크 vm간 통신 및 인터넷 연결"
+description: 'VirtualBox 호스트 전용 네트워크로 VM간 연결 및 NAT 어뎁터 이용한 인터넷 연결'
+tag: "인프라"
+prerequisites: [
+    "VirtualBox",
+    "호스트 전용 네트워크",
+    "VM 인터넷 연결"]
+stacks: ["Dev Ops"]
+---
+
+## 실습 환경
+
+- (Local)Windows 11, (VM)Ubuntu20.04, VirtualBox 환경을 기준으로 작성됨.
+
+### 1. 기본 프로그램 및 이미지 다운로드
+1. [VirtualBox](https://www.virtualbox.org/wiki/Downloads) 다운로드
+2. [Ubuntu20.04 ISO](https://releases.ubuntu.com/focal/) 다운로드
+
+### 2. VirtualBox 네트워크 설정
+VirtualBox를 실행하고 왼쪽 상단 파일 > 도구 > 네트워크 관리자 클릭. 새로운 호스트 전용 네트워크를 만든다.
+![virtualbox-host-network](/posts/article/virtualbox/virtual-box-network-1.png)
+
+### 3. 인터넷 연결을 공유하기 위한 로컬 PC 인터넷 설정
+윈도우 + R 키를 눌러 `control`을 입력하고 실행한다. 
+![virtualbox-host-internet-setting-2](/posts/article/virtualbox/virtual-box-network-2.png)
+
+네트워크 상태 및 작업 보기 클릭 후 좌측의 `어댑터 설정 변경`메뉴를 클릭한다. 로컬 컴퓨터에서 인터넷 연결을 위한 이더넷을 클릭하고 `이더넷 속성`으로 진입한다.
+![virtualbox-host-internet-setting-3](/posts/article/virtualbox/virtual-box-network-3.png)
+
+이후 공유탭으로 이동해 `다른 네트워크 사용자가 이 컴퓨터의 인터넷 연결을 ...`체크 후 확인 버튼을 누른다. `192.168.137.1 로 변경해야 합니다...`가 표시되면 확인 버튼을 누른다.
+![virtualbox-host-internet-setting-4](/posts/article/virtualbox/virtual-box-network-4.png)
+
+다시 VirtualBox로 돌아가 이전에 만든 호스트 전용 네트워크 어댑터 정보에서 `수동으로 어댑터 설정`체크 후 IPv4 주소를 `192.168.137.1`로 변경한다.
+![virtualbox-host-internet-setting-5](/posts/article/virtualbox/virtual-box-network-5.png)
+
+DHCP 서버탭을 클릭하고 서버 활성화를 체크한 후 서버 주소, 최저 주소 한계, 최고 주소 한계를 입력한 후 환경을 적용한다.
+![virtualbox-host-internet-setting-6](/posts/article/virtualbox/virtual-box-network-6.png)
+
+VirtualBox 상단 탭에서 머신 > 새로 만들기 후 이전에 다운로드한 Ubuntu20.04 ISO 이미지를 선택하고 머신으로 생성한 후 실행해 OS 설치를 마친다. 이후 VM을 복제한다. 갯수는 필요한 만큼 복제한다. 이 포스팅에서는 3개 이용.(VM수 만큼 최대 주소를 늘릴 필요가 있다.)
+![virtualbox-host-internet-setting-7](/posts/article/virtualbox/virtual-box-network-7.png)
+
+Ubuntu VM 설치 및 복제가 끝난 이후 VM을 종료하고 각 VM을 클릭한 후 설정 버튼을 눌러 네트워크 어댑터 설정을 진행한다. 어댑터 1은 `NAT`으로, 어댑터 2는 호스트 전용 어댑터를 선택한 후 이전에 만든 호스트 전용 어댑터를 선택한다.
+![virtualbox-host-internet-setting-8](/posts/article/virtualbox/virtual-box-network-8.png)
+![virtualbox-host-internet-setting-9](/posts/article/virtualbox/virtual-box-network-9.png)
+
+### 4. VM 호스트 명 수정 및 IP주소 변경
+다시 VM을 실행하여 호스트(선택사항) 및 IP주소를 변경한다.
+
+1. 호스트 명 수정(선택사항)
+```bash
+# 아래 명령 실행 후 변경할 호스트명 입력 후 저장(:wq > 엔터)
+sudo vi /etc/hostname
+
+# 아래 명령 실행 후 127.0.1.1 (변경할 호스트명) 입력 후 저장
+sudo vi /etc/hosts
+
+# 호스트명 변경 적용
+sudo hostnamectl set-hostname new-hostname
+
+# 재부팅
+sudo reboot
+
+# 변경 내용 확인
+hostnamectl
+```
+
+2. IP주소 변경
+```bash
+cd /etc/netplan
+```
+위 경로로 이동 후 존재하는 YAML이 있다면 다음과 같이 수정한다.
+```bash
+sudo vi config명.yaml
+```
+다음과 같이 내용을 변경한다.
+```yaml
+network:
+    version: 2
+    ethernets:
+        enp0s3:
+            dhcp4: yes
+        enp0s8:
+            addresses:
+                # 1번째 VM이므로 이전 호스트 전용 네트워크에서 설정한 최저 주소로 설정한다.
+                # 2번째 VM은 192.168.56.102
+                - 192.168.56.101/24
+            # 호스트 전용 네트워크의 IPv4주소
+            gateway4: 192.168.137.1
+            nameservers:
+                addresses:
+                    - 192.168.137.1
+```
+설정을 적용 하기 위해 다음 명령을 입력한다.
+```bash
+sudo netplan apply
+```
+위 과정을 복제한 VM에도 적용한다.
+
+이후 ping 테스트를 통해 각 VM간 통신, 인터넷 통신이 되는지 확인한다.
+
+```bash
+# ping 다른 VM IP주소
+ping 192.168.56.102
+
+# google.com
+ping google.com
+```

@@ -1,0 +1,24 @@
+---
+title: "[K8s Learning Lab] - 2"
+description: "클러스터 구축"
+language: "k8s"
+category: "devops"
+update: "2024-07-20"
+hide: false
+serisenumber: 2
+---
+
+## 시작
+
+- [이정훈 님의 - 24단계 실습으로 정복하는 쿠버네티스 책을 기준으로 정리한 글입니다.](https://m.yes24.com/Goods/Detail/115187666)
+
+### Kubespray와 K3s를 이용한 클러스터 구축
+
+- `Kubespray`는 다양한 설치 옵션 및 OS를 지원하는 앤서블(애플리케이션 배포와 설정을 자동화)기반 쿠버네티스 설치 자동화 도구입니다.
+- `K3s`는 시스템 자원이 부족한 환경에 적합한 경량화된 쿠버네티스 설치 도구 입니다.
+
+Kubespray 를 이용해 쿠버네티스 클러스터를 설치합니다. 도커 대신 containerd를 사용합니다.(1.20 ~ 부터 도커는 지원하지 않음.) containerd는 쿠버네티스용 OCI를 준수하는 컨테이너 런타임입니다.
+
+#### Kubespray 설치
+
+[kubespray](https://github.com/kubernetes-sigs/kubespray) 를 마스터가 될 1번 노드에 설치합니다.
