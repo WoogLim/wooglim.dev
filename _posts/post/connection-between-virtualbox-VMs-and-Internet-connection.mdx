@@ -17,10 +17,12 @@ stacks: ["Dev Ops"]
 - (Local)Windows 11, (VM)Ubuntu20.04, VirtualBox 환경을 기준으로 작성됨.
 
 ### 기본 프로그램 및 이미지 다운로드
+
 1. [VirtualBox](https://www.virtualbox.org/wiki/Downloads) 다운로드
-2. [Ubuntu20.04 ISO](https://releases.ubuntu.com/focal/) 다운로드
+2. [Ubuntu22.04 ISO](https://releases.ubuntu.com/jammy/) 다운로드
 
 ### VirtualBox 네트워크 설정
+
 VirtualBox를 실행하고 왼쪽 상단 파일 > 도구 > 네트워크 관리자 클릭. 새로운 호스트 전용 네트워크를 만든다.
 ![virtualbox-host-network](/posts/article/virtualbox/virtual-box-network-1.png)
 
@@ -57,6 +59,7 @@ Ubuntu VM 설치 및 복제가 끝난 이후 VM을 종료하고 각 VM을 클릭
 다시 VM을 실행하여 호스트(선택사항) 및 IP주소를 변경한다.
 
 #### 호스트 명 수정(선택사항)
+
 ```bash
 # 아래 명령 실행 후 변경할 호스트명 입력 후 저장(:wq > 엔터)
 sudo vi /etc/hostname
@@ -75,6 +78,7 @@ hostnamectl
 ```
 
 #### IP주소 변경
+
 ```bash
 cd /etc/netplan
 ```
@@ -109,7 +113,6 @@ sudo netplan apply
 위 과정을 복제한 VM에도 적용한다.
 
 이후 ping 테스트를 통해 각 VM간 통신, 인터넷 통신이 되는지 확인한다.
-
 ```bash
 # ping 다른 VM IP주소
 ping 192.168.56.102
@@ -132,4 +135,36 @@ visudo
 
 ```text
 spkr ALL=(ALL) NOPASSWD:ALL
+```
+
+#### 다른 VM에 SSH 패스워드 없이 접속
+
+먼저 `/hosts` 파일을 수정합니다.
+```bash
+sudo vi /etc/hosts
+```
+현재 머신을 ubun22-01라고 가정합니다.
+```text
+192.17.29.101 ubun22-01
+192.17.29.102 ubun22-02
+192.17.29.103 ubun22-03
+```
+ubun22-01, ubun22-02, ubun22-03 각각 개인키/공개키를 생성하기 위해 `ssh-keygen`명령을 기본값으로 설정하여 생성합니다.
+```bash
+ssh-keygen
+```
+ubun22-01 머신에서 다음과 같이 다른 VM에서 생성한 키를 복사합니다.
+```bash
+ssh-copy-id ubun22.01
+ssh-copy-id ubun22.02
+ssh-copy-id ubun22.03
+```
+#### 방화벽 해제하기
+
+간혹 방화벽으로 인해 클러스터 구축 등 문제가 발생할 수 있습니다.
+
+다음 명령으로 방화벽을 해제하고 상태를 확입합니다.
+```bash
+sudo ufw disable
+sudo ufw status
 ```
