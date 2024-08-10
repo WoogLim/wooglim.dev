@@ -16,15 +16,15 @@ stacks: ["Dev Ops"]
 
 - (Local)Windows 11, (VM)Ubuntu20.04, VirtualBox 환경을 기준으로 작성됨.
 
-### 1. 기본 프로그램 및 이미지 다운로드
+### 기본 프로그램 및 이미지 다운로드
 1. [VirtualBox](https://www.virtualbox.org/wiki/Downloads) 다운로드
 2. [Ubuntu20.04 ISO](https://releases.ubuntu.com/focal/) 다운로드
 
-### 2. VirtualBox 네트워크 설정
+### VirtualBox 네트워크 설정
 VirtualBox를 실행하고 왼쪽 상단 파일 > 도구 > 네트워크 관리자 클릭. 새로운 호스트 전용 네트워크를 만든다.
 ![virtualbox-host-network](/posts/article/virtualbox/virtual-box-network-1.png)
 
-### 3. 인터넷 연결을 공유하기 위한 로컬 PC 인터넷 설정
+### 인터넷 연결을 공유하기 위한 로컬 PC 인터넷 설정
 윈도우 + R 키를 눌러 `control`을 입력하고 실행한다. 
 ![virtualbox-host-internet-setting-2](/posts/article/virtualbox/virtual-box-network-2.png)
 
@@ -53,10 +53,10 @@ Ubuntu VM 설치 및 복제가 끝난 이후 VM을 종료하고 각 VM을 클릭
 ![virtualbox-host-internet-setting-8](/posts/article/virtualbox/virtual-box-network-8.png)
 ![virtualbox-host-internet-setting-9](/posts/article/virtualbox/virtual-box-network-9.png)
 
-### 4. VM 호스트 명 수정 및 IP주소 변경
+### VM 기타 수정 사항
 다시 VM을 실행하여 호스트(선택사항) 및 IP주소를 변경한다.
 
-1. 호스트 명 수정(선택사항)
+#### 호스트 명 수정(선택사항)
 ```bash
 # 아래 명령 실행 후 변경할 호스트명 입력 후 저장(:wq > 엔터)
 sudo vi /etc/hostname
@@ -74,7 +74,7 @@ sudo reboot
 hostnamectl
 ```
 
-2. IP주소 변경
+#### IP주소 변경
 ```bash
 cd /etc/netplan
 ```
@@ -95,7 +95,9 @@ network:
                 # 2번째 VM은 192.168.56.102
                 - 192.168.56.101/24
             # 호스트 전용 네트워크의 IPv4주소
-            gateway4: 192.168.137.1
+            routes:
+                - to: default
+                  via: 192.168.137.1
             nameservers:
                 addresses:
                     - 192.168.137.1
@@ -114,4 +116,20 @@ ping 192.168.56.102
 
 # google.com
 ping google.com
+```
+
+#### 패스워드 없이 sudo 명령어 수행
+
+```bash
+# root 사용자로 전환
+sudo su -
+
+# visudo로 파일 수정
+visudo
+```
+
+다음 텍스트 추가
+
+```text
+spkr ALL=(ALL) NOPASSWD:ALL
 ```

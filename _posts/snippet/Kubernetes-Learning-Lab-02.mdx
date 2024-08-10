@@ -24,24 +24,30 @@ Kubespray 를 이용해 쿠버네티스 클러스터를 설치합니다. 도커 
 [kubespray](https://github.com/kubernetes-sigs/kubespray) 를 마스터가 될 1번 노드에 설치한다.
 
 ```bash
-git clone https://github.com/kubernetes-sigs/kubespray.git
+git clone --single-branch --branch=release-2.18 https://github.com/kubernetes-sigs/kubespray.git
 ```
 
-공식 가이드에 따라 pip3를 설치하고 requirements.txt에 명시적 필수 모듈을 설치한다. 책의 경우 ansible-5.7.1 버전을 사용하기 때문에
-`requirements.txt`파일을 열고 버전을 `5.7.1`버전으로 변경한 후 설치한다.
-
+requirements.txt는 v2.10 기준으로 반영
 ```text
-ansible==5.7.1
-...
+ansible==3.4.0
+ansible-base==2.10.15
+cryptography==2.8
+jinja2==2.11.3
+netaddr==0.7.19
+pbr==5.4.4
+jmespath==0.9.5
+ruamel.yaml==0.16.10
+ruamel.yaml.clib==0.2.6
+MarkupSafe==1.1.1
 ```
+
+공식 가이드에 따라 pip3를 설치하고 requirements.txt에 명시적 필수 모듈을 설치한다.
 
 ```bash
 sudo apt update -y
 
 # pip3 설치
-sudo apt install -y python3-pip
-
-pip3 --version
+sudo apt install python3 python3-pip git -y
 
 cd kubespray
 
@@ -58,6 +64,7 @@ cp -rfp inventory/sample/ inventory/mycluster
 이후 hosts.yml 파일을 열어 내용을 수정한다. 각 VM은 컨트롤 플레인 이면서 워커노드로 동작한다.
 
 ```yaml
+# hosts.yml
 all:
   hosts:
     ubun20-1:
@@ -67,16 +74,21 @@ all:
     ubun20-3:
       ansible_host: ubun20-3
   children:
+    # 컨트롤 플레인 노드 - 워커 노드 관리
+    # 컨트롤 플레인 혹은 마스터 노드는 apiserver, controller-manager, scheduler, etcd 등이 실행
     kube_control_plane:
       hosts:
         ubun20-1:
         ubun20-2:
         ubun20-3:
+    # 워커 노드 리스트 ubun20-1~3은 플레인과 워커 동시 역할 수행
     kube_node:
       hosts:
         ubun20-1:
         ubun20-2:
         ubun20-3:
+    # etcd 데이터 베이스 노드 리스트
+    # 클러스터내 모든 정보는 키-값 형식의 etcd데이터베이스에 보관
     etcd:
       hosts:
         ubun20-1:
@@ -90,3 +102,33 @@ all:
     calico_rr:
       hosts: {}
 ```
+
+쿠버네티스 설치 옵션을 변경한다.
+
+```yaml
+# kubespray/inventory/mycluster/group_vars/k8s_cluster/k8s-cluster.yml
+
+# configure arp_ignore and arp_announce to avoid answering ARP queries from kube-ipvs0 interface
+# must be set to true for MetalLB, kube-vip(ARP enabled) to work
+# 온프레미스 환경에서 로드밸런서 역할을 할 MetalLB 설정
+kube_proxy_strict_arp: true
+
+## Container runtime
+## docker for docker, crio for cri-o and containerd for containerd.
+## Default: containerd
+# kube 1.20 이후부터는 docker 는 Deprecated.
+container_manager: containerd
+
+# audit log for kubernetes
+# 쿠버네티스 감사 로그 설정
+kubernetes_audit: true
+```
+
+쿠버네티스 설치 작업을 진행한다. 10~30분 정도 소요된다.
+
+```bash
+ansible-playbook -i inventory/mycluster/hosts.yml --become --become-user=root -v cluster.yml
+```
+
+도중 특정 호스트에 dpkg 가 중단되어 SSH로 접속해 `sudo dpkg --configure -a`로 활성
+
