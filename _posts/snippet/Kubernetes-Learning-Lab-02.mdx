@@ -21,38 +21,55 @@ Kubespray 를 이용해 쿠버네티스 클러스터를 설치합니다. 도커 
 
 #### Kubespray 설치
 
-[kubespray](https://github.com/kubernetes-sigs/kubespray) 를 마스터가 될 1번 노드에 설치한다.
+[kubespray](https://github.com/kubernetes-sigs/kubespray) 를 1번 노드에 설치한다.
+
+책이 출간된 시기 및 당시 kubespray 버전을 추측해 python3.8, kubespray 2.22.0 버전으로 설치를 진행했다.
 
 ```bash
-git clone --single-branch --branch=release-2.18 https://github.com/kubernetes-sigs/kubespray.git
+git clone -b v2.22.0 https://github.com/kubernetes-sigs/kubespray.git
 ```
 
-requirements.txt는 v2.10 기준으로 반영
-```text
-ansible==3.4.0
-ansible-base==2.10.15
-cryptography==2.8
-jinja2==2.11.3
-netaddr==0.7.19
-pbr==5.4.4
-jmespath==0.9.5
-ruamel.yaml==0.16.10
-ruamel.yaml.clib==0.2.6
-MarkupSafe==1.1.1
-```
-
-공식 가이드에 따라 pip3를 설치하고 requirements.txt에 명시적 필수 모듈을 설치한다.
+다음은 python 및 pip 그리고 기타 도구를 설치한다. 이 과정에서 많은 오류를 맞이했기 때문에 책 내용과는 실행 명령이 다른점이 존재한다.
 
 ```bash
-sudo apt update -y
+sudo apt update && sudo apt upgrade -y
 
-# pip3 설치
-sudo apt install python3 python3-pip git -y
+sudo apt install -y python3.8
+
+# python3 명령의 기본을 3.8 버전으로 설정
+sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.8
+
+update-alternatives --config python3
+
+curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+
+# pip 를 설치하기 위해 distutils 설치
+sudo apt-get install python3.8-distutils
+
+# python3.10 기반 pip3 설치
+python3.8 get-pip.py
 
 cd kubespray
+```
 
+requirements.txt의 경우 2.12 태그 버전으로 PUSH된 내용으로 설정했다.
+
+```text
+ansible==5.7.1
+ansible-core==2.12.5
+cryptography==3.4.8
+jinja2==3.1.2
+jmespath==1.0.1
+MarkupSafe==2.1.2
+netaddr==0.8.0
+pbr==5.11.1
+ruamel.yaml==0.17.21
+ruamel.yaml.clib==0.2.7
+```
+
+```bash
 # 필요 모듈 설치
-sudo pip3 install -r requirements.txt
+python3 -m pip install -r requirements.txt
 ```
 
 쿠버네티스가 설치될 노드를 지정하고 설치 옵션을 수정한다. inventory/sample 디렉터리 전체를 inventory/mycluster 경로로 복사한다.
@@ -63,37 +80,49 @@ cp -rfp inventory/sample/ inventory/mycluster
 
 이후 hosts.yml 파일을 열어 내용을 수정한다. 각 VM은 컨트롤 플레인 이면서 워커노드로 동작한다.
 
+```bash
+vi inventory/mycluster/hosts.yml
+```
+
+hosts.yml 을 만들고 아래 내용을 작성한다. 참고로 이미 호스트네임과 IP 를 이미 `.ssh/config` 혹은 `/etc/hosts`에 설정했다면 `ansible_host`에 해당 명칭을 작성해주면 된다. 
+
 ```yaml
 # hosts.yml
 all:
   hosts:
-    ubun20-1:
-      ansible_host: ubun20-1
-    ubun20-2:
-      ansible_host: ubun20-2
-    ubun20-3:
-      ansible_host: ubun20-3
+    ubun22-01:
+      ansible_host: 192.168.56.101
+      ip: 192.168.56.101
+      access_ip: 192.168.56.101
+    ubun22-02:
+      ansible_host: 192.168.56.102
+      ip: 192.168.56.102
+      access_ip: 192.168.56.102
+    ubun22-03:
+      ansible_host: 192.168.56.103
+      ip: 192.168.56.103
+      access_ip: 192.168.56.103
   children:
     # 컨트롤 플레인 노드 - 워커 노드 관리
     # 컨트롤 플레인 혹은 마스터 노드는 apiserver, controller-manager, scheduler, etcd 등이 실행
     kube_control_plane:
       hosts:
-        ubun20-1:
-        ubun20-2:
-        ubun20-3:
-    # 워커 노드 리스트 ubun20-1~3은 플레인과 워커 동시 역할 수행
+        ubun22-01:
+        ubun22-02:
+        ubun22-03:
+    # 워커 노드 리스트 ubun22-01~3은 플레인과 워커 동시 역할 수행
     kube_node:
       hosts:
-        ubun20-1:
-        ubun20-2:
-        ubun20-3:
+        ubun22-01:
+        ubun22-02:
+        ubun22-03:
     # etcd 데이터 베이스 노드 리스트
     # 클러스터내 모든 정보는 키-값 형식의 etcd데이터베이스에 보관
     etcd:
       hosts:
-        ubun20-1:
-        ubun20-2:
-        ubun20-3:
+        ubun22-01:
+        ubun22-02:
+        ubun22-03:
     k8s_cluster:
       children:
         kube_control_plane:
@@ -127,8 +156,135 @@ kubernetes_audit: true
 쿠버네티스 설치 작업을 진행한다. 10~30분 정도 소요된다.
 
 ```bash
-ansible-playbook -i inventory/mycluster/hosts.yml --become --become-user=root -v cluster.yml
+ansible-playbook -i inventory/mycluster/hosts.yml --become --become-user=root --ask-become-pass -v cluster.yml
 ```
 
-도중 특정 호스트에 dpkg 가 중단되어 SSH로 접속해 `sudo dpkg --configure -a`로 활성
+### 기타 트러블 슈팅
 
+위 구축과정에서 많은 오류를 맞이했다. 머신을 다시 만들기도 하고 `ansible-playbook...`만 12번 정도를 반복했고 결국 환경을 구축하는데만 4일을 소요했다.
+
+책에는 기재되어 있지 않는 트러블 슈팅을 기록해두기로 했다.
+
+#### 시간 동기화
+
+책에서는 이미지로 Ubuntu20.04 를 이용했지만, 많은 오류를 맞이하다보니 이미지 문제라고 생각되어.. Ubuntu22.04 로 변경하고 맞이한 오류이다. `apt get update`시 하드웨어 시간과 동기화가 이루어지지 않아 업데이트에 실패하는 문제였다.
+
+`시간대(timezone) 변경`
+```text
+- 설정시간대 확인(Etc/UTC 시간대로 확인)
+# timedatectl
+
+- 원하는 시간대 확인
+# timedatectl list-timezones | grep Seoul
+
+- 시간대 변경
+# timedatectl set-timezone Asia/Seoul
+```
+
+
+`시간 동기화(NTP)`
+```text
+- rdate 설치
+# sudo apt-get install rdate
+
+- 시간동기화 서버(NTP) 시간 확인
+# rdate -p time.bora.net
+
+- 시간 동기화(NTP) 서버 리스트
+  time.bora.net (LGU+)
+  time.nist.gov (NIST)
+
+- 시간 동기화(NTP서버 -> 운영체제(Linux))
+# rdate -s time.bora.net
+
+- 현재 운영체제(Linux)시간 확인
+# date
+
+- 하드웨어(Server) 시간 조회
+# hwclock
+
+- 운영체제(Linux) -> 하드웨어(Server) 시간 동기화
+# hwclock -w
+
+- 하드웨어(Server) -> 운영체제(Linux) 시간 동기화
+# hwclock -s
+
+- crontab을 이용한 동기화 작업, 운영체제(Linux)&하드웨어(Server) 동시에 시간 동기화
+# crontab -e
+# 매 5시간마다 한번 실행
+0 */5 * * * rdate -s time.bora.net && hwclock -w &> /dev/null
+```
+
+[출처 https://zosystem.tistory.com/323](https://zosystem.tistory.com/323)
+
+이후 업데이트에 성공했다. 사실 이미지 버전을 굳이 변경할 필요가 없었다. 이후 만날 오류 또한 동일한 문제였기 때문에 만일 Ubuntu22.04를 사용중이라면 시간 설정을 참고하도록 하자.
+
+#### etcd 서비스 시작 실패
+
+쿠버네티스 클러스터 구축시 키-값 데이터를 저장할 목적으로 etcd가 사용되는데, 이 etcd 실행에 문제가 있었다.
+
+`service: Main process exited, code=exited, status=1/FAILURE` 에러가 계속 발생하고 있었는데, `systemctl status etcd.service`, `sudo journalctl -xeu etcd.service` 명령으로 로그를 조사한 결과 etcd.env 파일 설정에 문제가 있는 것으로 보였다.
+
+`vi /etc/etcd.env`(혹은 `vi /etc/etcd/etcd.env`) 명령으로 해당 파일을 열어 환경을 수정하였다.
+
+IP 가 모두 10.0.1.15 로 고정되어 있었던 탓에 각 노드(3대 101, 102, 103)의 고유 IP로 수정했다. 각 VM에 접속해 아래와 같이 수정했다.
+
+```yaml
+# Environment file for etcd v3.5.6
+ETCD_DATA_DIR=/var/lib/etcd
+# ETCD_ADVERTISE_CLIENT_URLS=https://10.0.1.15:2379
+ETCD_ADVERTISE_CLIENT_URLS=https://192.168.56.101:2379
+# ETCD_INITIAL_ADVERTISE_PEER_URLS=https://10.0.1.15:2380
+ETCD_INITIAL_ADVERTISE_PEER_URLS=https://192.168.56.101:2380
+ETCD_INITIAL_CLUSTER_STATE=existing
+ETCD_METRICS=basic
+# ETCD_LISTEN_CLIENT_URLS=https://10.0.1.15:2379,https://127.0.0.1:2379
+ETCD_LISTEN_CLIENT_URLS=https://192.168.56.101:2379,https://127.0.0.1:2379
+ETCD_ELECTION_TIMEOUT=5000
+ETCD_HEARTBEAT_INTERVAL=250
+ETCD_INITIAL_CLUSTER_TOKEN=k8s_etcd
+# ETCD_LISTEN_PEER_URLS=https://10.0.1.15:2380
+ETCD_LISTEN_PEER_URLS=https://192.168.56.101:2380
+ETCD_NAME=etcd1
+ETCD_PROXY=off
+# ETCD_INITIAL_CLUSTER=etcd1=https://10.0.1.15:2380,etcd2=https://10.0.1.15:2380,etcd3=https://10.0.1.15:2380
+ETCD_INITIAL_CLUSTER=etcd1=https://192.168.56.101:2380,etcd2=https://192.168.56.102:2380,etcd3=https://192.168.56.103:2380
+ETCD_AUTO_COMPACTION_RETENTION=8
+ETCD_SNAPSHOT_COUNT=10000
+# Flannel need etcd v2 API
+ETCD_ENABLE_V2=true
+```
+
+아무래도 처음 `host.yml` 작성했을때, IP를 직접 설정하지 않고 호스트네임 만을 명시했었는데, 시스템 상 기록해두었던 정보가 설정되어있지 않았던 것으로 예상된다.
+
+Ubuntu20.04의 경우 `sudo vi /etc/hosts`를 입력해 아래와 같이 설정한다.
+
+```text
+127.0.0.1 localhost.localdomain localhost
+127.0.1.1 ubun22-01
+
+192.168.56.101 ubun22-01
+192.168.56.102 ubun22-02
+192.168.56.103 ubun22-03
+```
+
+Ubuntu22.04의 경우 `sudo vi ~/.ssh/config`를 입력해 아래와 같이 설정한다.
+
+```text
+Host ubun22-01
+  Hostname 192.168.56.101
+  User spkr
+  Port 22
+Host ubun22-02
+  Hostname 192.168.56.102
+  User spkr
+  Port 22
+Host ubun22-03
+  Hostname 192.168.56.103
+  User spkr
+  Port 22
+```
+
+이후 `sudo systemctl stop etcd.service`로 etcd를 종료하고 `lsof -i:2379`, `lsof -i:2380` 명령으로 사용중인 포트가 있는지 검색하고 제거하였다.
+
+그리고 `ansible-playbook -i inventory/mycluster/hosts.yml --become --become-user=root --ask-become-pass -v cluster.yml` 명령을 다시 수행한 뒤 클러스터 구성에 성공했다.
