@@ -12,4 +12,216 @@ serisenumber: 4
 
 - [이정훈 님의 - 24단계 실습으로 정복하는 쿠버네티스 책을 기준으로 정리한 글입니다.](https://m.yes24.com/Goods/Detail/115187666)
 
-### 
+### kubectl 명령어와 주요 오브젝트
+
+kubectl을 이용해 주요 오브젝트(파드, 디플로이먼트, 네임스페이스)등을 익혀보자.
+
+기본적으로 다음과 같이 오브젝트를 생성하고 조회할 수 있는 명령으로 나뉜다.
+
+- run, create
+  - 파드와 디플로이먼트 생성
+- get, exec
+  - 생성된 파드 현황 조회 및 파드 내 bash 스크립트 실행
+- scale, delete
+  - 파드 수량 증가/감소 및 오브젝트 삭제
+- create namespace
+  - 네임스페이스 생성
+
+여기서 오브젝트란 애플리케이션을 실행, 추가 리소스를 지정하고 고가용성 관련 설정을 하는 등 일련의 모든 쿠버네티스 작업을 말한다.
+
+모든 오브젝트는 API서버로 생성한다.
+
+복잡한 옵션의 오브젝트의 경우 YAML파일을 사용한다.
+
+### nginx 파드 실행과 배시 실행
+
+파드를 생성하고 접속해보는 실습을 진행한다.
+
+`파드`는 쿠버네티스 환경에서 컨테이너 앱을 실행하는 기본 단위이다. 일반적으로 한 파드에 한 컨테이너만 실행하지만 2개 이상의 컨테이너도 실행 가능하다. 파드는 컴퓨팅, 네트워크, 스토리지를 모듈 형태로 묶어 시슽믕 확장 시 사용하는 기본 단위로 IT업계에서 이용되기도 한다.
+
+nginx컨테이너 이미지를 가진 파드를 생성한다.
+
+```bash
+[spkr@ubun22-01 ~ (kubernetes-admin@cluster.local:default)]$ k run --help
+Usage:
+  kubectl run NAME --image=image [--env="key=value"] [--port=port] [--dry-run=server|client] [--overrides=inline-json]
+[--command] -- [COMMAND] [args...] [options]
+
+# nginx라는 이름의 NGINX컨테이너 이미지를 갖는 파드가 실행
+[spkr@ubun22-01 ~ (kubernetes-admin@cluster.local:default)]$ k run nginx --image=nginx
+pod/nginx created
+
+# kubectl get pod -o wide
+[spkr@ubun22-01 ~ (kubernetes-admin@cluster.local:default)]$ kgp
+NAME    READY   STATUS    RESTARTS   AGE   IP              NODE        NOMINATED NODE   READINESS GATES
+nginx   1/1     Running   0          69s   10.233.100.67   ubun22-03   <none>           <none>
+
+# nginx01라는 이름의 NGINX컨테이너 이미지를 갖는 파드가 실행
+[spkr@ubun22-01 ~ (kubernetes-admin@cluster.local:default)]$ k run nginx01 --image=nginx
+pod/nginx01 created
+[spkr@ubun22-01 ~ (kubernetes-admin@cluster.local:default)]$ kgp
+NAME      READY   STATUS              RESTARTS   AGE     IP              NODE        NOMINATED NODE   READINESS GATES
+nginx     1/1     Running             0          2m53s   10.233.100.67   ubun22-03   <none>           <none>
+nginx01   0/1     ContainerCreating   0          4s      <none>          ubun22-02   <none>           <none>
+```
+
+생성된 파드를 보면 고유의 IP를 가진다. 각 파드는 각각 고유의 볼륨을 사용하며 기본적으로 개별 파드가 사용하는 볼륨을 호스트 노드의 `/var/lib/containers/{파드 이름}`디렉터리이다.
+
+`exec`명령을 이용해 파드에 접속해보자.
+
+```bash
+[spkr@ubun22-01 ~ (kubernetes-admin@cluster.local:default)]$ k exec -it nginx -- bash
+
+root@nginx:/# ps
+bash: ps: command not found
+
+root@nginx:/# apt -y update && apt -y install procps
+
+root@nginx:/# ps aux
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.1  11404  7396 ?        Ss   09:31   0:00 nginx: master process nginx -g daemon off;
+nginx         28  0.0  0.0  11868  2952 ?        S    09:31   0:00 nginx: worker process
+nginx         29  0.0  0.0  11868  2952 ?        S    09:31   0:00 nginx: worker process
+root          30  0.0  0.0   4188  3452 pts/0    Ss   09:37   0:00 bash
+root         220  0.0  0.1   8100  4104 pts/0    R+   09:38   0:00 ps aux
+```
+
+nginx 파드에 접속해 실행중인 프로세스를 보면 오직 nginx만 실행하는데, 이 때문에 이미지 크기가 작고 실행 속도도 매우 빠르다.
+
+### 디플로이먼트의 파드 개수 변경과 삭제
+
+`kubectl create deployment` 명령을 이용해 디플로이먼트를 생성해보자.
+
+```bash
+# 아파치 웹서버 이미지를 사용하는 디플로이먼트 생성
+[spkr@ubun22-01 ~ (kubernetes-admin@cluster.local:default)]$ k create deployment httpd --image=httpd
+deployment.apps/httpd created
+
+[spkr@ubun22-01 ~ (kubernetes-admin@cluster.local:default)]$ kgp
+NAME                    READY   STATUS    RESTARTS   AGE     IP              NODE        NOMINATED NODE   READINESS GATES
+httpd-975f8444c-p5hnk   1/1     Running   0          16s     10.233.99.67    ubun22-02   <none>           <none>
+nginx                   1/1     Running   0          10m     10.233.100.67   ubun22-03   <none>           <none>
+nginx01                 1/1     Running   0          7m48s   10.233.99.66    ubun22-02   <none>           <none>
+```
+
+디플로이먼트는 `{디플로이먼트 이름} + ${임의 해쉬값}`으로 파드의 이름을 지정한다. 파드 개수를 변경해보자.
+
+```bash
+[spkr@ubun22-01 ~ (kubernetes-admin@cluster.local:default)]$ k scale deployment httpd --replicas 10
+deployment.apps/httpd scaled
+
+[spkr@ubun22-01 ~ (kubernetes-admin@cluster.local:default)]$ k get pod -w
+NAME                    READY   STATUS    RESTARTS   AGE
+httpd-975f8444c-5wlsh   1/1     Running   0          53s
+httpd-975f8444c-8d2zm   1/1     Running   0          53s
+httpd-975f8444c-96dwn   1/1     Running   0          53s
+httpd-975f8444c-f8pdk   1/1     Running   0          53s
+httpd-975f8444c-fjnzp   1/1     Running   0          53s
+httpd-975f8444c-k5w7d   1/1     Running   0          53s
+httpd-975f8444c-p5hnk   1/1     Running   0          2m57s
+httpd-975f8444c-rmpmc   1/1     Running   0          53s
+httpd-975f8444c-spdxx   1/1     Running   0          53s
+httpd-975f8444c-tbjpr   1/1     Running   0          53s
+nginx                   1/1     Running   0          13m
+nginx01                 1/1     Running   0          10m
+
+[spkr@ubun22-01 ~ (kubernetes-admin@cluster.local:default)]$ k scale deployment httpd --replicas=0
+deployment.apps/httpd scaled
+
+[spkr@ubun22-01 ~ (kubernetes-admin@cluster.local:default)]$ kgp
+NAME      READY   STATUS    RESTARTS   AGE   IP              NODE        NOMINATED NODE   READINESS GATES
+nginx     1/1     Running   0          14m   10.233.100.67   ubun22-03   <none>           <none>
+nginx01   1/1     Running   0          12m   10.233.99.66    ubun22-02   <none>           <none>
+
+[spkr@ubun22-01 ~ (kubernetes-admin@cluster.local:default)]$ k scale deployment httpd --replicas=1
+deployment.apps/httpd scaled
+
+[spkr@ubun22-01 ~ (kubernetes-admin@cluster.local:default)]$ kgp
+NAME                    READY   STATUS              RESTARTS   AGE   IP              NODE        NOMINATED NODE   READINESS GATES
+httpd-975f8444c-lz9hc   0/1     ContainerCreating   0          2s    <none>          ubun22-02   <none>           <none>
+nginx                   1/1     Running             0          15m   10.233.100.67   ubun22-03   <none>           <none>
+nginx01                 1/1     Running             0          12m   10.233.99.66    ubun22-02   <none>           <none>
+```
+
+`kubectl scale`명령을 디플로이먼트 이름과 수량을 받는다. 수량 만큼 파드의 수량을 늘리고 줄인다.
+
+`kubectl delete`명령으로 파드를 제거해보자. 이후 configmap, secret 또한 이 명령으로 제거할 수 있다.
+
+```bash
+[spkr@ubun22-01 ~ (kubernetes-admin@cluster.local:default)]$ k delete pod httpd-975f8444c-lz9hc
+pod "httpd-975f8444c-lz9hc" deleted
+
+[spkr@ubun22-01 ~ (kubernetes-admin@cluster.local:default)]$ k delete pod httpd-975f8444c-lz9hc
+pod "httpd-975f8444c-lz9hc" deleted
+
+[spkr@ubun22-01 ~ (kubernetes-admin@cluster.local:default)]$ kgp
+NAME                    READY   STATUS    RESTARTS   AGE   IP               NODE        NOMINATED NODE   READINESS GATES
+httpd-975f8444c-plfd8   1/1     Running   0          31s   10.233.111.198   ubun22-01   <none>           <none>
+nginx                   1/1     Running   0          17m   10.233.100.67    ubun22-03   <none>           <none>
+nginx01                 1/1     Running   0          14m   10.233.99.66     ubun22-02   <none>           <none>
+```
+
+위에서 파드를 제거했지만 새로운 파드로 대체된 것을 확인할 수 있다. 이는 디플로이먼트로 생성되었기 때문이다. 쿠버네티스는 의도한 상태를 자동으로 유지하려고 한다.
+
+`k scale deployment httpd --replicas=1`명령으로 수량을 1로 지정했기 때문에 해당 파드에 문제가 생기면 다른 파드 1대로 대체된다.
+
+```bash
+[spkr@ubun22-01 ~ (kubernetes-admin@cluster.local:default)]$ k get deployments.app
+NAME    READY   UP-TO-DATE   AVAILABLE   AGE
+httpd   1/1     1            1           8m36s
+```
+
+### 네임스페이스 생성
+
+네임스페이스는 가상 클러스터 단위입니다. 같은 네임스페이스에 속한 오브젝트는 동일 이름을 사용할 수 없지만 다른 네임스페이스에 속한다면 동일 이름을 이용할 수 있다.
+
+`k create ns`명령으로 네임스페이스를 생성한다.
+
+```bash
+[spkr@ubun22-01 ~ (kubernetes-admin@cluster.local:default)]$ k create ns default01
+namespace/default01 created
+
+[spkr@ubun22-01 ~ (kubernetes-admin@cluster.local:default)]$ k run nginx --image=nginx
+pod/nginx created
+# 같은 네임스페이스에서 동일한 이름의 오브젝트는 생성하지 못한다.
+[spkr@ubun22-01 ~ (kubernetes-admin@cluster.local:default)]$ k run nginx --image=nginx
+Error from server (AlreadyExists): pods "nginx" already exists
+
+[spkr@ubun22-01 ~ (kubernetes-admin@cluster.local:default)]$ k ns default01
+Context "kubernetes-admin@cluster.local" modified.
+Active namespace is "default01".
+# 네임스페이스가 다르다면 동일 이름의 오브젝트를 생성할 수 있다.
+[spkr@ubun22-01 ~ (kubernetes-admin@cluster.local:default01)]$ k run nginx --image=nginx
+pod/nginx created
+```
+
+`k run nginx --image=nginx -n default01`처럼 네임스페이스를 바꾸지 않고도 생성할 수도 있지만 햇갈린다. 현업에서는 주로 네임스페이스를 애플리케이션을 구분할 단위로 사용한다고 한다.
+
+웹(Nginx), WAS(Tomcat), 데이터베이스(MySQL), 레디스(Redis) 등 각 애플리케이션마다 네임스페이스를 별도로 지정한다.
+
+네임스페이스는 클러스터를 가상으로 구분하는 단위지 물리적으로 완전히 분리하지 못한다. 그래서 네임스페이스간 네트워크 연결이 가능하다.
+
+```bash
+[spkr@ubun22-01 ~ (kubernetes-admin@cluster.local:default01)]$ kgp -n default
+NAME    READY   STATUS    RESTARTS   AGE     IP              NODE        NOMINATED NODE   READINESS GATES
+nginx   1/1     Running   0          5m14s   10.233.100.71   ubun22-03   <none>           <none>
+
+[spkr@ubun22-01 ~ (kubernetes-admin@cluster.local:default01)]$ kgp -n default01
+NAME    READY   STATUS    RESTARTS   AGE     IP               NODE        NOMINATED NODE   READINESS GATES
+nginx   1/1     Running   0          4m26s   10.233.111.199   ubun22-01   <none>           <none>
+
+[spkr@ubun22-01 ~ (kubernetes-admin@cluster.local:default01)]$ k exec -it nginx -- bash
+root@nginx:/# apt-get update -y
+root@nginx:/# apt-get install iputils-ping -y
+root@nginx:/# ping 10.233.100.71
+PING 10.233.100.71 (10.233.100.71) 56(84) bytes of data.
+64 bytes from 10.233.100.71: icmp_seq=1 ttl=62 time=1.10 ms
+64 bytes from 10.233.100.71: icmp_seq=2 ttl=62 time=0.630 ms
+64 bytes from 10.233.100.71: icmp_seq=3 ttl=62 time=0.661 ms
+64 bytes from 10.233.100.71: icmp_seq=4 ttl=62 time=0.650 ms
+^C
+--- 10.233.100.71 ping statistics ---
+4 packets transmitted, 4 received, 0% packet loss, time 3011ms
+```
+
+네임스페이스만으로는 네트워크까지 차단되어 물리적으로 완전히 분리되는 환경을 제공하지 않고 가상 수준에서 클러스터를 분리할 수 있다.
