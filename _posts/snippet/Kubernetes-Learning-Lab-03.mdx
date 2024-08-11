@@ -1,0 +1,201 @@
+---
+title: "[K8s Learning Lab] - 3"
+description: "kubectl CLI 환경 최적화"
+language: "k8s"
+category: "k8s"
+update: "2024-08-11"
+hide: false
+serisenumber: 3
+---
+
+## 시작
+
+- [이정훈 님의 - 24단계 실습으로 정복하는 쿠버네티스 책을 기준으로 정리한 글입니다.](https://m.yes24.com/Goods/Detail/115187666)
+
+### sudo 명령 없이 kubectl 명령 사용하기
+
+현재 루트 사용자로 설정된 kubectl 구성 파일을 일반 사용자로 복사한다.
+
+```bash
+sudo cp /root/.kube/config ~/.kube/config
+
+sudo chown $(id -u):$(id -g) ~/.kube/config
+```
+
+### kubectl 자동 완성과 명령 앨리어스 활용
+
+kubectl 명령은 길기 때문에 오타가 발생하기 쉽다. alias를 등록해보자.
+
+```bash
+sudo apt -y install bash-completion
+type_init_completion
+echo 'source <(kubectl completion bash)' >>~/.bashrc
+echo 'alias k=kubectl' >>~/.bashrc
+echo 'complete -F __start_kubectl k' >>~/.bashrc
+source ~/.bashrc
+```
+
+이후 k 만 입력해도 kubectl 로 인식한다.
+
+```bash
+spkr@ubun22-01:~/kubespray$ kubectl get nodes
+NAME        STATUS   ROLES           AGE    VERSION
+ubun22-01   Ready    control-plane   120m   v1.26.5
+ubun22-02   Ready    control-plane   119m   v1.26.5
+ubun22-03   Ready    control-plane   119m   v1.26.5
+spkr@ubun22-01:~/kubespray$ k get nodes
+NAME        STATUS   ROLES           AGE    VERSION
+ubun22-01   Ready    control-plane   120m   v1.26.5
+ubun22-02   Ready    control-plane   120m   v1.26.5
+ubun22-03   Ready    control-plane   119m   v1.26.5
+```
+
+기타 추가 alias `cat <<EOF>> ~/.bashrc` 입력 후 다음 텍스트들을 추가하자.
+
+```bash
+> alias ka='kubectl apply --recursive -f'
+> alias kgp='kubectl get pods -o wide'
+> alias kgd='kubectl get deploy -o wide'
+> alias kgs='kubectl get service -o wide'
+> alias kgn='kubectl get nodes -o wide'
+> alias kge='kubectl get events -w --field-selector type=Warning'
+> alias kgv='kubectl get pvc -o wide'
+> alias kgpa='kubectl get pods -o wide -A'
+> alias kgpw='kubectl get pods -o wide -w'
+> alias kgpaw='kubectl get pods -o wide -A -w'
+> alias krn='kubectl run nginx --image=nginx --restart=Never'
+> alias kcn='kubectl create deployment nginx --image=nginx'
+> alias krb='kubectl run busybox --image=busybox --restart=Never -- sleep 1d'
+> EOF
+
+source ~/.bashrc
+```
+
+단축 명령 입력 예시
+
+```bash
+spkr@ubun22-01:~/kubespray$ kgn
+NAME        STATUS   ROLES           AGE    VERSION   INTERNAL-IP      EXTERNAL-IP   OS-IMAGE             KERNEL-VERSION       CONTAINER-RUNTIME
+ubun22-01   Ready    control-plane   126m   v1.26.5   192.168.56.101   <none>        Ubuntu 22.04.4 LTS   5.15.0-118-generic   containerd://1.7.1
+ubun22-02   Ready    control-plane   125m   v1.26.5   192.168.56.102   <none>        Ubuntu 22.04.4 LTS   5.15.0-118-generic   containerd://1.7.1
+ubun22-03   Ready    control-plane   125m   v1.26.5   192.168.56.103   <none>        Ubuntu 22.04.4 LTS   5.15.0-118-generic   containerd://1.7.1
+```
+
+### 쿠버네티스 krew를 이용한 플러그인 관리
+
+kubectl 커맨드라인 환경에서 사용 가능한 다양한 플러그인 설치, 삭제, 조회하는 기능을 제공하는 [krew](https://krew.sigs.k8s.io/docs/user-guide/setup/install/) 를 설치한다.
+
+```bash
+(
+  set -x; cd "$(mktemp -d)" &&
+  OS="$(uname | tr '[:upper:]' '[:lower:]')" &&
+  ARCH="$(uname -m | sed -e 's/x86_64/amd64/' -e 's/\(arm\)\(64\)\?.*/\1\2/' -e 's/aarch64$/arm64/')" &&
+  KREW="krew-${OS}_${ARCH}" &&
+  curl -fsSLO "https://github.com/kubernetes-sigs/krew/releases/latest/download/${KREW}.tar.gz" &&
+  tar zxvf "${KREW}.tar.gz" &&
+  ./"${KREW}" install krew
+)
+```
+
+환경변수를 등록하기 위해 `.bashrc` 내용을 수정한다.
+
+```bash
+$ vi ~/.bashrc
+export PATH="${KREW_ROOT:-$HOME/.krew}/bin:$PATH"
+
+$ source ~/.bashrc
+
+$ k krew
+krew is the kubectl plugin manager.
+You can invoke krew through kubectl: "kubectl krew [command]..."
+
+Usage:
+  kubectl krew [command]
+
+Available Commands:
+  help        Help about any command
+  index       Manage custom plugin indexes
+  info        Show information about an available plugin
+  install     Install kubectl plugins
+  list        List installed kubectl plugins
+  search      Discover kubectl plugins
+  uninstall   Uninstall plugins
+  update      Update the local copy of the plugin index
+  upgrade     Upgrade installed plugins to newer versions
+  version     Show krew version and diagnostics
+
+Flags:
+  -h, --help      help for krew
+  -v, --v Level   number for the log level verbosity
+
+Use "kubectl krew [command] --help" for more information about a command.
+```
+
+주요 사용법은 `search`명령으로 플러그인을 검색, `install`명령으로 플러그인 설치, `list`로 설치된 플러그인 목록을 확인한다.
+
+#### 플러그인 설치
+
+관리할 클러스터가 많아질 수록 관리에 혼동이 올 수 있다. 스테이징 클러스터의 파드를 삭제해야 하는데 운영 클러스터의 파드를 삭제하면 식은땀이 흐른다. 이때 아래 플러그인을 사용하면 큰 도움이 된다고 한다.
+
+- `kube-ctx(컨텍스트)`
+- `kube-ns(네임스페이스)`
+- `kube-ps1(프롬포트)`
+
+`kube-ctx(컨텍스트)`는 쿠버네티스 컨텍스트를 선택하는 플러그인이다. 개발, 스테이징, 운영 클러스터 중 필요 클러스터를 지정할 수 있다.
+
+```bash
+$ kubectl krew install ctx
+
+$ k ctx
+ubun01-dev
+ubun01-stg
+ubun01-prod
+```
+
+`k ctx ubun01-dev`를 입력하면 해당 클러스터로 변경된다. `k get pod -n kube-system`을 입력하면 개발 클러스터내 파드만 조회된다.
+
+`kube-ns(네임스페이스)`는 단일 클러스터 내에서 각 네임스페이스별 자원을 격리할 수 있어 가상 클러스터로 구분하는 용도로 사용할 수 있다. 일반적으로 nginx, redis, postgres 등 애플리케이션 단위로 네임스페이스를 분리한다.
+
+```bash
+$ kubectl krew install ns
+
+$ k ns
+kafka
+redis
+gitlab
+```
+
+`kube-ns [네임스페이스]`로 네임스페이스를 변경할 수 있다.
+
+변경 이후 `k get pod`시 해당 네임스페이스 파드만 조회된다.
+
+```bash
+k ns default
+
+k get pod
+```
+
+`ns`를 사용하지 않는 경우 `kubectl get pod -n [네임스페이스]` 명령으로 해당 네임스페이스 옵션을 명시해줘야 한다.
+
+`kube-ps1`는 현재 클러스터와 네임스페이스를 명령문을 입력하는 부분에 표시해주는 플러그인이다.
+
+[공식 리포](https://github.com/jonmosco/kube-ps1) 가이드에 따라 설치한다.
+
+```bash
+$ git clone https://github.com/jonmosco/kube-ps1.git
+
+$ chmod +x ./kube-ps1/kube-ps1.sh
+
+$ vi ~/.bashrc
+source $HOME/kube-ps1/kube-ps1.sh
+PS1='[\u@\h \W $(kube_ps1)]\$ '
+KUBE_PS1_SYMBOL_ENABLE=false
+
+$ source ~/.bashrc
+
+$ spkr@ubun22-01:~$ source ~/.bashrc
+[spkr@ubun22-01 ~ (kubernetes-admin@cluster.local:default)]$ k ns kube-system
+Context "kubernetes-admin@cluster.local" modified.
+Active namespace is "kube-system".
+[spkr@ubun22-01 ~ (kubernetes-admin@cluster.local:kube-system)]$
+```

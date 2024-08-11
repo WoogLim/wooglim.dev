@@ -288,3 +288,65 @@ Host ubun22-03
 이후 `sudo systemctl stop etcd.service`로 etcd를 종료하고 `lsof -i:2379`, `lsof -i:2380` 명령으로 사용중인 포트가 있는지 검색하고 제거하였다.
 
 그리고 `ansible-playbook -i inventory/mycluster/hosts.yml --become --become-user=root --ask-become-pass -v cluster.yml` 명령을 다시 수행한 뒤 클러스터 구성에 성공했다.
+
+```bash
+spkr@ubun22-01:~/kubespray$ sudo kubectl get nodes -o wide
+NAME        STATUS   ROLES           AGE   VERSION   INTERNAL-IP      EXTERNAL-IP   OS-IMAGE             KERNEL-VERSION       CONTAINER-RUNTIME
+ubun22-01   Ready    control-plane   48m   v1.26.5   192.168.56.101   <none>        Ubuntu 22.04.4 LTS   5.15.0-118-generic   containerd://1.7.1
+ubun22-02   Ready    control-plane   48m   v1.26.5   192.168.56.102   <none>        Ubuntu 22.04.4 LTS   5.15.0-118-generic   containerd://1.7.1
+ubun22-03   Ready    control-plane   47m   v1.26.5   192.168.56.103   <none>        Ubuntu 22.04.4 LTS   5.15.0-118-generic   containerd://1.7.1
+```
+
+이 클러스터는 control-plane(마스터) 노드 3대가 존재하며 각 control-plane에 taint 설정을 해제했기 때문에 파드 생성이 가능하도록 설정되었다. 참고로 현업에서는 가상 머신이 아닌 베어메탈 서버 환경일 것이므로 해당 서버 환경에서 taint 설정을 제거하고 사용할 때가 많다고 한다.
+
+만일 여러 대의 가상 머신을 준비하기 여의치 않다면 단일 노드로 구성해주는 K3s, minikube 등을 이용해 테스트 환경을 사용하도록 하자.
+
+### 로컬호스트에서 원격 쿠버네티스 관리하기
+
+k8s의 모든 작업을 컨트롤 플레인 노드의 API 파드와 통신하는 과정을 거쳐 실행된다. 원격 서버, 로컬호스트에서 실행하는 모든 명령은 동일하게 k8s API가 처리하므로 로컬 환경에서 진행하는 것이 편리하다. 단, 보안상 이유로 로컬 호스트 접속이 되지 않는 다면 bastion 등 중앙 관리 서버에 쿠버네티스 작업을 진행한다.
+
+```bash
+$ choco install kubernetes-cli
+
+$ kubectl version --client
+Client Version: v1.30.3
+```
+
+로컬 호스트에 kubectl 설치 완료 후 원격 클러스터 정보를 kubeconfig 파일에 등록한다. 우선 원격 클러스터로 접속해 내용을 확인한다.
+
+```bash
+$ ssh ubun22-01
+
+sudo bash
+cat  /root/.kube/config
+
+apiVersion: v1
+#원격 클러스터 API 서버의 인증서 정보와 IP 정보
+clusters: 
+- cluster:
+    certificate-authority-data:
+    server: https://127.0.0.1:6443 # 원격 서버 IP 정보
+  name: cluster.local # 임의의 클러스터 이름
+#여러 클러스터 중 현재 사용 중인 클러스터와 유저/네임스페이스 정보
+contexts:
+- context:
+    cluster: ubun01 # 임의 클러스터 명
+    user: ubun01 # 임의 사용자 이름
+  name: ubun01 # 임의 context 이름
+current-context: ubun01 # 임의의 현재 context 이름
+kind: Config
+preferences: {}
+#사용자 이름과 키 정보
+users: # 임의의 사용자 이름
+- name: kubernetes-admin
+  user:
+    client-certificate-data:
+    client-key-data:
+...
+```
+
+위 내용을 복사하여 로컬 호스트에서 `mkdir ~/.kube` 폴더를 생성하고 `vi ~/.kube/config`파일을 작성한다 여깃 server 는 `127.0.0.1`이 아닌 원격 클러스터의 IP로 설정한다. 아래 명령을 실행해 최종적으로 노드 정보를 조회할 수 있는지 검사한다.
+
+```bash
+kubectl get nodes
+```
