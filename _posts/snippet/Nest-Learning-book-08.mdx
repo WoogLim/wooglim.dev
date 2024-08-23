@@ -1,0 +1,214 @@
+---
+title: "[Nest.js V9] 정리 노트 - 8"
+description: "인터셉터"
+language: "Typescript"
+category: "NestJS"
+update: "2023-07-07"
+hide: false
+serisenumber: 8
+---
+## Intro
+---
+- [Stephen Grider 강사님의 NestJS: The Complete Developer's Guide 강의를 듣고 TIL 방식으로 정리한 글입니다.](https://www.udemy.com/course/nestjs-the-complete-developers-guide//)
+
+### 시작
+---
+유저의 정보를 요청해봅시다. `/api/users/1`
+
+아래와 같은 정보가 응답데이터로 발송됩니다. 다만 취약한 정보 또한 발송됩니다. 바로 `password`입니다.
+
+```json
+{
+  id: 1,
+  email: 'wooglim@gamil.com',
+  password: 'qwer1234!'
+}
+```
+
+현재 요청 프로세스를 살펴봅시다.
+
+1. `/api/users/1` 로 유저 정보를 요청합니다.
+2. 컨트롤러에 라우팅되고, 서비스를 호출합니다.
+3. 서비스는 검색된 user 인스턴스를 컨트롤러에게 return 합니다.
+4. 컨트롤러는 user 인스턴스 그대로 응답으로 발송합니다. 이때 Json으로 변환해 발송합니다.
+
+Nest는 서비스 계층의 return 단계부터 아래와 같이 적용할 것을 권장합니다.
+
+1. 컨트롤러에 return 하기 전 일반 객체로 변환하여 return 합니다.
+2. 컨트롤러에서 클라이언트에게 응답을 발송하는 과정에서 `클래스 직렬화 인터셉터`를 추가합니다. 인터셉터의 경우 요청/응답 데이터를 가로채 가공하는데 사용됩니다.
+
+우선 `users.entity.ts` 코드를 수정합니다. `password`의 경우 `@Exclude()`데코레이터를 설정해 응답 데이터에서 제외되도록 합니다.
+```ts
+// users.entity.ts
+
+@Column()
+@Exclude()
+password: string;
+```
+
+그 후 `@Exclude()`데코레이터를 인터셉터에서 인식하도록 해당 요청을 처리하는 컨트롤러에 `@UseInterceptor(ClassSerializerInterceptor)`데코레이터를 추가합니다.
+```ts
+// users.controller.ts
+import { ClassSerializerInterceptor, UseInterceptors } from '@nestjs/common';
+
+@Controller('users')
+export class UsersController {
+  
+  constructor(private usersService: UsersService) {}
+
+  // ...
+  @UseInterceptors(ClassSerializerInterceptor)
+  @Get('/:id')
+  async findUser(@Param('id') id: string) {
+    // url 로 전송되는 정보는 대부분 string 이다.
+    const user = await this.usersService.findOne(parseInt(id));
+
+    if (!user) {
+      throw new NotFoundException('user not found');
+    }
+
+    return user;
+  }
+}
+```
+
+### 다른 직렬화 방법 찾아보기
+---
+단 위 방법이 최선은 아닙니다. 다음과 같은 문제가 있습니다.
+
+사용자 이름, 나이, 주소 등 추가 식별 정보가 들어갈 수 있죠. 그때 마다 `@Exclude()`데코레이터를 추가하겠지만, 관리자의 경우 이 정보 또한 조회할 필요가 있을 겁니다. 이때 문제가 발생합니다.
+
+다시 서비스 계층의 return 단계부터 아래와 같이 수정합니다.
+
+1. 컨트롤러에 return 할때 유저 Entity 인스턴스를 그대로 return 합니다.
+2. 응답용 DTO 를 추가로 생성하고 유저 Entity 인스턴스를 직렬화해 특정 필드만 포함된 일반 Json 객체를 생성합니다. 또한 응답시 내용이 적용되도록 `Custom Interceptor`의 인자로 DTO를 전달합니다.
+
+#### Custom InterCeptor 생성하기
+---
+인터셉터는 미들웨어와 유사합니다. 클라이언트에서 특정 컨트롤러에 분배되기 전 단계에 위치할 수 있고 반대로 컨트롤러에서 클라이언트에게 발송되기 전 단계에 위치할 수 있습니다. `users` 관련 컨트롤러 메서드를 정의하는 `UserController`에 적용해 `users`라우팅 전역에 인터셉터가 동작하도록 할 수도 있습니다.
+
+인터셉터 역할을 하는 경우 해당 클래스는 명시적으로 `...Interceptor`로 이름을 정합니다. 이 클래스는 `intercpt` 메서드를 정의하고 첫 번째 인자로는 들어오는 요청에 대한 정보를 둘러싼 컨텍스트, 두번째 인자로는 정보를 전달할 다음 핸들러를 인자로 갖습니다.
+
+```text
+class CustomInterCeptor{
+  intercept(context: ExcutionContext, next: CallHandler)
+}
+```
+
+우선 시작에 앞서 엔티티에 설정한 `@Exclude()`데코레이터를 제거합니다.
+
+```ts
+// users.entity.ts
+
+  @Column()
+  // @Exclude()
+  password: string;
+```
+
+커스텀 인터셉터를 만들고 작동을 위해 테스트 해봅시다.
+
+```ts
+// src/interceptors/serialize.interceptor.ts
+import { CallHandler, ExecutionContext, NestInterceptor } from "@nestjs/common";
+import { map, Observable } from "rxjs";
+
+export class SerializerInterceptor implements NestInterceptor{
+  // NestInterceptor 인터페이스를 구현합니다.
+  intercept(context: ExecutionContext, handler: CallHandler<any>): Observable<any> {
+    // handler(next) 로 전달되기전 데이터를 가공합니다. 요청 데이터는 context에 존재
+    console.log('handler 이전 작동하는 인터셉터', context);
+
+    return handler.handle().pipe(
+      map((data: any) => {
+        // 응답으로 다시 보낼 데이터
+        console.log('handler로 사용자에게 응답으로 보내기 전 작동하는 인터셉터', data);
+      })
+    )
+  }
+}
+```
+
+컨트롤러의 인터셉터를 SerializerInterceptor로 교체합니다.
+
+```ts
+// users.controller.ts
+
+  // @UseInterceptors(ClassSerializerInterceptor)
+  @UseInterceptors(SerializerInterceptor)
+  @Get('/:id')
+  async findUser(@Param('id') id: string) {
+    console.log('handler is running')
+    // url 로 전송되는 정보는 대부분 string 이다.
+    const user = await this.usersService.findOne(parseInt(id));
+
+    if (!user) {
+      throw new NotFoundException('user not found');
+    }
+
+    return user;
+  }
+```
+
+호출하면 다음과 같이 터미널에 `console.log` 정보가 출력됩니다.
+
+```bash
+handler로 전달되기 전 작동하는 인터셉터 ExecutionContextHost {
+  args: [
+    IncomingMessage {
+      _readableState: ...
+      # ...
+    }
+  ]
+}
+handler is running
+handler로 사용자에게 응답으로 보내기 전 작동하는 인터셉터 { id: 1, email: 'wooglim@gmail.com', password: 'qwer1234!'}
+```
+
+인터셉터는 서비스로부터 유저 Entity 인스턴스를 전달 받은 후 컨트롤러를 타고 응답 데이터를 발송하기 전 가공에 이르기까지 일련의 사이클을 거치게 됩니다.
+
+### Custom Interceptor 로 데이터 직렬화하기
+---
+
+응답으로 전송할 `UserDto`를 생성합니다.
+
+```ts
+// src/users/dtos/user.dto.ts
+import { Expose } from "class-transformer";
+
+export class UserDto {
+  @Expose()
+  id: number;
+  
+  @Expose()
+  email: string;
+}
+```
+
+`SerializerInterceptor` 에서 `UserDto`를 기준으로 응답데이터를 Json 형태로 직렬화합니다.
+```ts
+// src/interceptors/serialize.interceptor.ts
+import { CallHandler, ExecutionContext, NestInterceptor } from "@nestjs/common";
+import { plainToClass } from "class-transformer";
+import { map, Observable } from "rxjs";
+import { UserDto } from "../users/dtos/user.dto";
+
+export class SerializerInterceptor implements NestInterceptor{
+  // NestInterceptor 인터페이스를 구현합니다.
+  intercept(context: ExecutionContext, handler: CallHandler<any>): Observable<any> {
+
+    return handler.handle().pipe(
+      map((data: any) => {
+        // data 객체를 UserDto 클래스로 변환한 후, 
+        // @Expose 데코레이터가 적용된 속성들만 포함된 직렬화된 객체로 반환합니다.
+        return plainToClass(UserDto, data, {
+          excludeExtraneousValues: true,
+        })
+      })
+    )
+  }
+}
+```
+
+### 재사용이 가능하도록 리펙토링하기
+---
+위에서 정의한 인터셉터는 `UserDto`기준으로만 직렬화하도록 하드코딩되어 있습니다.

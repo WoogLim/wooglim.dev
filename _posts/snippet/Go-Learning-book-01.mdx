@@ -1,0 +1,37 @@
+---
+title: "[Go] 정리 노트 - 1"
+description: "Go 환경 설정"
+language: "Go"
+category: "Go"
+update: "2024-07-11"
+hide: false
+serisenumber: 1
+---
+## Intro
+---
+- [실무에 바로 쓰는 Go 언어 핸즈온 가이드를 읽고 정리한 글입니다.](https://product.kyobobook.co.kr/detail/S000200429794)
+
+## 환경설정
+
+Go로 커맨드라인, HTTP, gRPC 구축 환경을 구성하기 위해 아래 프로그램들을 설치합니다.
+
+- [Go 컴파일러](https://go.dev/learn/)
+- [프로토콜 버퍼 컴파일러](https://github.com/protocolbuffers/protobuf/releases)
+```bash
+# apple silicon arm64
+unzip protoc-27.2-osx-aarch_64.zip  -d $HOME/.local
+# Bash의 경우 $HOME/.bashrc Zshell의 경우 $HOME/.zshrc
+export PATH="$PATH:$HOME/.local/bin"
+
+> protoc --version
+libprotoc 27.2
+```
+위 과정을 거친 후 명령이 실행되지 않는다면 `시스템 설정 > 개인정보 보호 및 보안 > 등록한 응용 프로그램이 아니기 때문에 'protoc' 사용을 차단했습니다. > 그래도 열기` 설정이 필요합니다.
+- [프로토콜 버퍼로부터 Go 코드 생성](https://pkg.go.dev/google.golang.org/protobuf@v1.34.2/cmd/protoc-gen-go#section-documentation)
+```bash
+go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.34.2
+```
+- [프로토콜 버퍼로부터 gRPC 코드(Go) 생성](https://pkg.go.dev/google.golang.org/grpc/cmd/protoc-gen-go-grpc)
+```bash
+go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.4.0
+```
