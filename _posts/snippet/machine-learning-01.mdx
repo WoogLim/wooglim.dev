@@ -1,0 +1,122 @@
+---
+title: "MachineLearning"
+description: "머신러닝&딥러닝"
+language: "ML"
+category: "ML"
+update: "2024-10-23"
+hide: false
+serisenumber: 1
+---
+## 기본
+
+### 인공지능
+- 사람처럼 학습하고 추론할 수 있는 지은을 가진 시스템을 만드는 기술 인간을 대체할 강인공지능, 보조할 약인공지능이 존재
+### 머신러닝
+- 규칙을 프로그래밍하지 않고도 자동으로 데이터에서 규칙을 학습하는 알고리즘을 연구하는 분야. 사이킷런 등
+### 딥러닝
+- 인공 신경망이라고도 하며 텐서플로, 파이토치가 대표적
+
+## 기초
+
+### 이진 분류
+- 분류 : 머신러닝에서 여러 종류 중 하나를 구별해 내는 문제
+- 이진 분류 : 2개 클래스 중 하나를 고르는 문제. 도미와 빙어의 구분 등
+
+### 데이터 정리
+```python
+bream_length = [25.4, 26.3] # ...
+
+bream_weight = [242.0, 290.0] #...
+```
+첫번째 생선은 25.4 길이의 중량은 242g, 두번째 생선은 26.3 290g 이고 분류 기준으로는 우선 30cm~40cm 사이의 생선이 도미인 경우.
+
+- `산점도`
+우선 숫자로 보는 것보다 그래프로 표현하는 것이 더 잘 이해할 수 있습니다.
+
+길이를 x축, 무게를 y축으로 각 생성당 점으로 표시하면 이를 `산점도`라고 부릅니다.
+
+파썬에서 과학계산용 그래프 그리는 패키지로 `맷플롯립(matplotlib)`이 산점도를 표현하기 좋음
+
+[예제코드]
+```python
+import matplotlib.pyplot as plt
+
+plt.scatter(bream_length, bream_weight)
+plt.xlabel('length')
+plt.ylabel('weight')
+plt.show()
+```
+
+그려지는 그래프의 경우 일직선으로 우상향 하는 형태인데, 이를 `선형`적이라고 함
+
+[빙어 예제코드]
+```python
+smelt_length = [9.8, 10.5] # ...
+
+smelt_weight = [6.7, 7.5] #...
+```
+
+[예제코드]
+```python
+import matplotlib.pyplot as plt
+
+plt.scatter(bream_length, bream_weight)
+plt.scatter(smelt_length, smelt_weight)
+plt.xlabel('length')
+plt.ylabel('weight')
+plt.show()
+```
+
+- `k-최근접 이웃 알고리즘`
+
+두 생선을 한 배열로 정리합니다.
+
+[예제코드]
+```python
+length = bream_length + smelt_length # [25.4, 26.3, 9.8, 10.5] 
+weight = bream_weight + smelt_weight # [242.0, 290.0, 6.7, 7.5]
+```
+
+`2차원 리스트`를 만들기 위해 `사이킷런(scikit-leran)`을 이용 하여 아래와 같은 데이터 형태로 변경 `zip`함수를 이용해 나열된 리스트에서 각각 하나씩 원소를 꺼내 [[25.4, 242.0] ...] 데이터 형태로 변환한다.
+
+```python
+fish_data = [{l, w} for l, w in zip(length, weight)]
+```
+
+2개 클래스(생선)를 구분하기위해 다음 코드를 실행하여 도미는 1, 빙어는 0으로 표현합니다.
+```python
+fish_target = [1] * 2 + [0] * 2
+print(fish_target)
+
+# [1, 1, 0, 0]
+```
+
+훈련을 시키기 위해 k-최근접 이웃 알고리즘을 구현한 클래스인 `KNeightborsClassifier`를 임포트한 후 fit()메서드를 이용해 fish_data, fish_target 전달
+
+```python
+from sklearn.neighbors import KNeighborsClassifier
+
+kn = KNeighborsClassifier()
+
+# 훈련 중 ... 0~1 사의 값을 마지막으로 반환하는데, 1에 가까울 수록 정확히 맞추었다는 의미
+kn.fit(fish_data, fish_target)
+
+kn.score(fish_data, fish_target) # 1.0
+
+# k-최근접 알고리즘으로 주위 데이터를 보고 종류를 구분하게 되는데, 정리된 그래프에서 [25.4, 242.0] 생선이 도미인지 예측할 수 있습니다. 가까운 데이터를 보고 답을 예측하게 됩니다.
+kn.predict([[25.4, 242.0]]) # array([1])
+```
+
+k-최근접 알고리즘으로 주위 데이터를 보고 종류를 구분하게 되는데 KNeighborsClassifier 클래스의 가까운 데이터를 참조하는 기본값은 5. n_neighbors=49 와 같이 기준을 변경할 수 있다.
+
+```python
+# KNeighborsClassifier 클래스의 가까운 데이터를 참조하는 기본값은 5. n_neighbors=49 와 같이 기준을 변경할 수 있다.
+kn49 = KNeighborsClassifier(n_neighbors=49)
+
+kn.fit(fish_data, fish_target)
+
+# 만일 기본값이 높다면 알고리즘의 영향으로 결과값이 낮아질 것임.
+kn.score(fish_data, fish_target)
+
+print(35/49)
+```
