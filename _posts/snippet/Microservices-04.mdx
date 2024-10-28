@@ -1,0 +1,46 @@
+---
+title: "[Microservices] - 4"
+description: "마이크로 서비스 Configurations 관리"
+language: "Microservices"
+category: "Microservices"
+update: "2024-10-28"
+hide: false
+serisenumber: 3
+---
+## Intro
+---
+- [Madan Reddy 강사님의 Master Microservices with SpringBoot,Docker,Kubernetes 강의를 듣고 TIL 방식으로 정리한 글입니다.](https://www.udemy.com/course/master-microservices-with-spring-docker-kubernetes/)
+
+### Configurations 관리
+마이크로서비스 운영시 가장 먼저 정해야 하는 것이 내부 Config 관리입니다.
+
+우선 서비스 모두 거의 공통된 Dockerfile로 이미지를 빌드하고 런타임시 Config를 컨테이너 내에 주입시켜야 합니다. 모놀리식의 경우 키 관리는 쉬웠습니다. 수백개의 마이크로서비스는 다릅니다. 원하는 곳 어디에서나 모든 구성을 유지 관리 해야 합니다.
+
+수동으로 유지하는 방법은 어려우며 중앙 저장소에 구성 요소를 관리하는 것이 좋죠. 이 방법에 대해 Spring Boot를 통해 알아봅시다.
+
+모놀리식 환경의 경우 코드와 함께 구성요소가 빌드되어 배포되었습니다. 구성 요소를 변경해야하는 경우 다시 빌드가 필요했죠. 마이크로서비스의 경우엔 좀 더 복잡합니다. 이미지를 빌드하고 서비스마다 구성요소를 다르게 주입해야하죠.
+
+이에 따라 15가지 원칙 중 자격 증명에 따른 구성 리소스들은 비즈니스 로직 외부에서 관리/주입 되어야 합니다.
+
+### Sptring Boot App내 구성 요소 작동 기작
+
+Spring Boot를 사용하면 동일 APP코드로 작업할 수 있도록 서로 다른 환경에서 구성을 외부화할 수 있습니다. 다시 빌드할 필요가 없습니다.
+
+다음과 같은 방법으로 외부에서 구성 요소를 관리하고 주입할 수 있습니다.(마지막에 가까울 수록 기존 환경변수를 덮어씌을 수 있습니다. 우선순위가 가장 높습니다.)
+
+1. application.properties 또는 application.yml 이용
+2. Java 시스템 속성
+3. Jndi 속성 서브릿 구성
+4. 초기화 매개변수
+
+등.
+
+일반적으로 SpringBoot App 에서 사용되는 세 가지 접근 방식에 대해 알아봅시다.
+
+먼저 `@Value`어노테이션을 이용해 속성 키이름을 불러와 값을 주입할 수 있습니다. 두번째로는 환경 인터페이스의 지원을 받아 환경 변수로서 사용합니다. 환경 인터페이스를 구성한 후 클래스에 연결합니다. `private Environment environment` 그리고 속성을 읽으려는 `getProperty()`를 이용해 변수 값을 불러들이죠.
+
+세번째 방법은 `@ConfigurationProperties`어노테이션입니다. Value의 경우 주석 안에 키 이름을 하드코딩, Environment.getProperty() 메서드 내부에는 한 번에 하나의 속성을 가져올 수 있었죠. 여러번 호출해야 합니다.
+
+많은 환경 변수를 동시에 가져오려면 `@ConfigurationProperties`을 이용해 속성 파일 내 모든 속성을 정리하고 접두사를 정의해 주석으로 입력하여 사용합니다.
+
+#### Value 어노테이션
