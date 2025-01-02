@@ -1,0 +1,570 @@
+---
+title: "[React] 정리노트 - 1"
+description: "리액트 기본 작동 방식 - 1"
+language: "React"
+category: "React"
+update: "2024-12-29"
+hide: true
+serisenumber: 1
+---
+
+## 시작
+
+- [Maximilian Schwarzmüller 강사님의 React 완벽 가이드 2024 with React Router & Redux 강의를 듣고 TIL 방식으로 정리한 글입니다.](https://www.udemy.com/course/best-react/?couponCode=KEEPLEARNING#instructor-2)
+
+### 컴포넌트
+
+컴포넌트는 기존의 HTML, CSS, JS 코드를 조합하여 재사용 가능한 코드 블록으로 만들어 준다. 한 파일로 관리가 가능하다.
+이 방식은 Vue, Svelte, Flutter 등의 프레임워크에서도 사용되고 있다.
+
+### JSX
+
+JSX는 자바스크립트의 확장 문법으로 컴포넌트를 작성할 때 사용된다. 컴포넌트 내부에서 사용되는 모든 자바스크립트 코드는 중괄호 안에 작성되어야 한다.
+JSX는 브라우저에서 실행되기 전에 번들러에 의해 자바스크립트로 변환된다.
+
+JSX 커스텀 컴포넌트 함수명은 대문자로 시작해야 한다. 내장된 컴포넌트는 소문자로 시작한다.
+```jsx
+// app.jsx
+function Header() {
+  return (
+    <header>
+      <img src="src/assets/react-core-concepts.png" alt="Stylized atom" />
+      <h1>React Essentials</h1>
+      <p>
+        Fundamental React concepts you will need for almost any app you are
+        going to build!
+      </p>
+    </header>
+  );
+}
+
+function App() {
+  return (
+    <>
+      <Header />
+      <main>
+        <h2>Time to get started!</h2>
+      </main>
+    </>
+  );
+}
+
+// 컴포넌트 내보내기
+export default App;
+```
+
+```jsx
+// index.jsx
+import ReactDOM from "react-dom/client";
+
+import App from "./App.jsx";
+import "./index.css";
+
+// 루트 요소 가져오기
+const entryPoint = document.getElementById("root");
+// 루트 요소에 렌더링
+ReactDOM.createRoot(entryPoint).render(<App />);
+```
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>React Essentials</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/index.jsx"></script>
+  </body>
+</html>
+```
+
+### 동적 값 출력
+
+JSX 컴포넌트 내부에서 동적 값을 출력하기 위해서는 중괄호 안에 작성되어야 한다.
+
+```jsx
+// App.jsx
+const reactDescriptions = ['Fundamental', 'Crucial', 'Core'];
+
+function genRandomInt(max) {
+  return Math.floor(Math.random() * (max + 1));
+}
+
+function Header() {
+  const description = reactDescriptions[genRandomInt(2)];
+
+  return (
+    <header>
+      <img src="src/assets/react-core-concepts.png" alt="Stylized atom" />
+      <h1>React Essentials</h1>
+      <p>
+        {/* 중괄호 안에 자바스크립트 코드를 넣을 수 있음 */}
+        {description} React concepts you will need for almost any app you are
+        going to build!
+      </p>
+    </header>
+  );
+}
+```
+
+#### 동적 Attribute 및 리소스 로딩
+
+`import` 된 리소스는 중괄호 안에 작성해 동적으로 출력할 수 있다.
+```jsx
+import reactImg from './assets/react-core-concepts.png';
+
+function Header() {
+  const description = reactDescriptions[genRandomInt(2)];
+
+  return (
+    <header>
+      <img src={reactImg} alt="Stylized atom" />
+      {/* ... */}
+    </header>
+  );
+}
+```
+
+### props
+
+props는 컴포넌트에 전달되는 데이터를 나타낸다. 컴포넌트 함수의 매개변수로 전달된다.
+
+아래와 같은 임시 데이터를
+```js
+// data.js
+import componentsImg from './assets/components.png';
+import propsImg from './assets/config.png';
+import jsxImg from './assets/jsx-ui.png';
+import stateImg from './assets/state-mgmt.png';
+
+export const CORE_CONCEPTS = [
+  {
+    image: componentsImg,
+    title: 'Components',
+    description:
+      'The core UI building block - compose the user interface by combining multiple components.',
+  },
+  {
+    image: jsxImg,
+    title: 'JSX',
+    description:
+      'Return (potentially dynamic) HTML(ish) code to define the actual markup that will be rendered.',
+  },
+  {
+    image: propsImg,
+    title: 'Props',
+    description:
+      'Make components configurable (and therefore reusable) by passing input data to them.',
+  },
+  {
+    image: stateImg,
+    title: 'State',
+    description:
+      'React-managed data which, when changed, causes the component to re-render & the UI to update.',
+  },
+];
+```
+
+아래와 같이 스프레드 연산자를 이용해 컴포넌트에 전달할 수 있다.
+```jsx
+// App.jsx
+import { CORE_CONCEPTS } from './data.js';
+
+function App() {
+  return (
+    <>
+      <Header />
+      <main>
+        <section id='core-concepts'>
+            <h2>Core Concepts</h2>
+            <ul>
+              {/* props 전달 값으로는 문자열, 숫자, 배열, 객체, 함수 등 모두 가능 */}
+              <CoreConcept {...CORE_CONCEPTS[0]} />
+              <CoreConcept {...CORE_CONCEPTS[1]} />
+              <CoreConcept {...CORE_CONCEPTS[2]} />
+              <CoreConcept {...CORE_CONCEPTS[3]} />
+            </ul>
+        </section>
+          <h2>Time to get started!</h2>
+      </main>
+    </>
+  );
+}
+```
+
+위와 같이 데이터 배열을 전달할 때는 배열의 각 요소를 스프레드 연산자를 이용해 전달할 수 있다. props는 컴포넌트의 재사용성을 높여준다.
+
+#### children props
+
+children props는 컴포넌트 내부에 작성된 자식 요소를 나타낸다. 
+
+```jsx
+// App.jsx
+<menu>
+  <TabButton>Components</TabButton>
+  <TabButton>JSX</TabButton>
+  <TabButton>Props</TabButton>
+  <TabButton>State</TabButton>
+</menu>
+```
+
+태그 사이에 작성된 자식 요소는 컴포넌트 함수의 매개변수로 전달된다.
+
+```jsx
+export default function TabButton(props) {
+  return <li><button>{props.children}</button></li>
+}
+```
+
+물론 자식 요소가 아닌 속성으로 전달할 수도 있다.
+
+```jsx
+<TabButton label='Components'></TabButton>
+```
+
+```jsx
+export default function TabButton({label}) {
+  return <li><button>{label}</button></li>
+}
+```
+
+### 이벤트 처리
+
+자바스크립트의 경우 버튼이 클릭됐을때 이벤트 처리는 다음과 같은 방식으로 한다.
+
+```js
+document.querySelector('button').addEventListener('click', () => {
+  console.log('Button clicked');
+});
+```
+
+리액트의 경우는 이벤트 핸들러를 컴포넌트 함수의 속성으로 전달한다.
+
+```jsx
+// Components/TabButton.jsx
+export default function TabButton({children}) {
+  
+  function handleClick() {
+    console.log('Hello World!');
+  }
+  
+  return (
+    <li>
+      {/* 함수를 값으로 사용하므로 handleClick()을 사용하지 않는다. */}
+      <button onClick={handleClick}>{children}</button>
+    </li>
+  )
+}
+```
+
+#### 부모에서 이벤트 리스너 함수를 자식 props로 전달
+
+하위 컴포넌트에서 이벤트 리스너 함수를 전달하려면 부모 컴포넌트에서 함수를 정의하고 하위 컴포넌트에 리스너를 등록해 상태를 전달해야 한다.
+
+```jsx
+function App() {
+
+  function handleSelect(selectedButton) {
+    console.log('Button selected!');
+  }
+
+  return (
+    <>
+      <Header />
+      <main>
+        <section id='examples'>
+          <h2>Examples</h2>
+          <menu>
+            <TabButton label='Components' onSelect={handleSelect}></TabButton>
+          </menu>
+        </section>
+      </main>
+    </>
+  );
+}
+```
+
+```jsx
+export default function TabButton({ children, onSelect }) {
+  return (
+    <li>
+      {/* 함수를 값으로 사용하므로 handleClick()을 사용하지 않는다. */}
+      <button onClick={onSelect}>{children}</button>
+    </li>
+  )
+}
+```
+
+#### 이벤트 함수에 커스텀 인자 전달
+
+컴포넌트에 전달하는 이벤트 함수에 커스텀 인자를 전달하려면 화살표 함수를 사용해야 한다.
+```jsx
+// App.jsx
+
+function App() {
+
+  function handleSelect(selectedButton) {
+    // selectedButton -> 'components', 'jsx', 'props', 'state'
+    console.log(selectedButton);
+  }
+  return (
+    <>
+      {/* ... */}
+        <section id='examples'>
+          <h2>Examples</h2>
+          <menu>
+            {/* 화살표 함수를 사용하는 이유는 함수를 바로 호출하지 않고 함수를 전달하기 위함 전달된 컴포넌트에서 이벤트 발생시 함수를 호출 */}
+            <TabButton onSelect={() => handleSelect('components')}>Components</TabButton>
+            <TabButton onSelect={() => handleSelect('jsx')}>JSX</TabButton>
+            <TabButton onSelect={() => handleSelect('props')}>Props</TabButton>
+            <TabButton onSelect={() => handleSelect('state')}>State</TabButton>
+          </menu>
+          Dynamic Content
+        </section>
+      {/* ... */}
+    </>
+  )
+}
+```
+
+### useState
+
+useState는 React의 가장 기본적인 Hook으로, 컴포넌트의 상태(state)를 관리하는데 사용된다. 컴포넌트가 다시 렌더링되어도 유지되어야 하는 데이터를 다룰 때 useState를 사용한다.
+
+기본적으로 React는 컴포넌트 함수를 최초 렌더링 시 한 번 실행하고, 이후에는 상태가 변경될 때만 다시 실행한다. useState를 사용하면 상태 변경 시 자동으로 컴포넌트를 다시 렌더링한다.
+
+또한 useState가 반환하는 상태는 불변성(immutability)을 가진다. 즉, 상태를 직접 수정하는 것이 아니라, useState가 제공하는 setter 함수를 통해 새로운 상태 값을 설정해야 한다.
+
+```jsx
+import { useState } from 'react';
+
+function App() {
+
+  // useState 호출 시 초기값을 전달한다.
+  // 초기값은 컴포넌트가 최초 렌더링 될 때 한 번만 사용된다.
+  // 값이 setter에 의해 변경되면 자신이 속한 컴포넌트(함수)는 다시 렌더링된다.
+  const [tabContent, setTabContent] = useState('components');
+
+  function handleSelect(selectedButton) {
+    // selectedButton -> 'components', 'jsx', 'props', 'state'
+    setTabContent(selectedButton);
+  }
+
+  return (
+    <>
+      {/* ... */}
+        <section id='examples'>
+          <h2>Examples</h2>
+          <menu>
+            {/* setTabContent()에 의해 상태가 변경되면 하위 호출 컴포넌트도 다시 렌더링된다. */}
+            <TabButton onSelect={() => handleSelect('components')}>Components</TabButton>
+            <TabButton onSelect={() => handleSelect('jsx')}>JSX</TabButton>
+            <TabButton onSelect={() => handleSelect('props')}>Props</TabButton>
+            <TabButton onSelect={() => handleSelect('state')}>State</TabButton>
+          </menu>
+          {tabContent}
+          <div id={tabContent}></div>
+        </section>
+      {/* ... */}
+    </>
+  )
+}
+```
+
+이를 이용해 다이나믹한 UI를 구성할 수 있다.
+
+```jsx
+// App.jsx
+
+function App() {
+
+  const [selectedTopic, setSelectedTopic] = useState();
+
+  function handleSelect(selectedButton) {
+    // selectedButton -> 'components', 'jsx', 'props', 'state'
+    setSelectedTopic(selectedButton);
+  }
+
+  return (
+    <>
+      {/* ... */}
+        <section id='examples'>
+          <h2>Examples</h2>
+          <menu>
+            <TabButton onSelect={() => handleSelect('components')}>Components</TabButton>
+            <TabButton onSelect={() => handleSelect('jsx')}>JSX</TabButton>
+            <TabButton onSelect={() => handleSelect('props')}>Props</TabButton>
+            <TabButton onSelect={() => handleSelect('state')}>State</TabButton>
+          </menu>
+          <div id="tab-content">
+            {selectedTopic ? (
+              <>
+                <h3>{EXAMPLES[selectedTopic].title}</h3>
+                <p>{EXAMPLES[selectedTopic].description}</p>
+                <pre>
+              <code>
+                {EXAMPLES[selectedTopic].code}
+              </code>
+                </pre>
+              </>
+            ) : (
+              <p>Please select a topic.</p>
+            )}
+          </div>
+        </section>
+      {/* ... */}
+    </>
+  )
+}
+```
+
+다음과 같은 방법도 있다.
+
+```jsx
+// App.jsx
+
+function App() {
+
+  const [selectedTopic, setSelectedTopic] = useState();
+
+  function handleSelect(selectedButton) {
+    // selectedButton -> 'components', 'jsx', 'props', 'state'
+    setSelectedTopic(selectedButton);
+  }
+
+  let tabContent = <p>Please select a topic.</p>;
+
+  if(selectedTopic) {
+    tabContent = (
+      <>
+        <h3>{EXAMPLES[selectedTopic].title}</h3>
+        <p>{EXAMPLES[selectedTopic].description}</p>
+        <pre>
+          <code>
+            {EXAMPLES[selectedTopic].code}
+          </code>
+        </pre>
+      </>
+    )
+  }
+
+  return (
+    <>
+      {/* ... */}
+        <section id='examples'>
+          <h2>Examples</h2>
+          <menu>
+            <TabButton onSelect={() => handleSelect('components')}>Components</TabButton>
+            <TabButton onSelect={() => handleSelect('jsx')}>JSX</TabButton>
+            <TabButton onSelect={() => handleSelect('props')}>Props</TabButton>
+            <TabButton onSelect={() => handleSelect('state')}>State</TabButton>
+          </menu>
+          <div id="tab-content">
+            {tabContent}
+          </div>
+        </section>
+      {/* ... */}
+    </>
+  )
+}
+```
+
+### CSS 동적 스타일링
+
+태그 요소 중 id와 같은 대부분의 속성은 JSX, HTML 둘다 동일하게 지원하지만 class와 같은 경우는 className으로 사용한다.
+
+스타일 지정시 class 를 주로 사용하므로 이를 주의해야 한다.
+
+```jsx
+// components/TabButton.jsx
+
+export default function TabButton({ children, onSelect, isSelected }) {
+  return (
+    <li>
+      <button className={isSelected ? 'active' : undefined} onClick={onSelect}>{children}</button>
+    </li>
+  )
+}
+```
+
+부모에서 전달된 속성을 이용해 스타일을 동적으로 지정할 수 있다.
+
+```jsx
+// App.jsx
+
+function App() {
+
+  const [selectedTopic, setSelectedTopic] = useState();
+
+  function handleSelect(selectedButton) {
+    // selectedButton -> 'components', 'jsx', 'props', 'state'
+    setSelectedTopic(selectedButton);
+  }
+
+  let tabContent = <p>Please select a topic.</p>;
+
+  if(selectedTopic) {
+    tabContent = (
+      <>
+        <h3>{EXAMPLES[selectedTopic].title}</h3>
+        <p>{EXAMPLES[selectedTopic].description}</p>
+        <pre>
+          <code>
+            {EXAMPLES[selectedTopic].code}
+          </code>
+        </pre>
+      </>
+    )
+  }
+
+  return (
+    <>
+      {/* ... */}
+        <section id='examples'>
+          <h2>Examples</h2>
+          <menu>
+            <TabButton onSelect={() => handleSelect('components')} isSelected={selectedTopic === 'components'}>Components</TabButton>
+            <TabButton onSelect={() => handleSelect('jsx')} isSelected={selectedTopic === 'jsx'}>JSX</TabButton>
+            <TabButton onSelect={() => handleSelect('props')} isSelected={selectedTopic === 'props'}>Props</TabButton>
+            <TabButton onSelect={() => handleSelect('state')} isSelected={selectedTopic === 'state'}>State</TabButton>
+          </menu>
+          <div id="tab-content">
+            {tabContent}
+          </div>
+        </section>
+      {/* ... */}
+    </>
+  )
+}
+```
+
+### List 데이터 동적 출력
+
+데이터를 전달받아 LIST 형태의 UI를 구성하는 경우 주의해야할 것이 하드코딩이 되지 않도록 하는 것이다. 데이터가 없다면 UI는 망가지기 때문이다.
+
+```jsx
+// App.jsx
+
+function App() {
+
+  return (
+    <>
+      {/* ... */}
+        <section id='core-concepts'>
+            <h2>Core Concepts</h2>
+            <ul>
+              {/* key는 리액트가 컴포넌트를 구분하는 데 사용하는 고유 식별자로 필수 속성임. */}
+              {CORE_CONCEPTS.map((conceptItem) => (
+                <CoreConcept key={conceptItem.title} {...conceptItem}/>  
+              ))}
+            </ul>
+        </section>
+      {/* ... */}
+    </>
+  )
+}
+```

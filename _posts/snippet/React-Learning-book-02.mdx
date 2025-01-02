@@ -1,0 +1,156 @@
+---
+title: "[React] 정리노트 - 2"
+description: "리액트 기본 작동 방식 - 2"
+language: "React"
+category: "React"
+update: "2025-01-01"
+hide: true
+serisenumber: 2
+---
+
+## 시작
+
+- [Maximilian Schwarzmüller 강사님의 React 완벽 가이드 2024 with React Router & Redux 강의를 듣고 TIL 방식으로 정리한 글입니다.](https://www.udemy.com/course/best-react/?couponCode=KEEPLEARNING#instructor-2)
+
+### JSX는 굳이 필요하지 않다.
+
+JSX는 그대로 브라우저에 렌더링되지 않는다. 따라서 브라우저에서 사용하기 위해서는 번들러를 사용해야 한다.
+
+이론상으로 JSX의 사용 없이도 리액트를 사용할 수 있다. 하지만 이런 경우 코드가 복잡해지고 가독성이 떨어진다.
+
+따라서 리액트에서는 JSX를 사용하여 코드를 간결하게 만들고 가독성을 높이는 것이 좋다.
+
+JSX를 사용하지 않는다면 `React.createElement`를 사용해야 한다.
+
+```jsx
+const element = React.createElement('div', { className: 'container' }, 'Hello, World!');
+```
+
+위와 같이 사용하면 코드가 복잡해지고 가독성이 떨어진다.
+
+### 프래그먼트
+
+JSX 함수에서 return 문에서 형제요소만을 반환할 수 없다. 최상위 태그로 한번 더 감싸주어야 한다.
+
+```jsx
+function MyComponent() {
+  return (
+    <div>
+      <h1>Hello, World!</h1>
+    </div>
+  );
+}
+```
+
+다만 이 경우 불필요한 div 태그가 생성된다. 이런 경우 프래그먼트를 사용하여 불필요한 태그를 제거할 수 있다.
+
+```jsx
+import { Fragment } from 'react';
+
+function MyComponent() {
+  return (
+    <Fragment>
+      <h1>Hello, World!</h1>
+    </Fragment>
+  );
+}
+```
+
+또한 Fragment는 내장된 컴포넌트로 아래와 같이 좀 더 간결하게 사용할 수 있다.
+
+```jsx
+function MyComponent() {
+  return (
+    <>
+      <h1>Hello, World!</h1>
+    </>
+  );
+}
+```
+
+프래그먼트는 태그를 생성하지 않는다. 따라서 불필요한 태그가 생성되지 않는다.
+
+### 컴포넌트를 분리해야 하는 이유
+
+컴포넌트를 분리하면 코드를 재사용할 수 있다. 또한 컴포넌트를 분리하면 코드를 더 쉽게 이해할 수 있다.
+
+상태관리의 책임 분산도 필요하다. 컴포넌트를 분리하면 상태관리를 더 쉽게 할 수 있다.
+
+상태가 변경된다면 하위 컴포넌트 또한 렌더링 된다는 부분을 이해해야 한다.
+
+헤더별, 섹션별, 푸터별, 메인별 등으로 컴포넌트를 분리하는 것이 좋다. 내부에서도 콘텐츠가 다른 부분 또한 컴포넌트로 분리하는 것이 좋다.
+
+```jsx
+// App.jsx
+import Header from './components/Header/Header.jsx';
+import CoreConcepts from './components/CoreConcepts.jsx';
+import Example from './components/Example.jsx';
+function App() {
+
+  return (
+    <>
+      <Header />
+      <main>
+        <CoreConcepts />
+        <Example />
+      </main>
+    </>
+  );
+}
+
+export default App;
+```
+
+이전 글의 App.jsx 코드와 비교해보면 컴포넌트를 분리하여 코드를 더 쉽게 이해할 수 있다.
+
+상태 변경에 따른 불필요한 렌더링 범위를 줄이는 것이 좋다. 렌더링 범위를 줄이면 렌더링 속도가 빨라진다.
+
+### 감싸진 요소에 props 전달하기
+
+아래와 같이 Section 컴포넌트에 id 속성을 전달해도 해당 컴포넌트의 section 태그에는 자동으로 반영되지 않습니다. 구조 분해를 통해 직접 속성값을 전달해야하죠.
+
+프로젝트 규모가 클수록 매우 비효율적입니다.
+
+```jsx
+// App.jsx
+import Section from './components/Section.jsx';
+
+function App() {
+  return (
+    <Section id="core-concepts" title="Core Concepts">
+      <p>Core Concepts</p>
+    </Section>
+  );
+}
+```
+
+```jsx
+// Section.jsx
+function Section({ id, title, children }) {
+  return (
+    <section id>
+      <h2>{title}</h2>
+      {children}
+    </section>
+  );
+}
+```
+
+이때 `...props`를 사용하여 감싸진 요소에 전달된 모든 props를 전달할 수 있다.
+
+```jsx
+// Section.jsx
+function Section({ title, children, ...props }) {
+  return (
+    <section {...props}>
+      <h2>{title}</h2>
+      {children}
+    </section>
+  );
+}
+```
+
+이는 wrapper pattern이라고 불리는 패턴이다. 컴포넌트를 감싸는 태그에 전달된 모든 props를 전달하는 패턴이다.
+
+### 여러 JSX 슬릇 활용
+

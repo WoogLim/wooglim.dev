@@ -50,7 +50,7 @@ const SnipetPage: React.FC<Props> = ({
           },
           images: [
             {
-              url: `${meta.url}${meta.imageUrl}`,
+              url: meta.imageUrl,
               width: 850,
               height: 650,
               alt: frontMatter.title,
