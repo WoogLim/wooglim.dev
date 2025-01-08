@@ -1,0 +1,340 @@
+---
+title: "[Stable Diffusion] - 3"
+description: "프롬프트 맛깔나게 생성하기"
+language: "StableDiffusion"
+category: "Generation AI"
+update: "2024-03-01"
+hide: false
+serisenumber: 3
+---
+
+### 프롬포트의 규칙
+프롬포트는 기본적으로 영어를 사용하며(한글 학습 모델은 예외), 각 단어는 공백으로 구분합니다.
+
+```text
+<!-- Prompt -->
+gray cat
+```
+
+![stable-diffusion-webui-gray-cat](/snippets/stableDiffusion/section3/gray-cat.png)
+
+문구는 여러 개 입력이 가능하며 쉼표로 구분합니다. 우선순위는 앞 문구 부터 시작입니다.
+
+```text
+<!-- Prompt -->
+gray cat, glass garden
+```
+
+![stable-diffusion-webui-garden-cat](/snippets/stableDiffusion/section3/garden-cat.png)
+
+문구 중 특정 단어, 문구를 강조하는 표기법도 있습니다. `Attention/emphasis`라고 하빈다. 이 표기법은 중요 단어를 강조하고 뒤에 있는 문구에 있더라도 우선순위를 높일 수 있습니다.
+
+```text
+(문구) : 1.1배 강조
+((문구)) : 1.1 x 1.1 = 1.2배 강조
+[문구] : 1.1배 억제
+(문구:1.5) : 1.5배 강조
+(문구:0.25) : 0.25배 강조
+\(문구\) : 이스케이프(프롬포트로 이용 가능)
+```
+단어의 강도, 문구 순서에 따른 우선순위, 강조에 따른 가중치가 프롬포트의 핵심입니다. cat 이라는 단어가 있는 경우 고양이가 만들어지면 강조가 잘 된 경우입니다. 하지만 원하지 않는 그림이 나온 경우 강조가 잘 되지 않은 것입니다. 이 경우 다른 문구로 변경하거나 학습 모델을 변경해야합니다.
+
+이미지를 생성하는 도중 문구의 내용을 단계별로도 전환할 수 있습니다. 이를 `Prompt Editing`이라고 합니다. 이 방법은 `Sampling steps`를 이용합니다. 소수가 들어가면 비율을 나타내며 정수인 경우 노이즈를 걷어내는 스텝 수가 됩니다.
+
+```text
+[프롬포트A:프롬포트B:스텝] : 스텝 수까지 프롬포트 A, 이후에는 프롬포트 B를 활성화
+[프롬포트A::스텝] : 스텝 수까지 프롬포트 A
+[프롬프트B:스텝] : 스텝 수까지 없고, 이후 프롬포트 B 활성화
+```
+
+```text
+<!-- Prompt -->
+handsome [boy:tiger:0.1] face, extremely detailed portrait,
+```
+
+![stable-diffusion-webui-tiger-guy](/snippets/stableDiffusion/section3/tiger-guy.png)
+
+### Negative prompt
+프롬포트로 이미지를 생성하는 경우 Negative prompt 에는 이미지에서 걷어내고 싶은 문구를 작성합니다.
+
+기본적으로 `Positive prompt` 에는 `그리는 대상`, `화질 향상`, `화풍과 화가`, `시점과 빛`, `디테일 조작` 등의 문구가 들어갑니다.
+
+`Negative prompt`에는 `저화질 제외`, `화면에 글씨 제외` 등을 입력합니다.
+
+```text
+<!-- Negative Prompt -->
+error, text, extra digit, worst quality, low quality, long neck
+```
+
+### 이미지의 대상
+인간, 고양이 등 무엇을 그리고 싶은지를 `대상`으로 봅니다. 이 `대상`의 경우 학습 모델에 영향을 받습니다. 이미지가 마음에 들지 않는다면 문구를 추가해줘도 됩니다. `guy` -> `handsome guy`등과 말이죠. 그리고 시드는 고정으로하여 생성합니다.
+
+```text
+<!-- Prompt -->
+guy portrait
+```
+
+![stable-diffusion-webui-guy-portrait](/snippets/stableDiffusion/section3/nomal-guy.png)
+
+```text
+<!-- Prompt -->
+handsome detailing one guy portrait
+```
+
+![stable-diffusion-webui-handsome-guy](/snippets/stableDiffusion/section3/handsome-guy.png)
+
+### 화질 향상시키기
+학습 모델은 이미지와 단어의 조합에 따른 벡터를 가집니다. 또한 원본 모델은 웹의 이미지로 학습됩니다. 때문에 `특정 웹사이트`, `고화질의 이미지에 자주 붙는 태그`를 붙이면 화질이 향상됩니다.
+
+```text
+artstation, deviantart, trending artstation, pixiv ranking 1st
+```
+
+```text
+<!-- Prompt -->
+handsome guy selfie
+```
+
+![stable-diffusion-webui-guys](/snippets/stableDiffusion/section3/guys.png)
+
+```text
+<!-- Prompt -->
+handsome guy selfie, deviantart
+```
+
+![stable-diffusion-webui-more-option-guy](/snippets/stableDiffusion/section3/more-option-guy.png)
+
+### 작가의 화풍
+
+작가의 화풍을 위해 문단에 작가명을 작성하는것은 법의 논란의 여지가 있습니다. `style of Vincent van Gogh`와 같은 문구를 추가하는게 예시입니다.
+
+화풍은 사용해도 무방합니다. `gothic`, `cubism`, `realism`, `japonisme` 등과 같이 말이죠.
+
+```text
+<!-- Prompt -->
+cat, style of baroque
+```
+
+![stable-diffusion-webui-baroque-cat](/snippets/stableDiffusion/section3/baroque-cat.png)
+
+```text
+<!-- Prompt -->
+cat, style of japonisme
+```
+
+![stable-diffusion-webui-japonisme-cat](/snippets/stableDiffusion/section3/japonisme-cat.png)
+
+특정 화풍을 그리는 작가명, 키워드 목록은 `Stable Diffusion artist list`등의 키워드로 검색하면 됩니다.
+
+아래 사이트를 참고하면 Stable-Diffusion 아티스트들의 작품도 볼 수 있습니다.  
+[list of artists for SD v1.4](https://rentry.org/artists_sd-v1-4), [Stable Diffusion Artist list - Style studies](https://stablediffusion.fr/artists), [SD Artist Collection](https://sgreens.notion.site/sgreens/4ca6f4e229e24da6845b6d49e6b08ae7)
+
+애니메이션풍의 이미지를 생성할 때는 애니메이션 제작 회사, 게임 이름 등을 지정하면 비슷한 풍의 그림을 만들 수 있습니다. `Dragonball`, `love live` 
+
+또한 [미술 기법](https://ko.wikipedia.org/wiki/%EB%B6%84%EB%A5%98:%EB%AF%B8%EC%88%A0_%EA%B8%B0%EB%B2%95)을 참고해도 좋습니다.
+
+`pixel art`, `drawing`, `acrylic painting`
+
+```text
+<!-- Prompt -->
+cat, pixel art
+```
+
+![stable-diffusion-webui-pixel-art-cat](/snippets/stableDiffusion/section3/pixel-art-cat.png)
+
+```text
+<!-- Prompt -->
+cat, ball-point pen art
+```
+
+![stable-diffusion-webui-ballpoint-cat](/snippets/stableDiffusion/section3/ballpoint-cat.png)
+
+### 대상의 시점과 빛
+대상의 앵글과 빛으로 촬영할지 지정합니다. 카메라의 렌즈 이름, 셔터 속도를 지정하는 방법도 존재하죠. 야외의 경우 시간대 혹은 계절을 나타내는 단어를 넣어 생성되는 내용을 제어할 수 있습니다. 피사체를 원거리에 둘지 근거리에 둘지도 나타낼 수 있죠.
+
+```text
+far long shot, wide shot, west shot, face closeup photo, close up front shot, bust shot
+```
+
+각도의 시점은 아래 문구의 예가 있습니다.
+
+```text
+below view, selfie shot angel, wide shot angle, bird view
+```
+
+인물 이미지의 경우 다음 예가 있습니다.
+
+```text
+portrait
+```
+
+풍경화의 경우
+
+```text
+landscape, golden shutting
+```
+
+화면 구성이 좋은 이미지
+
+```text
+beautiful composition
+```
+
+선명한 이미지
+
+```text
+sharp focus
+```
+
+화려한 색상
+
+```text
+bright color contrast
+```
+
+조명
+
+```text
+soft lighting, golden hour lighting, brilliant photo, atmospheric lighting
+```
+
+적당한 배경을 넣고 싶은 경우
+
+```text
+beautiful background
+```
+
+### 세부 디테일
+이미지를 만드는 경우 뼈대가 되는 부분을 먼저 지시하고 시드를 유지한채 세부적인 디테일을 문구로 작성하는 경우가 많습니다.
+
+```text
+masterpiece, best quality, concept art, extremely detailed, 
+one kawaii cute girl, beautiful perfect symmetrical face, 
+fantastic long white dress with many frills,
+blue long wavy hair, bust shot, portrait, upper sunlight and golden sun,
+sharp focus, 8k, ray tracing, cinematic lighting,
+(cinematic postprocessing:1.8)
+```
+
+![stable-diffusion-webui-detail-cute-girl](/snippets/stableDiffusion/section3/detail-cute-girl.png)
+
+디테일적인 부분에서 실처럼 가느렇거나 휘어진 물건은 디테일이 떨어지는 경우가 흔합니다. 인체의 경우 손가락을 잘 표현하지 못하는 경우도 있습니다. 가급적 이런 부분을 피하기 위해 `Negative Prompt`에 추가하는 것이 좋습니다.
+
+```text
+<!-- Negative Prompt -->
+one small man with green face, skinny small body, very long eagle nose, very long ears, green bald head
+wrinkeld old face and body, in ragged armor, green skin, yellow face, brown face
+```
+
+이미지를 생성하다 보면 한명만 생성하고 싶은데 두명 이상이 생성되는 경우가 있습니다.  `sole`, `one`등을 이용할 수 있겠죠.  
+
+아름다운 캐릭터를 위해 `kawaii`, `cute`, `handsome`, `beautiful` 등을 입력할 수 있고, 연령대를 명시하는 문구도 넣을 수 있습니다. `old`, `young`, `teenage`등과 같이 말이죠.
+
+AI 일러스트 생성을 위해 프롬포트 생성기를 사용하는 것도 좋습니다.
+
+### Negative prompt
+다음은 Negative prompt 로 설정하는 문구의 예시입니다.
+
+#### 저화질 방지
+
+```text
+worst quality, jpeg artifacts, blurry, long neck, grayscale, flat color
+```
+
+#### 서투른 인체 방지
+
+```text
+bad anatomy, bad hands, fingers, fewer digits, missing arms
+```
+
+####  불필요한 부분 제외
+
+이미지 생성시 워터마크, 기호가 붙는 문자열이 나올 수 있습니다.
+
+```text
+text, error, signature, watermark, username, shadow, frame
+```
+
+### 이미지에서 프롬프트 추출하기
+
+Stable Diffusion 을 이용해 생성한 이미지는 PNG Info 탭에서 프롬프트나 설정을 표시할 수 있습니다. 그 외에 일반 사진(jpeg 등) 혹은 이미지로 태그를 생성하는 방법이 있습니다 `img2img`탭의 `Interrogate CLIP` , `Interrogate DeepBooru`두 기능을 이용합니다.
+
+![stable-diffusion-webui-img2img-menu](/snippets/stableDiffusion/section3/img2img-menu.png)
+
+`Interrogate CLIP`은 이미지 설명을 문장으로 작성하는 기능이고, `Interrogate DeepBooru`는 쉼표로 구분된 단어의 나열을 생성하는 기능입니다. 두 기능 모두 최초 실행시 파일 다운로드 실행 시간이 존재합니다.
+
+`Interrogate CLIP`은 VRAM 4GB 환경에서는 오류가 발생합니다. `Interrogate DeepBooru`는 --lowvram, --medvram 환경에서 모두 사용 가능합니다. `Interrogate DeepBooru`기능이 이미지 생성에 더 최적화되어 있습니다.
+
+각각 실행하면 프롬프트란에 결과가 출력됩니다. ` --lowvram, --medvram `두 설정 각각 결과까지 나타나기까지 걸리는  시간은 다릅니다. `--lowvram`설정이라면 `--medvram`설정을 적용했을때보다 결과가 늦게 나타납니다. GPU를 업그레이드 했을에도 불구하고 해당 옵션이 설정되어 있다면 재기능을 못할 수 있죠.
+
+![stable-diffusion-webui-interrogate-deepbooru](/snippets/stableDiffusion/section3/interrogate-deepbooru.png)
+
+아래가 추출된 결과입니다.
+
+```text
+blue sky, blurry, city, cloud, cloudy sky, day, depth of field, fantasy, forest,
+grass, lake, landscape, mountain, mountainous horizon, nature, no humans,
+outdoors, river, scenery, sky, tree, water, waterfall
+```
+
+### 응용하기
+
+이제 두 이미지(배경 이미지, 캐릭터 이미지)를 생성해봅시다.
+
+#### 배경 이미지
+
+1920X1080 이미지와 거의 같은 896X512사이즈로 설정합니다. 이후 업스케일 및 확대 AI를 이용해 해상도를 높여 1920X1080 크기의 이미즈를 얻을 수 있습니다.
+
+```text
+<!-- Prompt -->
+bright color contrast, beautiful detailing landscape painting,
+masterpiece, best quality, concept art, extrmely detailed,
+digital painting, oil painting, (watercolor painting: 1.2),
+ray tracing, beautiful composition,
+(wide river: 1.1), green grassland, blue sky of summer, daytime,
+upper sunlight and bright golden sun, style of renaissance and gothic,
+(style of high fantasy: 1.2)
+far long shot, below view, brilliant photo,
+sharp focus, atmospheric lighting, realism,
+8k, ray tracing, cinematic lighting, cinematic postprocessing
+```
+
+```text
+<!-- Negative prompt -->
+text, error, worst quality, low quality, normal quality, jpeg artifacts, signature,
+watermark, username, blurry, shadow, flat shading, flat color, grayscale, black&white,
+monochrome, frame, human, body, boy, girl, man, woman, mob
+```
+
+![stable-diffusion-webui-background](/snippets/stableDiffusion/section3/background.png)
+
+#### 캐릭터 이미지
+
+캐릭터 이미지를 생성해봅시다. 소녀 전사를 생성합니다. CFG Scale을 10으로 설정해 비슷한 이미지를 생성하도록하여 여러번 시도 합니다. `Batch count` 또한 3으로 설정해 3개의 이미지를 동시에 생성해봅시다.
+
+```text
+<!-- Prompt -->
+(watercolor painting: 1.3), (oil painting: 1.2),
+(style of gothic: 1.3),
+(style of renaissance: 1.2),
+(style of high fantasy: 1.1),
+(bust shot: 1.5), (portrait: 1.5),
+bright color contrast, masterpiece, best quality, concept art, extremely detailed,
+(fantasy full armor costume: 1.1),
+one kawaii cute girl,
+beautiful perfect symmetrical face, small nose and mouth, aesthetic eyes,
+long wavy hair, sharp focus, realism, 8k,
+(style of granblud fantasy: 0.7),
+(style of genshin impact: 0.3),
+(artstation: 0.3), (deviantart: 0.3), (pixiv ranking 1st: 0.3)
+```
+
+```text
+<!-- Negative prompt -->
+bad anatomy, bad hands, text, error, missing fingers, extra digit, fewer digits,
+cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, water-mark,
+username, blurry, missing fingers, missing arms, long neck, humpbacked,
+shadow, flat shading, flat color, grayscale, black&white, monochrome
+```
+
+![stable-diffusion-webui-character](/snippets/stableDiffusion/section3/character.png)

@@ -1,0 +1,46 @@
+---
+title: "[Stable Diffusion] - 2"
+description: "webui 입력 폼 가이드 - img2img"
+language: "StableDiffusion"
+category: "Generation AI"
+update: "2024-02-27"
+hide: false
+serisenumber: 2
+---
+
+## webui의 구성 요소
+이어서 `img2img` 탭의 요소를 봅시다. 생성된 이미지와 프롬프트를 바탕으로 새로운 이미지를 생성할 수 있습니다. 주로 다음 용도로 이용합니다.
+- 사진이나 이미지를 바탕으로 다른 그림 그리기
+- blender등으로 생성한 3D모델 혹은 캐릭터 포즈 등을 만들어 이를 바탕으로 그림 그리기
+- txt2img로 생성한 이미지 수정하기
+
+`img2img`탭에서는 몇 개의 탭이 존재합니다.
+
+![stable-diffusion-webui-img2img-tab](/snippets/stableDiffusion/section2/img2img-tab.png)
+
+- `Inpaint` 탭에서는 이미지를 불러온 후 변경하지 않을 부분을 마스크로 두고 그 외 부분을 재작성해 생성합니다. `Maskblur`값을 조정하여 작성한 마스크를 얼마나 흐리게 할지 지정할 수 있습니다.
+
+![stable-diffusion-webui-img2img-option](/snippets/stableDiffusion/section2/img2img-option.png)
+
+설정은 `txt2img`와 흡사합니다. 몇 가지 살펴봅시다.
+
+### Denoising strength
+노이즈 제거 강도입니다. 0으로 설정하면 원본 이미지와 동일한 이미지가 생성되고 1에 가까울수록 새로운 이미지가 생성됩니다.
+
+### Interrogate CLIP
+이미지를 불러오고 해당 버튼을 누르면 이미지 설명을 문장으로 만들어 줍니다. 프롬포트를 추출하기에 편리합니다.
+
+### Interrogate DeepBooru
+이미지를 불러오고 해당 버튼을 누르면 이미지의 특징을 나타내는 단어 목록을 쉼표로 구분해 만들어 줍니다. 프롬포트 추출에 편리합니다.
+
+## Sampling count 이해하기
+Sampling count에 따른 이미지의 차이를 봅시다.
+
+`beautiful girl, high quality, style of renaissance, ultra0detailed, concept art, 8k, 4k, artstation, deviantart, pixiv ranking 1st`  
+위 프롬포트로, 모델은 1.5 sampling method는 Euler를 이용. 시드 값은 0으로 고정하여 1단계부터 20단계까지 봅시다.
+
+![stable-diffusion-webui-step-image](/snippets/stableDiffusion/section2/step-image.png)
+
+고화질을 원한다면 50정도 까지 사용하지만 보통은 20정도로도 확연히 보이는 문제는 없습니다.
+
+실제로 이와 같이 소재를 만들 때 프롬프트나 설정 값을 세밀하게 변경해 원하는 이미지가 나올 때까지 출력을 반복합니다.
