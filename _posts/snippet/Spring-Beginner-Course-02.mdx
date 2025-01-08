@@ -153,19 +153,73 @@ public String helloMvc(@RequestParam("name") String name, Model model) {
 
 API는 애플리케이션 간 통신을 위한 인터페이스로, 데이터를 주고받는 형식을 정의한 것입니다. 주로 JSON 형태로 데이터를 전달하며, REST API 형태로 구현하는 것이 일반적입니다.
 
+최근에는 프론트엔드와 백엔드를 분리하는 구조가 많이 사용되면서, 백엔드에서 API를 제공하고 프론트엔드에서 이를 소비하는 형태의 개발이 증가하고 있습니다. 하지만 이는 MVC 패턴을 대체하는 것이 아니며, 사용 사례에 따라 적절한 방식을 선택하는 것이 중요합니다.
+
+스프링 MVC 패턴은 SSR(Server Side Rendering) 방식을 사용하며, 클라이언트가 서버에 요청을 보내면 서버가 렌더링된 HTML을 반환하는 방식입니다. 이때 서버는 데이터를 처리하고 화면을 렌더링하는 역할을 담당합니다.
+
+반면 API는 클라이언트가 서버에 요청을 보내면 서버가 데이터만 반환하는 방식입니다. 이때 서버는 데이터를 처리하는 역할만 담당하며, 화면을 렌더링하는 역할은 클라이언트에게 맡깁니다. 이러한 형태의 개발은 프론트엔드와 백엔드를 분리하는 구조로 이루어집니다.
+
+최근 들어서는 Next.js 가 나타나면서 기존 클라이언트 측에서 렌더링 하는 부분을 다시 또 서버측에서 렌더링 하는 형태로 변화하고 있습니다.
+
 ### Controller
 
 컨트롤러를 작성합니다.
 
 ```java
 // src/main/java/hello/hello_spring/controller/HelloController.java
-// @GetMapping: "/hello-string" 경로로 들어오는 GET 요청을 처리
-// @ResponseBody: HTTP 응답 본문에 직접 데이터를 작성하도록 지정
-// @RequestParam: HTTP 요청의 쿼리 파라미터 'name'을 메서드 파라미터로 전달
+// ...
+
+// @ResponseBody: HTTP 응답 본문에 직접 데이터를 작성하도록 지시
+// 문자열을 그대로 반환하는 API
 @GetMapping("hello-string")
 @ResponseBody
 public String helloString(@RequestParam("name") String name) {
-    // 문자열을 직접 반환하면 HTTP 응답 본문에 그대로 전달됨
     return "hello " + name;
 }
+
+// 객체를 JSON 형태로 반환하는 API
+@GetMapping("hello-api")
+@ResponseBody
+public Hello helloApi(@RequestParam("name") String name) {
+    Hello hello = new Hello();
+    hello.setName(name);
+    return hello;
+}
+
+// API 응답에 사용할 내부 정적 클래스
+static class Hello {
+    // name 필드는 private으로 캡슐화
+    private String name;
+
+    // name 필드의 getter 메서드
+    public String getName() {
+        return name;
+    }
+
+    // name 필드의 setter 메서드
+    public void setName(String name) {
+        this.name = name;
+    }
+}
 ```
+
+위와 같이 컨트롤러를 작성한 후 브라우저로 `http://localhost:8080/hello-api?name=geon` 으로 접속하면 다음과 같은 화면이 표시됩니다.
+
+![spring-beginner-course-02-api-string](/snippets/spring-beginner/section2/capture06.png)
+
+흐름은 다음과 같습니다.
+
+![spring-beginner-course-02-api-principle](/snippets/spring-beginner/section2/capture07.png)
+
+1. 컨트롤러에서 `GET /hello-api?name=geon` 요청을 받음
+2. `@ResponseBody` 어노테이션으로 인해 HTTP 응답 본문에 직접 데이터를 작성하도록 지시
+3. 컨트롤러는 데이터를 처리하고 객체를 반환
+  - `HttpMessageConverter`가 동작하여 객체를 변환
+  - 객체인 경우 기본으로 `MappingJackson2HttpMessageConverter`가 동작
+  - 객체를 JSON 형태로 변환하여 클라이언트에게 전달
+4. 클라이언트는 반환된 JSON 데이터를 받아 처리
+  - 문자열인 경우 `StringHttpMessageConverter`가 동작
+  - 객체인 경우 `MappingJackson2HttpMessageConverter`가 동작
+  - 단순 GET 요청으로 JSON 데이터가 브라우저에 표시
+
+> 💡 Jackson 라이브러리는 자바 객체를 JSON으로 변환하는 라이브러리입니다.
