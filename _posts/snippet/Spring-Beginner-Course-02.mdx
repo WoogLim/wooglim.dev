@@ -1,5 +1,5 @@
 ---
-title: "[스프링 입문] 웹 MVC 및 DB 연동"
+title: "[스프링] 웹 MVC 및 DB 연동 - 2"
 description: "스프링 웹 개발 기초"
 language: "Java"
 category: "Spring Beginner"
@@ -148,3 +148,24 @@ public String helloMvc(@RequestParam("name") String name, Model model) {
   - "hello geon"가 화면에 출력됨
 
 ![spring-beginner-course-02-mvc-principle](/snippets/spring-beginner/section2/capture05.png)
+
+## API
+
+API는 애플리케이션 간 통신을 위한 인터페이스로, 데이터를 주고받는 형식을 정의한 것입니다. 주로 JSON 형태로 데이터를 전달하며, REST API 형태로 구현하는 것이 일반적입니다.
+
+### Controller
+
+컨트롤러를 작성합니다.
+
+```java
+// src/main/java/hello/hello_spring/controller/HelloController.java
+// @GetMapping: "/hello-string" 경로로 들어오는 GET 요청을 처리
+// @ResponseBody: HTTP 응답 본문에 직접 데이터를 작성하도록 지정
+// @RequestParam: HTTP 요청의 쿼리 파라미터 'name'을 메서드 파라미터로 전달
+@GetMapping("hello-string")
+@ResponseBody
+public String helloString(@RequestParam("name") String name) {
+    // 문자열을 직접 반환하면 HTTP 응답 본문에 그대로 전달됨
+    return "hello " + name;
+}
+```
