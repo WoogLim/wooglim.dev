@@ -1,0 +1,412 @@
+---
+title: "[스프링] 웹 MVC 및 DB 연동 - 1"
+description: "프로젝트 환경설정"
+language: "Java"
+category: "Spring Beginner"
+update: "2025-01-05"
+hide: true
+serisenumber: 1
+---
+
+## 시작
+
+- [김영한 강사님의 스프링 입문 - 코드로 배우는 스프링 부트, 웹 MVC, DB 접근 기술 강의를 듣고 작성한 글입니다.](https://www.inflearn.com/course/%EC%8A%A4%ED%94%84%EB%A7%81-%EC%9E%85%EB%AC%B8-%EC%8A%A4%ED%94%84%EB%A7%81%EB%B6%80%ED%8A%B8/dashboard)
+
+## 해당 강의의 요구 항목
+---
+아래 항목을 충족해야 합니다.
+
+* 스프링 부트 3.2 업데이트 관련 이슈
+* start.spring.io 스프링 부트 2.x 지원 종료
+* 스프링 부트 3.0 이상을 사용.
+* 자바 17 이상을 사용.
+
+## 프로젝트 생성
+---
+[스프링 부트 스타터 사이트](https://start.spring.io/)를 이용해 프로젝트 구성을 한 후 zip 파일을 다운로드 받습니다.
+
+프로젝트 구성은 다음과 같이 합니다.
+
+![spring-beginner-01-project-setting](/snippets/spring-beginner/section1/capture01.png)
+
+스프링 프로젝트의 빌드 도구로는 Maven과 Gradle을 선택할 수 있습니다.
+
+- **Maven**
+  - XML 기반의 빌드 도구
+  - 프로젝트 루트에 `pom.xml` 파일이 생성됨
+  - 프로젝트의 의존성(라이브러리) 관리
+  - 빌드 생명주기 및 빌드 프로세스 관리
+  - 프로젝트 버전 관리
+  - 테스트 실행 및 리포트 생성
+
+- **Gradle** 
+  - Groovy 기반의 빌드 도구
+  - 프로젝트 루트에 `build.gradle` 파일이 생성됨
+  - 프로젝트의 의존성(라이브러리) 관리
+  - 빌드 스크립트 구성 및 태스크 실행
+  - 멀티 프로젝트 빌드 지원
+  - 증분 빌드를 통한 빌드 성능 최적화 (변경된 파일만 다시 빌드하여 전체 빌드 시간 단축)
+  - 빌드 캐시를 통한 빌드 속도 향상
+
+패키징은 Jar, War 둘 중 하나를 선택할 수 있습니다.
+
+- **Jar**
+  - Java Archive의 약자로 자바 프로젝트를 압축한 파일
+  - 내장 톰캣을 사용하여 독립적으로 실행 가능
+  - 스프링 부트에서 권장하는 패키징 방식
+  - 클라우드 네이티브에 적합
+
+- **War**
+  - Web Application Archive의 약자
+  - 웹 애플리케이션을 위한 패키징 방식
+  - 외부 톰캣 서버에 배포하기 위한 목적
+  - JSP를 사용해야 하는 경우 선택
+
+디펜던시의 경우 프로젝트에서 사용할 라이브러리를 선택합니다. Spring Web과 Thymeleaf를 사용합니다.
+
+- **Spring Web**
+  - 스프링 웹 기능을 제공하는 라이브러리
+  - 스프링 MVC 프레임워크를 포함
+  - 웹 애플리케이션을 개발하는 데 필요한 기능을 제공
+  - RESTful API 개발을 위한 기능 제공
+  - 내장 톰캣 서버를 포함하여 별도 웹 서버 설치 불필요
+  - HTTP 요청/응답 처리를 위한 다양한 기능 제공
+
+- **Thymeleaf**
+  - 서버 사이드 렌더링을 위한 현대적인 서버 사이드 Java 템플릿 엔진
+  - HTML 템플릿 엔진으로 Natural Templates 지원
+  - 뷰 템플릿을 사용하여 동적 웹 페이지를 생성
+  - Spring Boot와의 통합이 잘 되어있어 설정이 간단
+  - HTML 파일을 브라우저에서 직접 열어도 깨지지 않는 장점
+  - 스프링의 다양한 기능(Security, 국제화 등)과 쉽게 연동
+  - 표현식과 유틸리티 객체를 통한 강력한 템플릿 처리 기능
+
+프로젝트 설정이 끝나면 Generate 버튼을 눌러 프로젝트를 생성하고, 압축을 푼 뒤 IntelliJ IDEA 혹은 다른 IDE에서 프로젝트를 열어봅니다.
+
+IntelliJ IDEA를 사용하여 프로젝트를 여는 경우 의존하는 라이브러리를 자동으로 다운로드합니다.
+
+프로젝트 폴더에서 src 폴더내 main, test 폴더가 존재합니다.
+
+![spring-beginner-01-project-structure](/snippets/spring-beginner/section1/capture02.png)
+
+- **main** 
+  - 프로젝트 소스 코드 및 리소스 파일을 포함
+  - 주요 파일은 다음과 같음
+    - `src/main/java`: 자바 소스 코드
+    - `src/main/resources`: 리소스 파일(예: 프로퍼티 파일, 템플릿 파일)
+    - `src/main/resources/static`: 정적 리소스(예: HTML, CSS, JS)
+    - `src/main/resources/templates`: 서버 사이드 렌더링을 위한 템플릿 파일
+
+- **test**
+  - 테스트 코드 및 테스트 리소스 파일을 포함
+  - 주요 파일은 다음과 같음
+    - `src/test/java`: 자바 테스트 코드
+    - `src/test/resources`: 테스트 리소스 파일(예: 프로퍼티 파일, 템플릿 파일)
+
+### @SpringBootApplication
+스프링 부트 프로젝트를 생성하면 가장 먼저 만나게 되는 메인 클래스를 살펴봅시다.
+
+```java
+package hello.hello_spring;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+/**
+ * @SpringBootApplication 어노테이션은 스프링 부트의 자동 구성, 스프링 Bean 읽기와 생성을 모두 자동으로 설정
+ * 이 어노테이션이 있는 위치부터 설정을 읽어가므로 이 클래스는 항상 프로젝트 최상단에 위치해야 함
+ */
+@SpringBootApplication
+public class HelloSpringApplication {
+
+    /**
+     * SpringApplication.run()으로 내장 WAS(Web Application Server)를 실행
+     * 내장 WAS 덕분에 별도의 외부 서버 설치 없이 웹 서버를 실행할 수 있음
+     */
+    public static void main(String[] args) {
+        SpringApplication.run(HelloSpringApplication.class, args);
+    }
+
+}
+```
+
+main 메서드내 SpringApplication.run() 메서드를 호출하면 내장 WAS(톰캣)를 실행합니다. 스프링 부트 또한 같이 실행됩니다.
+
+> 💡 IntelliJ IDEA에서 Gradle을 통해 실행하는 경우 실행 속도가 느릴 수 있습니다. 
+> 이런 경우 다음과 같이 설정을 변경하면 Java로 직접 실행되어 더 빠른 실행이 가능합니다:
+> 1. File > Settings (또는 Preferences) 
+> 2. Build, Execution, Deployment > Build Tools > Gradle
+> 3. 프로젝트 선택
+> 4. Build and run using: IntelliJ IDEA
+> 5. Run tests using: IntelliJ IDEA
+> 로 변경
+
+![spring-beginner-01-intellij-idea-setting](/snippets/spring-beginner/section1/capture03.png)
+
+## 라이브러리 살펴보기
+---
+먼저 라이브러리가 관리되는 build.gradle 파일을 살펴봅시다.
+
+```groovy
+// 플러그인 설정
+plugins {
+	id 'java' // 자바 플러그인 추가
+	id 'org.springframework.boot' version '3.4.1' // 스프링 부트 플러그인
+	id 'io.spring.dependency-management' version '1.1.7' // 스프링 의존성 관리 플러그인
+}
+
+// 프로젝트 정보
+group = 'hello'
+version = '0.0.1-SNAPSHOT'
+
+// 자바 버전 설정
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(17) // Java 17 사용
+	}
+}
+
+// 의존성을 가져올 저장소 설정
+repositories {
+	mavenCentral() // Maven Central 저장소 사용
+}
+
+// 프로젝트 의존성 설정
+dependencies {
+	// 스프링 부트 타임리프 템플릿 엔진
+	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+	// 스프링 부트 웹 스타터
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	// 스프링 부트 테스트를 위한 의존성
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	// JUnit 플랫폼 런처 - 테스트 실행을 위한 의존성
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+// 테스트 설정
+tasks.named('test') {
+	useJUnitPlatform() // JUnit 플랫폼으로 테스트 실행
+}
+
+```
+
+gradle, maven 은 의존 관계를 관리해줍니다. 예로 위 코드를 보면 `starter-web`을 사용하는데, 이 라이브러리를 사용하기 위해 필요한 다른 라이브러리 또한 자동으로 가져옵니다.
+
+![spring-beginner-01-gradle-dependency](/snippets/spring-beginner/section1/capture04.png)
+
+이미지를 보면 `spring-boot-starter-tomcat` 라이브러리가 자동으로 추가된 것을 확인할 수 있습니다.
+
+과거의 경우 WAS가 별도로 필요하고 변경되는 파일들은 수동으로 넣었다 뺐다 해주고 WAS를 재가동 해주어야 했습니다. 하지만 스프링 부트를 사용하면 이런 부분을 자동으로 해주고 편리하게 사용할 수 있습니다.(톰캣이 내장되어 있기 때문)
+
+이외에도 로그 라이브러리인 `log4j`, `slf4j`, `logback` 등이 자동으로 추가되고 테스트 라이브러리인 `junit` 등과 핵심인 `spring-boot-starter-tomcat`, `spring-webmvc` 등이 자동으로 추가됩니다.
+
+## View 환경 설정과 MVC 패턴
+---
+
+가장 먼저 `localhost:8080` 접속시 보일 화면을 만들어봅시다. `src/main/resources/static/index.html` 파일을 생성하고 다음 코드를 작성합니다.
+
+```html
+<!DOCTYPE HTML>
+<html>
+<body>
+<div class="container">
+    <div class="starter-template">
+        <h1>Hello, Spring!</h1>
+    </div>
+</div>
+</body>
+</html>
+```
+
+![spring-beginner-01-index-html](/snippets/spring-beginner/section1/capture05.png)
+
+spring 부트의 경우 웰컴 페이지를 찾기 위해 `src/main/resources/static/index.html` 파일을 찾습니다. 이 파일이 존재하면 자동으로 웰컴 페이지로 설정됩니다. 없다면 스프링 부트가 제공하는 기본 웰컴 페이지를 보여줍니다.
+
+> 💡 이런 내용들을 찾기 위해 서는 공식 문서를 참고하는 것이 좋습니다.
+> [스프링 부트 공식 문서](https://docs.spring.io/spring-boot/index.html) 를 통해 찾고자 하는 내용을 검색해보려는 노력이 필요합니다.
+
+정적 페이지를 만들었으니 이제 템플릿 엔진을 지원하는 [thymeleaf](https://www.thymeleaf.org/) 를 사용해봅시다.
+
+이외에도 스프링은 [템플릿 엔진](https://docs.spring.io/spring-boot/reference/web/servlet.html#web.servlet.spring-mvc.template-engines)으로 프리마커, 그루비, 타임리프, Mustache 등을 지원합니다.
+
+먼저 웹 애플리케이션에서 첫 번재 진입점인 `Controller`를 만들어봅시다.
+
+```java
+// src/main/java/hello/hello_spring/controller/HelloController.java
+package hello.hello_spring.controller;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+
+// @Controller: 해당 클래스가 컨트롤러임을 나타내는 어노테이션
+@Controller
+public class HelloController {
+
+    // @GetMapping: HTTP GET 요청을 처리하는 메서드임을 나타내는 어노테이션
+    // "/hello" 경로로 들어오는 GET 요청을 처리
+    @GetMapping("hello")
+    public String hello(Model model) {
+        // Model 객체에 "data"라는 이름으로 "hello!!" 값을 추가
+        // 이 데이터는 뷰(템플릿)에서 사용 가능
+        model.addAttribute("data", "hello!!");
+        // "hello"라는 이름의 뷰(템플릿)를 찾아 반환
+        return "hello";
+    }
+}
+```
+
+이어서 템플릿 파일을 만들어봅시다. `src/main/resources/templates/hello.html` 파일을 생성하고 다음 코드를 작성합니다.
+
+```html
+<!-- src/main/resources/templates/hello.html -->
+<!doctype html>
+<!-- Thymeleaf 템플릿 엔진을 사용하기 위한 네임스페이스 선언 -->
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <!-- 문자 인코딩 설정 -->
+    <meta charset="UTF-8">
+    <!-- 반응형 웹을 위한 뷰포트 설정 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Document</title>
+</head>
+<body>
+    <!-- th:text - Thymeleaf의 텍스트 표현식
+    ${data} - 컨트롤러에서 전달된 Model 객체의 data 속성값을 표시
+    "안녕하세요. 손님" - 템플릿이 렌더링되기 전에 보여질 기본 텍스트 -->
+    <p th:text="'안녕하세요. ' + ${data}"> 안녕하세요. 손님</p>
+</body>
+</html>
+```
+
+이제 브라우저에서 `localhost:8080/hello` 접속하면 템플릿 엔진이 작동하여 템플릿 파일을 찾아 렌더링하여 화면을 보여줍니다.
+
+![spring-beginner-01-hello-html](/snippets/spring-beginner/section1/capture06.png)
+
+원리는 다음과 같습니다.
+
+![spring-beginner-01-hello-html-principle](/snippets/spring-beginner/section1/capture07.png)
+
+컨트롤러에서 만일 리턴값으로 문자를 반환하는 경우 뷰 리졸버(View Resolver)가 화면을 찾아 처리하며 화면을 보여줍니다.
+
+```java
+// src/main/java/hello/hello_spring/controller/HelloController.java
+// ...
+@Controller
+public class HelloController {
+
+    // @GetMapping: HTTP GET 요청을 처리하는 메서드임을 나타내는 어노테이션
+    // "/hello" 경로로 들어오는 GET 요청을 처리
+    @GetMapping("hello")
+    public String hello(Model model) {
+        // Model 객체에 "data"라는 이름으로 "hello!!" 값을 추가
+        // 이 데이터는 뷰(템플릿)에서 사용 가능
+        model.addAttribute("data", "hello!!");
+        // "hello"라는 이름의 뷰(템플릿)를 찾아 반환
+        return "hello";
+    }
+}
+```
+
+정리하자면 아래와 같습니다.
+
+1. 컨트롤러에서 `GET /hello` 요청을 받음
+  - 컨트롤러는 MVC 패턴에서 C(Controller)에 해당하며, 사용자의 요청을 처리하고 비즈니스 로직을 조정하는 역할을 담당
+  - `@Controller` 어노테이션을 통해 해당 클래스가 컨트롤러임을 명시
+  - `@GetMapping("hello")` 어노테이션으로 "/hello" URL에 대한 GET 요청을 이 메서드가 처리하도록 매핑
+2. 해당 메서드는 `Model` 을 파라미터로 받아 "data"라는 키로 "hello!!"라는 값을 추가 (이는 MVC 패턴의 Model에 해당하며, 컨트롤러와 뷰 사이에서 데이터를 전달하는 역할을 함)
+  - 컨트롤러는 필요한 비즈니스 로직을 수행한 후 그 결과를 Model에 담아 View로 전달
+
+```html
+<!-- src/main/resources/templates/hello.html -->
+<!doctype html>
+<!-- Thymeleaf 템플릿 엔진을 사용하기 위한 네임스페이스 선언 -->
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <!-- 문자 인코딩 설정 -->
+    <meta charset="UTF-8">
+    <!-- 반응형 웹을 위한 뷰포트 설정 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Document</title>
+</head>
+<body>
+    <!-- th:text - Thymeleaf의 텍스트 표현식
+    ${data} - 컨트롤러에서 전달된 Model 객체의 data 속성값을 표시
+    "안녕하세요. 손님" - 템플릿이 렌더링되기 전에 보여질 기본 텍스트 -->
+    <p th:text="'안녕하세요. ' + ${data}"> 안녕하세요. 손님</p>
+</body>
+</html>
+```
+
+3. 뷰 리졸버(View Resolver)는 컨트롤러가 반환한 뷰 이름을 실제 뷰 파일 경로로 매핑하는 스프링의 컴포넌트입니다. 여기서는 `hello`라는 뷰 이름을 `resources/templates/hello.html`이라는 실제 파일 경로로 변환하여 렌더링
+  - `resources/templates/hello.html` 파일을 찾음
+  - Thymeleaf 템플릿 엔진이 파일을 처리
+  - `${data}`를 "hello!!"로 치환
+4. 렌더링된 템플릿이 브라우저에 표시
+  - "안녕하세요. hello!!"가 화면에 출력됨
+
+## 빌드 후 실행하기
+
+빌드는 다음과 같이 루트 컨텍스트에서 `./gradlew build` 명령을 수행하여 빌드합니다.
+
+```bash
+# cd  ~/프로젝트 경로
+> ./gradlew build
+
+Welcome to Gradle 8.11.1!
+
+Here are the highlights of this release:
+ - Parallel load and store for Configuration Cache
+ - Java compilation errors at the end of the build output
+ - Consolidated report for warnings and deprecations
+
+For more details see https://docs.gradle.org/8.11.1/release-notes.html
+
+Starting a Gradle Daemon (subsequent builds will be faster)
+
+BUILD SUCCESSFUL in 8s
+7 actionable tasks: 7 executed
+```
+
+실행은 다음과 같이 수행합니다.
+
+```bash
+# cd  ~/프로젝트 경로/build/libs
+> ls
+hello-spring-0.0.1-SNAPSHOT-plain.jar hello-spring-0.0.1-SNAPSHOT.jar
+
+# 실행 권한 부여
+> chmod 644 hello-spring-0.0.1-SNAPSHOT.jar
+
+# 실행
+> java -jar hello-spring-0.0.1-SNAPSHOT.jar
+
+> java -jar hello-spring-0.0.1-SNAPSHOT.jar
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v3.4.1)
+
+2025-01-08T19:39:39.581+09:00  INFO 31029 --- [hello-spring] [           main] h.hello_spring.HelloSpringApplication    : Starting HelloSpringApplication v0.0.1-SNAPSHOT using Java 17.0.3 with PID 31029 (/Users/wooglim/dev/spring-beginner-project-setting/hello-spring/build/libs/hello-spring-0.0.1-SNAPSHOT.jar started by wooglim in /Users/wooglim/dev/spring-beginner-project-setting/hello-spring/build/libs)
+2025-01-08T19:39:39.583+09:00  INFO 31029 --- [hello-spring] [           main] h.hello_spring.HelloSpringApplication    : No active profile set, falling back to 1 default profile: "default"
+2025-01-08T19:39:40.041+09:00  INFO 31029 --- [hello-spring] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8080 (http)
+2025-01-08T19:39:40.049+09:00  INFO 31029 --- [hello-spring] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2025-01-08T19:39:40.049+09:00  INFO 31029 --- [hello-spring] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.34]
+2025-01-08T19:39:40.071+09:00  INFO 31029 --- [hello-spring] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2025-01-08T19:39:40.071+09:00  INFO 31029 --- [hello-spring] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 462 ms
+2025-01-08T19:39:40.126+09:00  INFO 31029 --- [hello-spring] [           main] o.s.b.a.w.s.WelcomePageHandlerMapping    : Adding welcome page: class path resource [static/index.html]
+2025-01-08T19:39:40.276+09:00  INFO 31029 --- [hello-spring] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8080 (http) with context path '/'
+2025-01-08T19:39:40.285+09:00  INFO 31029 --- [hello-spring] [           main] h.hello_spring.HelloSpringApplication    : Started HelloSpringApplication in 0.911 seconds (process running for 1.174)
+```
+
+빌드 후 프로젝트 정리는 다음과 같이 수행합니다.
+
+```bash
+# 빌드 후 프로젝트 정리
+> ./gradlew clean
+```
