@@ -27,6 +27,8 @@ serisenumber: 1
 
 프로젝트 구성은 다음과 같이 합니다.
 
+![spring-beginner-01-project-setting](/snippets/spring-beginner/section1/capture01.png)
+
 스프링 프로젝트의 빌드 도구로는 Maven과 Gradle을 선택할 수 있습니다.
 
 - **Maven**
@@ -85,6 +87,8 @@ IntelliJ IDEA를 사용하여 프로젝트를 여는 경우 의존하는 라이�
 
 프로젝트 폴더에서 src 폴더내 main, test 폴더가 존재합니다.
 
+![spring-beginner-01-project-structure](/snippets/spring-beginner/section1/capture02.png)
+
 - **main** 
   - 프로젝트 소스 코드 및 리소스 파일을 포함
   - 주요 파일은 다음과 같음
@@ -137,6 +141,8 @@ main 메서드내 SpringApplication.run() 메서드를 호출하면 내장 WAS(�
 > 5. Run tests using: IntelliJ IDEA
 > 로 변경
 
+![spring-beginner-01-intellij-idea-setting](/snippets/spring-beginner/section1/capture03.png)
+
 ## 라이브러리 살펴보기
 ---
 먼저 라이브러리가 관리되는 build.gradle 파일을 살펴봅시다.
@@ -186,6 +192,8 @@ tasks.named('test') {
 
 gradle, maven 은 의존 관계를 관리해줍니다. 예로 위 코드를 보면 `starter-web`을 사용하는데, 이 라이브러리를 사용하기 위해 필요한 다른 라이브러리 또한 자동으로 가져옵니다.
 
+![spring-beginner-01-gradle-dependency](/snippets/spring-beginner/section1/capture04.png)
+
 이미지를 보면 `spring-boot-starter-tomcat` 라이브러리가 자동으로 추가된 것을 확인할 수 있습니다.
 
 과거의 경우 WAS가 별도로 필요하고 변경되는 파일들은 수동으로 넣었다 뺐다 해주고 WAS를 재가동 해주어야 했습니다. 하지만 스프링 부트를 사용하면 이런 부분을 자동으로 해주고 편리하게 사용할 수 있습니다.(톰캣이 내장되어 있기 때문)
@@ -209,6 +217,8 @@ gradle, maven 은 의존 관계를 관리해줍니다. 예로 위 코드를 보�
 </body>
 </html>
 ```
+
+![spring-beginner-01-index-html](/snippets/spring-beginner/section1/capture05.png)
 
 spring 부트의 경우 웰컴 페이지를 찾기 위해 `src/main/resources/static/index.html` 파일을 찾습니다. 이 파일이 존재하면 자동으로 웰컴 페이지로 설정됩니다. 없다면 스프링 부트가 제공하는 기본 웰컴 페이지를 보여줍니다.
 
@@ -271,9 +281,16 @@ public class HelloController {
 
 이제 브라우저에서 `localhost:8080/hello` 접속하면 템플릿 엔진이 작동하여 템플릿 파일을 찾아 렌더링하여 화면을 보여줍니다.
 
+![spring-beginner-01-hello-html](/snippets/spring-beginner/section1/capture06.png)
+
 원리는 다음과 같습니다.
 
+![spring-beginner-01-hello-html-principle](/snippets/spring-beginner/section1/capture07.png)
+
 컨트롤러에서 만일 리턴값으로 문자를 반환하는 경우 뷰 리졸버(View Resolver)가 화면을 찾아 처리하며 화면을 보여줍니다.
+
+- 스프링 부트 템플릿엔진 기본 viewName 매핑 
+  - `resources:templates/ + ViewName + .html`
 
 ```java
 // src/main/java/hello/hello_spring/controller/HelloController.java
