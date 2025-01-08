@@ -200,7 +200,7 @@ gradle, maven 은 의존 관계를 관리해줍니다. 예로 위 코드를 보�
 
 이외에도 로그 라이브러리인 `log4j`, `slf4j`, `logback` 등이 자동으로 추가되고 테스트 라이브러리인 `junit` 등과 핵심인 `spring-boot-starter-tomcat`, `spring-webmvc` 등이 자동으로 추가됩니다.
 
-## View 환경 설정
+## View 환경 설정과 MVC 패턴
 ---
 
 가장 먼저 `localhost:8080` 접속시 보일 화면을 만들어봅시다. `src/main/resources/static/index.html` 파일을 생성하고 다음 코드를 작성합니다.
@@ -231,3 +231,185 @@ spring 부트의 경우 웰컴 페이지를 찾기 위해 `src/main/resources/st
 
 먼저 웹 애플리케이션에서 첫 번재 진입점인 `Controller`를 만들어봅시다.
 
+```java
+// src/main/java/hello/hello_spring/controller/HelloController.java
+package hello.hello_spring.controller;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+
+// @Controller: 해당 클래스가 컨트롤러임을 나타내는 어노테이션
+@Controller
+public class HelloController {
+
+    // @GetMapping: HTTP GET 요청을 처리하는 메서드임을 나타내는 어노테이션
+    // "/hello" 경로로 들어오는 GET 요청을 처리
+    @GetMapping("hello")
+    public String hello(Model model) {
+        // Model 객체에 "data"라는 이름으로 "hello!!" 값을 추가
+        // 이 데이터는 뷰(템플릿)에서 사용 가능
+        model.addAttribute("data", "hello!!");
+        // "hello"라는 이름의 뷰(템플릿)를 찾아 반환
+        return "hello";
+    }
+}
+```
+
+이어서 템플릿 파일을 만들어봅시다. `src/main/resources/templates/hello.html` 파일을 생성하고 다음 코드를 작성합니다.
+
+```html
+<!-- src/main/resources/templates/hello.html -->
+<!doctype html>
+<!-- Thymeleaf 템플릿 엔진을 사용하기 위한 네임스페이스 선언 -->
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <!-- 문자 인코딩 설정 -->
+    <meta charset="UTF-8">
+    <!-- 반응형 웹을 위한 뷰포트 설정 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Document</title>
+</head>
+<body>
+    <!-- th:text - Thymeleaf의 텍스트 표현식
+    ${data} - 컨트롤러에서 전달된 Model 객체의 data 속성값을 표시
+    "안녕하세요. 손님" - 템플릿이 렌더링되기 전에 보여질 기본 텍스트 -->
+    <p th:text="'안녕하세요. ' + ${data}"> 안녕하세요. 손님</p>
+</body>
+</html>
+```
+
+이제 브라우저에서 `localhost:8080/hello` 접속하면 템플릿 엔진이 작동하여 템플릿 파일을 찾아 렌더링하여 화면을 보여줍니다.
+
+![spring-beginner-01-hello-html](/snippets/spring-beginner/section1/capture06.png)
+
+원리는 다음과 같습니다.
+
+![spring-beginner-01-hello-html-principle](/snippets/spring-beginner/section1/capture07.png)
+
+컨트롤러에서 만일 리턴값으로 문자를 반환하는 경우 뷰 리졸버(View Resolver)가 화면을 찾아 처리하며 화면을 보여줍니다.
+
+- 스프링 부트 템플릿엔진 기본 viewName 매핑 
+  - `resources:templates/` + {ViewName} + `.html`
+
+```java
+// src/main/java/hello/hello_spring/controller/HelloController.java
+// ...
+@Controller
+public class HelloController {
+
+    // @GetMapping: HTTP GET 요청을 처리하는 메서드임을 나타내는 어노테이션
+    // "/hello" 경로로 들어오는 GET 요청을 처리
+    @GetMapping("hello")
+    public String hello(Model model) {
+        // Model 객체에 "data"라는 이름으로 "hello!!" 값을 추가
+        // 이 데이터는 뷰(템플릿)에서 사용 가능
+        model.addAttribute("data", "hello!!");
+        // "hello"라는 이름의 뷰(템플릿)를 찾아 반환
+        return "hello";
+    }
+}
+```
+
+정리하자면 아래와 같습니다.
+
+1. 컨트롤러에서 `GET /hello` 요청을 받음
+  - 컨트롤러는 MVC 패턴에서 C(Controller)에 해당하며, 사용자의 요청을 처리하고 비즈니스 로직을 조정하는 역할을 담당
+  - `@Controller` 어노테이션을 통해 해당 클래스가 컨트롤러임을 명시
+  - `@GetMapping("hello")` 어노테이션으로 "/hello" URL에 대한 GET 요청을 이 메서드가 처리하도록 매핑
+2. 해당 메서드는 `Model` 을 파라미터로 받아 "data"라는 키로 "hello!!"라는 값을 추가 (이는 MVC 패턴의 Model에 해당하며, 컨트롤러와 뷰 사이에서 데이터를 전달하는 역할을 함)
+  - 컨트롤러는 필요한 비즈니스 로직을 수행한 후 그 결과를 Model에 담아 View로 전달
+
+```html
+<!-- src/main/resources/templates/hello.html -->
+<!doctype html>
+<!-- Thymeleaf 템플릿 엔진을 사용하기 위한 네임스페이스 선언 -->
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <!-- 문자 인코딩 설정 -->
+    <meta charset="UTF-8">
+    <!-- 반응형 웹을 위한 뷰포트 설정 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Document</title>
+</head>
+<body>
+    <!-- th:text - Thymeleaf의 텍스트 표현식
+    ${data} - 컨트롤러에서 전달된 Model 객체의 data 속성값을 표시
+    "안녕하세요. 손님" - 템플릿이 렌더링되기 전에 보여질 기본 텍스트 -->
+    <p th:text="'안녕하세요. ' + ${data}"> 안녕하세요. 손님</p>
+</body>
+</html>
+```
+
+3. 뷰 리졸버(View Resolver)는 컨트롤러가 반환한 뷰 이름을 실제 뷰 파일 경로로 매핑하는 스프링의 컴포넌트입니다. 여기서는 `hello`라는 뷰 이름을 `resources/templates/hello.html`이라는 실제 파일 경로로 변환하여 렌더링
+  - `resources/templates/hello.html` 파일을 찾음
+  - Thymeleaf 템플릿 엔진이 파일을 처리
+  - `${data}`를 "hello!!"로 치환
+4. 렌더링된 템플릿이 브라우저에 표시
+  - "안녕하세요. hello!!"가 화면에 출력됨
+
+## 빌드 후 실행하기
+
+빌드는 다음과 같이 루트 컨텍스트에서 `./gradlew build` 명령을 수행하여 빌드합니다.
+
+```bash
+# cd  ~/프로젝트 경로
+> ./gradlew build
+
+Welcome to Gradle 8.11.1!
+
+Here are the highlights of this release:
+ - Parallel load and store for Configuration Cache
+ - Java compilation errors at the end of the build output
+ - Consolidated report for warnings and deprecations
+
+For more details see https://docs.gradle.org/8.11.1/release-notes.html
+
+Starting a Gradle Daemon (subsequent builds will be faster)
+
+BUILD SUCCESSFUL in 8s
+7 actionable tasks: 7 executed
+```
+
+실행은 다음과 같이 수행합니다.
+
+```bash
+# cd  ~/프로젝트 경로/build/libs
+> ls
+hello-spring-0.0.1-SNAPSHOT-plain.jar hello-spring-0.0.1-SNAPSHOT.jar
+
+# 실행 권한 부여
+> chmod 644 hello-spring-0.0.1-SNAPSHOT.jar
+
+# 실행
+> java -jar hello-spring-0.0.1-SNAPSHOT.jar
+
+> java -jar hello-spring-0.0.1-SNAPSHOT.jar
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v3.4.1)
+
+2025-01-08T19:39:39.581+09:00  INFO 31029 --- [hello-spring] [           main] h.hello_spring.HelloSpringApplication    : Starting HelloSpringApplication v0.0.1-SNAPSHOT using Java 17.0.3 with PID 31029 (/Users/wooglim/dev/spring-beginner-project-setting/hello-spring/build/libs/hello-spring-0.0.1-SNAPSHOT.jar started by wooglim in /Users/wooglim/dev/spring-beginner-project-setting/hello-spring/build/libs)
+2025-01-08T19:39:39.583+09:00  INFO 31029 --- [hello-spring] [           main] h.hello_spring.HelloSpringApplication    : No active profile set, falling back to 1 default profile: "default"
+2025-01-08T19:39:40.041+09:00  INFO 31029 --- [hello-spring] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8080 (http)
+2025-01-08T19:39:40.049+09:00  INFO 31029 --- [hello-spring] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2025-01-08T19:39:40.049+09:00  INFO 31029 --- [hello-spring] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.34]
+2025-01-08T19:39:40.071+09:00  INFO 31029 --- [hello-spring] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2025-01-08T19:39:40.071+09:00  INFO 31029 --- [hello-spring] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 462 ms
+2025-01-08T19:39:40.126+09:00  INFO 31029 --- [hello-spring] [           main] o.s.b.a.w.s.WelcomePageHandlerMapping    : Adding welcome page: class path resource [static/index.html]
+2025-01-08T19:39:40.276+09:00  INFO 31029 --- [hello-spring] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8080 (http) with context path '/'
+2025-01-08T19:39:40.285+09:00  INFO 31029 --- [hello-spring] [           main] h.hello_spring.HelloSpringApplication    : Started HelloSpringApplication in 0.911 seconds (process running for 1.174)
+```
+
+빌드 후 프로젝트 정리는 다음과 같이 수행합니다.
+
+```bash
+# 빌드 후 프로젝트 정리
+> ./gradlew clean
+```
