@@ -27,7 +27,7 @@ serisenumber: 1
 
 프로젝트 구성은 다음과 같이 합니다.
 
-![spring-beginner-01-project-setting](/snippets/springBeginner/section1/capture01.png)
+![spring-beginner-01-project-setting](/snippets/spring-beginner/section1/capture01.png)
 
 스프링 프로젝트의 빌드 도구로는 Maven과 Gradle을 선택할 수 있습니다.
 
@@ -87,7 +87,7 @@ IntelliJ IDEA를 사용하여 프로젝트를 여는 경우 의존하는 라이�
 
 프로젝트 폴더에서 src 폴더내 main, test 폴더가 존재합니다.
 
-![spring-beginner-01-project-structure](/snippets/springBeginner/section1/capture02.png)
+![spring-beginner-01-project-structure](/snippets/spring-beginner/section1/capture02.png)
 
 - **main** 
   - 프로젝트 소스 코드 및 리소스 파일을 포함
@@ -141,7 +141,7 @@ main 메서드내 SpringApplication.run() 메서드를 호출하면 내장 WAS(�
 > 5. Run tests using: IntelliJ IDEA
 > 로 변경
 
-![spring-beginner-01-intellij-idea-setting](/snippets/springBeginner/section1/capture03.png)
+![spring-beginner-01-intellij-idea-setting](/snippets/spring-beginner/section1/capture03.png)
 
 ## 라이브러리 살펴보기
 ---
@@ -192,7 +192,7 @@ tasks.named('test') {
 
 gradle, maven 은 의존 관계를 관리해줍니다. 예로 위 코드를 보면 `starter-web`을 사용하는데, 이 라이브러리를 사용하기 위해 필요한 다른 라이브러리 또한 자동으로 가져옵니다.
 
-![spring-beginner-01-gradle-dependency](/snippets/springBeginner/section1/capture04.png)
+![spring-beginner-01-gradle-dependency](/snippets/spring-beginner/section1/capture04.png)
 
 이미지를 보면 `spring-boot-starter-tomcat` 라이브러리가 자동으로 추가된 것을 확인할 수 있습니다.
 
@@ -218,7 +218,7 @@ gradle, maven 은 의존 관계를 관리해줍니다. 예로 위 코드를 보�
 </html>
 ```
 
-![spring-beginner-01-index-html](/snippets/springBeginner/section1/capture05.png)
+![spring-beginner-01-index-html](/snippets/spring-beginner/section1/capture05.png)
 
 spring 부트의 경우 웰컴 페이지를 찾기 위해 `src/main/resources/static/index.html` 파일을 찾습니다. 이 파일이 존재하면 자동으로 웰컴 페이지로 설정됩니다. 없다면 스프링 부트가 제공하는 기본 웰컴 페이지를 보여줍니다.
 
