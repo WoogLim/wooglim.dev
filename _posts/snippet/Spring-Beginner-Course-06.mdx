@@ -1,0 +1,138 @@
+---
+title: "[스프링] 웹 MVC 및 DB 연동 - 6"
+description: "AOP"
+language: "Java"
+category: "Spring Beginner"
+update: "2025-01-08"
+hide: true
+serisenumber: 6
+---
+
+## 시작
+
+- [김영한 강사님의 스프링 입문 - 코드로 배우는 스프링 부트, 웹 MVC, DB 접근 기술 강의를 듣고 작성한 글입니다.](https://www.inflearn.com/course/%EC%8A%A4%ED%94%84%EB%A7%81-%EC%9E%85%EB%AC%B8-%EC%8A%A4%ED%94%84%EB%A7%81%EB%B6%80%ED%8A%B8/dashboard)
+
+## AOP
+
+AOP(Aspect Oriented Programming)는 관점 지향 프로그래밍으로, 핵심 비즈니스 로직(Core Concerns)과 부가 기능을 분리하여 모듈화하는 프로그래밍 기법이다. 
+
+예를 들어 로깅, 트랜잭션, 보안과 같은 공통 관심사(Cross-cutting concerns)를 애플리케이션 전반에 걸쳐 사용되는 부가 기능으로 분리하여 관리할 수 있다.
+
+스프링은 프록시 패턴을 사용하여 AOP를 구현하며, 이는 실제 로직을 수행하기 전후에 공통 기능을 수행할 수 있게 해준다.
+
+아래와 같은 이유들로 사용할 수 있다.
+
+- 모든 메서드의 호출 시간을 측정하고 로깅하기 위해
+- 핵심 비즈니스 로직에 집중할 수 있다 
+- 공통 기능을 한 곳에서 관리할 수 있어 유지보수가 용이하다
+- 코드의 중복을 제거하고 재사용성을 높일 수 있다
+- 회원 가입 시간, 회원 조회 시간들을 측정하고 로깅하기 위해
+
+메서드의 호출 시간을 측정하는 예제를 보자
+
+```java
+/**
+ * 회원가입
+ */
+public Long join(Member member) {
+
+    long start = System.currentTimeMillis();
+
+    try {
+        validateDuplicateMember(member);
+
+        memberRepository.save(member);
+        return member.getId();
+    } finally {
+        long finish = System.currentTimeMillis();
+        long timeMs = finish - start;
+
+        System.out.println("join = "+ timeMs + "ms");
+    }
+}
+```
+
+모든 메서드마다 위와 같이 코드를 작성해야 한다. 이런 기능은 핵심 비즈니스 로직이 아니라 공통 기능이다 이를 공통 관심사라고 한다.
+
+이런 공통 관심사를 모듈화하여 재사용할 수 있도록 하는 것이 AOP이다.
+
+AOP를 사용하면 위와 같은 코드를 작성하지 않아도 된다.
+
+### AOP 적용
+
+AOP를 적용하기 위해 클래스에 `@Aspect` 어노테이션을 붙여준다. 
+
+아래와 같이 메서드별 시간을 측정하는 클래스를 작성한다.
+
+```java
+package hello.hello_spring.aop;
+
+import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.annotation.Around;
+import org.springframework.stereotype.Component;
+
+/**
+ * AOP를 사용한 시간 측정 클래스
+ * - @Aspect: AOP 클래스임을 나타내는 어노테이션
+ * - @Component: 스프링 빈으로 등록하기 위한 어노테이션
+ */
+@Aspect
+// @Component
+public class TimeTraceApp {
+    /**
+     * AOP 메서드 실행 시간을 측정하는 메서드
+     * - @Around: 메서드 실행 전후에 수행할 로직을 정의하는 어노테이션
+     * - execution(* hello.hello_spring..*(..))
+     *   - *: 모든 반환타입
+     *   - hello.hello_spring..: 해당 패키지와 하위 패키지
+     *   - *: 모든 메서드
+     *   - (..): 모든 파라미터
+     * 
+     * @param joinPoint 실행되는 메서드의 정보를 담고 있는 객체
+     *  메서드 이름, 파라미터, 클래스 정보 등 메서드 실행 관련 정보를 포함
+     *  proceed() 메서드를 통해 원본 메서드를 실행할 수 있음
+     * @return 원본 메서드의 실행 결과
+     * @throws Throwable 메서드 실행 중 발생할 수 있는 예외
+     */
+    @Around("execution(* hello.hello_spring..*(..))")
+    public Object execute(ProceedingJoinPoint joinPoint) throws Throwable {
+        long start = System.currentTimeMillis();
+
+        System.out.println("START: " + joinPoint.toString());
+
+        try {
+            return joinPoint.proceed(); // 실제 타겟 메서드 실행
+        } finally {
+            long finish = System.currentTimeMillis();
+            long timeMs = finish - start;
+            System.out.println("END: " + joinPoint.toString() + " " + timeMs + " ms");
+        }
+    }
+}
+```
+
+스프링 설정 파일에 위 클래스를 스프링 빈으로 등록해준다. `SpringConfig` 클래스에 아래와 같이 추가해준다.
+
+```java
+package hello.hello_spring;
+
+@Configuration
+public class SpringConfig {
+
+    // ...
+
+    @Bean
+    public TimeTraceApp timeTraceApp() {
+        return new TimeTraceApp();
+    }
+}
+```
+
+애플리케이션이 실행되면 위 클래스가 스프링 빈으로 등록되고, 지정된 범위의 모든 메서드가 실행될 때마다 시간을 측정하여 출력하는 것을 볼 수 있습니다.
+
+스프링은 AOP가 적용된 것을 감지하면 `@Around` 어노테이션으로 지정한 범위에 있는 메서드들의 프록시(가짜) 객체를 생성합니다. 이 프록시 객체가 원본 객체를 감싸서 부가 기능을 수행합니다.
+
+예를 들어, 컨트롤러가 실제 서비스 대신 프록시 객체를 호출하면, 프록시는 시간 측정 등의 부가 기능을 수행한 후 `joinPoint.proceed()`를 통해 실제 서비스의 메서드를 호출합니다. 이러한 방식으로 핵심 비즈니스 로직에 영향을 주지 않고 공통 관심사를 처리할 수 있습니다.
+
+이런 방식으로 핵심 비즈니스 로직에 영향을 주지 않고 공통 관심사를 처리할 수 있습니다.
