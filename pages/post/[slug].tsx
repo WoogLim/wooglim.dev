@@ -30,6 +30,7 @@ const PostPage: React.FC<Props> = ({
   frontMatter,
   similarPosts,
 }: Props) => {
+
   // const [scrollY, setScrollY] = useState(0);
 
   // const handleScroll = (e: Event) => {

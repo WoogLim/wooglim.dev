@@ -35,6 +35,7 @@ const SnipetPage: React.FC<Props> = ({
   frontMatter,
   similarSnippets,
 }: Props) => {
+
   return (
     <Container>
       <NextSeo
