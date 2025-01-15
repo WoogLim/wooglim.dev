@@ -14,7 +14,7 @@ serisenumber: 1
 
 ## 스프링은 왜 만들어졌는가
 ---
-스프링은 객체 지향 언어가 가진 강력한 특징을 살려내는 프레임워크 기존 EJB의 경우 객체 지향의 장점을 살릴 수 없었다. 스프링은 좋은 객체 지향 애플리케이션을 개발할 수 있게 도와주는 프레임워크이다.
+스프링은 객체 지향 언어가 가진 강력한 특징을 살려내는 프레임워크입니다. 기존 EJB(Enterprise JavaBeans)의 경우 객체 지향의 장점을 살릴 수 없었고, 복잡하고 무거웠으며 비용도 많이 들었습니다. 이에 로드 존슨은 EJB의 문제점을 지적하며 스프링을 통해 좋은 객체 지향 애플리케이션을 개발할 수 있게 도와주는 프레임워크를 만들었습니다.
 
 ### 스프링 프레임워크
 ---
@@ -26,6 +26,8 @@ serisenumber: 1
 - 언어 : 코틀린, 그루비
 - 최근들어 스프링 부트를 통해 스프링 프레임워크의 기술들을 편리하게 사용
 
+스프링 프레임워크는 모듈화가 잘 되어있어 필요한 부분만 선택하여 사용할 수 있습니다. 특히 스프링의 핵심인 DI 컨테이너는 객체지향 설계를 편리하게 구현할 수 있게 도와줍니다.
+
 ### 스프링 부트
 ---
 - 스프링을 편리하게 사용할 수 있도록 지원, 최근에는 기본으로 사용됨.
@@ -36,13 +38,15 @@ serisenumber: 1
 - 메트릭, 상태 확인, 외부 구성 같은 프로덕션 준비 기능 제공
 - 관례에 의한 간결한 설정
 
+스프링 부트는 스프링 프레임워크를 더욱 쉽게 사용할 수 있게 해주는 도구입니다. 특히 복잡한 설정을 자동화하고, 개발자가 비즈니스 로직에 집중할 수 있게 도와줍니다.
+
 ## 좋은 객체 지향 프로그래밍이란?
 ---
 객체지향의 특징은 다음과 같다.
-- 추상화
-- 캡슐화
-- 상속
-- 다형성
+- 추상화: 복잡한 현실세계를 단순화하여 프로그램으로 표현
+- 캡슐화: 데이터와 해당 데이터를 처리하는 메서드를 하나로 묶고 은닉
+- 상속: 기존 클래스를 재사용하여 새로운 클래스를 작성
+- 다형성: 하나의 타입에 여러 객체를 대입할 수 있는 성질
 
 ### 유연하고 용이
 ---
@@ -53,41 +57,98 @@ serisenumber: 1
   - 구현 : 인터페이스를 구현한 클래스, 구현 객체
   - 구현보다 설계가 먼저!
 
+다형성은 한 타입의 참조변수로 여러 타입의 객체를 참조할 수 있도록 해주는 것으로 코드의 재사용성을 높이고 유지보수를 용이하게 합니다.
+
 ### 객체의 협력이라는 관계부터 생각
 ---
 혼자 존재하는 객체는 없다.
 - 클라이언트 : 요청
 - 서버 : 응답
 
-수 많은 객체 클라이언트와 객체 서버는 서로 협렵 관계를 가진다.
+수 많은 객체 클라이언트와 객체 서버는 서로 협렵 관계를 가진다. 이러한 협력 관계는 인터페이스를 통해 정의되며, 구현체는 언제든지 변경될 수 있습니다.
 
 ### 자바 언어의 다형성
 ---
-오버라이딩(`부모 클래스로부터 상속받은 메서드의 내용을 재정의`)로 인해 구현한 객체를 실행 시점에 유연하게 변경할 수 있다. 다형성의 본질은 인터페이스를 구현한 객체 인스턴스를 실행 시점에 유연하게 변경할 수 있다. 클라이언트를 변경하지 않고 서버의 구현 기능을 유연하게 변경할 수 있다. 실세계의 역할과 구현이라는 편리한 컨셉을 다형성을 통해 객체 세상으로 가져올 수 있다. `자동차` 등. 인터페이스를 안정적으로 구현하는 것이 가장 중요하다. 한계점은 인터페이스를 변경하게되면 구현체 또한 영향을 받는다는 점이다. 때문에 설계할 때 인터페이스를 변화가 없도록 설계하는것이 가장 중요하다.
+오버라이딩(`부모 클래스로부터 상속받은 메서드의 내용을 재정의`)로 인해 구현한 객체를 실행 시점에 유연하게 변경할 수 있다. 다형성의 본질은 인터페이스를 구현한 객체 인스턴스를 실행 시점에 유연하게 변경할 수 있다. 클라이언트를 변경하지 않고 서버의 구현 기능을 유연하게 변경할 수 있다. 
+
+실세계의 역할과 구현이라는 편리한 컨셉을 다형성을 통해 객체 세상으로 가져올 수 있다. `자동차` 등. 인터페이스를 안정적으로 구현하는 것이 가장 중요하다. 한계점은 인터페이스를 변경하게되면 구현체 또한 영향을 받는다는 점이다. 때문에 설계할 때 인터페이스를 변화가 없도록 설계하는것이 가장 중요하다.
+
+다형성은 컴파일 시점의 타입 체크와 실행 시점의 바인딩을 분리함으로써 유연한 설계를 가능하게 합니다.
 
 ### 스프링과 객체 지향
 ---
 스프링은 다형성을 극대화해서 이용할 수 있게 도와준다. 제어의 역전(IoC), 의존관계 주입(DI)은 다형성을 활용해 역할과 구현을 편리하게 다룰 수 있도록 지원한다. 스프링을 사용하면 레고 블럭을 조립하듯이 구현을 편리하게 변경할 수 있다.
 
+스프링이 제공하는 IoC 컨테이너는 객체의 생성과 의존관계 설정을 담당하며, 이를 통해 느슨한 결합도를 가진 애플리케이션을 만들 수 있습니다.
+
 #### 그래서 가장 중요한것은
 ---
-좋은 객체 지향 설계의 5가지 원칙(`SOLID`), `다형성`이다.
+좋은 객체 지향 설계의 5가지 원칙(`SOLID`), `다형성`이다. 이러한 원칙들을 잘 지키면서 개발하면 유지보수가 쉽고 확장성 있는 애플리케이션을 만들 수 있습니다.
 
 ## 좋은 객체 지향 설계의 5가지 원칙
 ---
-클린코드로 유명한 로버트 마틴이 좋은 객체 지향 설계의 5가지 원칙을 정리
+클린코드로 유명한 로버트 마틴이 좋은 객체 지향 설계의 5가지 원칙을 정리했습니다. 이 원칙들은 객체 지향 프로그래밍에서 지켜야 할 핵심적인 원칙들입니다. 이러한 원칙들을 잘 지키면 유지보수가 쉽고 확장성 있는 애플리케이션을 만들 수 있습니다.
 
 ### I 단일 책임 원칙 SRP(Single responsibility principle)
 ---
 - 한 클래스는 하나의 책임만 가져야 한다.
 - 중요한 기준은 변경이다. 변경이 있을 때 파급 효과가 적다면 단일 책임 원칙을 잘 따른 것.
   - ex) UI 변경, 객체의 생성과 사용을 분리
+- 하나의 책임이라는 것은 모호하다
+  - 클 수도 있고 작을 수도 있다
+  - 문맥과 상황에 따라 다르다
+  - 중요한 기준은 변경이다. 변경이 있을 때 파급 효과가 적으면 단일 책임 원칙을 잘 따른 것
+
+클래스가 여러 책임을 가지면 한 책임의 변경이 다른 책임에 영향을 미칠 수 있으므로, 각 클래스는 하나의 책임만 가져야 합니다.
+
+```java
+// 사용자 정보만 관리
+public class User {
+    private String name;
+    private String email;
+    
+    public User(String name, String email) {
+        this.name = name;
+        this.email = email;
+    }
+    
+    // getter, setter
+}
+
+// 데이터베이스 처리만 담당
+public class UserRepository {
+    public void save(User user) {
+        // DB 저장 로직
+    }
+    
+    public User findById(Long id) {
+        // DB 조회 로직
+        return user;
+    }
+}
+
+// 이메일 발송만 담당
+public class EmailService {
+    public void sendEmail(String to, String message) {
+        // 이메일 발송 로직
+    }
+}
+
+// 사용자 입력 검증만 담당
+public class UserValidator {
+    public boolean validateUser(User user) {
+        // 검증 로직
+        return true;
+    }
+}
+```
 
 ### II 개방-폐쇄 원칙 OCP(Open/Closed principle)
 ---
 - 소프트웨어 요소는 확장에는 열려 있으나 변경에는 닫혀 있어야 한다.
   - 확장을 하려면 당연히 기존 코드를 변경해야할텐데? 뭔소리지
     - 다형성을 활용해보자
+    - 인터페이스를 통해 구현체를 분리하면 기존 코드를 변경하지 않고도 새로운 기능을 추가할 수 있다
 - 인터페이스를 구현한 새로운 클래스를 하나 만들어서 새로운 기능을 구현하는것은 이 원칙을 따르고 있다고 볼 수 있다. 인터페이스를 잘 설계하면 확장은(객체) 열려 있으나 변경에는 닫혀 있어야 한다.
 
 ```java
@@ -101,13 +162,190 @@ public class MemberService {
 }
 ```
 - 구현 객체를 변경하려면 클라이언트 코드를 변경해야 한다. 분명 다형성을 사용했지만 OCP원칙을 따른 다고는 볼 수 없다. 즉 클라이언트는 코드를 변경을 해야한다. 즉 OCP 원칙을 지킬 수 없다.
-- 객체를 생성하고, 연관관계를 맺어주는 별도의 조립, 설정자가 필요한데, 이를 `스프링`이 지원한다. DI, IoC 등으로..
+- 객체를 생성하고, 연관관계를 맺어주는 별도의 조립, 설정자가 필요한데, 이를 `스프링`이 지원한다. DI, IoC, 컨테이너 등으로..
+
+- 다음은 스프링을 통해 이를 해결한 코드이다.
+
+```java
+// 1. 인터페이스 정의
+public interface PaymentProcessor {
+    void processPayment(double amount);
+}
+
+// 2. 구현체들
+public class CreditCardProcessor implements PaymentProcessor {
+    @Override
+    public void processPayment(double amount) {
+        System.out.println("신용카드로 " + amount + "원 결제 처리");
+    }
+}
+
+public class PaypalProcessor implements PaymentProcessor {
+    @Override
+    public void processPayment(double amount) {
+        System.out.println("페이팔로 " + amount + "원 결제 처리");
+    }
+}
+
+// 3. 나쁜 예시 - OCP 위반
+public class PaymentService {
+    // 직접 구현체를 생성하여 의존성을 가짐
+    private PaymentProcessor processor = new CreditCardProcessor();
+    
+    public void makePayment(double amount) {
+        processor.processPayment(amount);
+    }
+}
+
+// 4. 좋은 예시 - OCP 준수
+@Service
+public class PaymentService {
+    private final PaymentProcessor processor;
+    
+    // 의존성 주입을 통해 구현체를 외부에서 주입받음
+    @Autowired
+    public PaymentService(PaymentProcessor processor) {
+        this.processor = processor;
+    }
+    
+    public void makePayment(double amount) {
+        processor.processPayment(amount);
+    }
+}
+
+// 5. 설정 클래스
+@Configuration
+public class PaymentConfig {
+    @Bean
+    public PaymentProcessor paymentProcessor() {
+        // 여기서 구현체를 변경하더라도 PaymentService의 코드는 변경되지 않음
+        return new CreditCardProcessor();
+        // return new PaypalProcessor(); // 구현체만 교체하면 됨
+    }
+}
+```
+
+위 코드를 보면 구현체를 변경하더라도 클라이언트 코드는 변경되지 않는다. 이는 OCP 원칙을 따르고 있음을 알 수 있다.
+
+1. 확장에 열려있음:
+- 새로운 결제 방식을 추가하고 싶을 때, PaymentProcessor 인터페이스를 구현하는 새로운 클래스만 만들면 됩니다.
+- 예를 들어 KakaoPayProcessor, NaverPayProcessor 등을 추가할 때 기존 코드를 수정할 필요가 없습니다.
+2. 변경에 닫혀있음:
+- PaymentService 클래스는 구체적인 구현체가 아닌 PaymentProcessor 인터페이스에만 의존합니다.
+- 생성자 주입을 통해 의존성을 외부에서 주입받기 때문에, PaymentService의 코드를 전혀 수정하지 않고도 다른 결제 방식으로 변경할 수 있습니다.
 
 ### III 리스코프 치환 원칙(Liskov substitution principle)
 ---
 - 프로그램의 객체는 프로그램의 정확성을 깨뜨리지 않으면서 하위 타입의 인스턴스로 변경할 바꿀 수 있어야 한다.
-- 단순히 컴파일에 성공하는 것을 넘어서는 이야이이다. 다형성에서 하위 클래스는 인터페이스 규약을 다 지켜야 한다는 것, 다형성을 지원하기 위한 원칙, 인터페이스를 구현한 구현체는 믿고 사용하려면 이 원칙이 적용되어야한다.
+- 단순히 컴파일에 성공하는 것을 넘어서는 이야기이다. 다형성에서 하위 클래스는 인터페이스 규약을 다 지켜야 한다는 것, 다형성을 지원하기 위한 원칙, 인터페이스를 구현한 구현체는 믿고 사용하려면 이 원칙이 적용되어야한다.
 - 자동차 인터페이스의 엑셀은 앞으로 가라는 기능, 뒤로 가게 구현하면 LSP에 위반한다. 느리더라도 앞으로 가야함.
+- 예를 들어 자동차의 엔진을 교체할 때, 새로운 엔진이 기존 엔진의 모든 기능을 정확히 수행할 수 있어야 한다.
+- 이 원칙을 지키지 않으면 다형성을 사용했을 때 예상치 못한 버그가 발생할 수 있다.
+
+```java
+// 1. 직사각형을 표현하는 기본 클래스
+public class Rectangle {
+    protected int width;
+    protected int height;
+
+    public void setWidth(int width) {
+        this.width = width;
+    }
+
+    public void setHeight(int height) {
+        this.height = height;
+    }
+
+    public int getArea() {
+        return width * height;
+    }
+}
+
+// 2. 정사각형 클래스 - LSP 위반 예시
+public class Square extends Rectangle {
+    // 정사각형은 가로와 세로가 항상 같아야 하므로 둘 중 하나만 변경해도 둘 다 변경됨
+    @Override
+    public void setWidth(int width) {
+        this.width = width;
+        this.height = width;  // LSP 위반!
+    }
+
+    @Override
+    public void setHeight(int height) {
+        this.width = height;  // LSP 위반!
+        this.height = height;
+    }
+}
+
+// 3. LSP를 준수하는 더 나은 설계
+public interface Shape {
+    int getArea();
+}
+
+public class Rectangle implements Shape {
+    private int width;
+    private int height;
+
+    public Rectangle(int width, int height) {
+        this.width = width;
+        this.height = height;
+    }
+
+    @Override
+    public int getArea() {
+        return width * height;
+    }
+}
+
+public class Square implements Shape {
+    private int side;
+
+    public Square(int side) {
+        this.side = side;
+    }
+
+    @Override
+    public int getArea() {
+        return side * side;
+    }
+}
+
+// 4. 테스트 코드
+public class LSPTest {
+    public static void main(String[] args) {
+        // LSP 위반 케이스
+        Rectangle rectangle = new Square();
+        rectangle.setWidth(4);
+        rectangle.setHeight(5);
+        // 예상: area = 20
+        // 실제: area = 25 (마지막 설정된 높이 값으로 너비도 변경됨)
+        System.out.println(rectangle.getArea());
+
+        // LSP 준수 케이스
+        Shape rectangle2 = new Rectangle(4, 5);
+        Shape square = new Square(5);
+        // 예상대로 동작
+        System.out.println(rectangle2.getArea());  // 20
+        System.out.println(square.getArea());      // 25
+    }
+}
+```
+
+이 예제는 다음과 같은 LSP 원칙을 설명합니다
+
+1. 잘못된 상속 관계:
+- Square가 Rectangle을 상속하는 것은 직관적으로 보이지만, 실제로는 LSP를 위반합니다.
+- Square의 setWidth/setHeight가 Rectangle의 계약을 위반하기 때문입니다.
+2. 더 나은 설계:
+- Shape 인터페이스를 도입하여 각 도형을 독립적으로 구현
+- Rectangle과 Square는 각각 자신의 특성에 맞게 area 계산을 구현
+- 상위 타입(Shape)의 기대사항을 정확히 충족
+3. LSP 준수의 이점:
+- 코드의 예측 가능성이 높아짐
+- 다형성을 안전하게 사용 가능
+- 확장성과 유지보수성이 향상
+
+이 예제는 "is-a" 관계가 있다고 해서 반드시 상속을 사용해야 하는 것은 아니며, 때로는 별도의 타입으로 분리하는 것이 더 좋은 설계가 될 수 있다는 것을 보여줍니다.
 
 ### IV 인터페이스 분리 원칙 ISP(Interface segregation principle)
 ---
@@ -115,11 +353,135 @@ public class MemberService {
 - 자동차 인터페이스 -> 운전 인터페이스, 정비 인터페이스로 분리
 - 사용자 클라이언트 -> 운전자 클라이언트, 정비사 클라이언트로 분리
 - 스프링의 경우 철저히 분리되어 있다.
+- 인터페이스가 명확해지고 대체 가능성이 높아진다.
+- 예를 들어 스마트폰의 경우:
+  - 전화 기능 인터페이스
+  - 카메라 기능 인터페이스
+  - 인터넷 기능 인터페이스
+  로 분리하면 각각의 기능을 독립적으로 개선하거나 교체할 수 있다.
+
+```java
+// 전화 기능 인터페이스
+public interface Phone {
+    void makeCall(String number);
+    void receiveCall(String number);
+    void sendSMS(String number, String message);
+}
+
+// 카메라 기능 인터페이스
+public interface Camera {
+    void takePhoto();
+    void recordVideo();
+    void applyFilter(String filter);
+}
+
+// 인터넷 기능 인터페이스
+public interface Internet {
+    void browse(String url);
+    void downloadFile(String url);
+    void streamVideo(String videoUrl);
+}
+
+// 스마트폰 구현체
+public class SmartPhone implements Phone, Camera, Internet {
+    // Phone 구현
+    @Override
+    public void makeCall(String number) {
+        System.out.println("Calling " + number);
+    }
+
+    @Override
+    public void receiveCall(String number) {
+        System.out.println("Receiving call from " + number);
+    }
+
+    @Override
+    public void sendSMS(String number, String message) {
+        System.out.println("Sending SMS to " + number + ": " + message);
+    }
+
+    // Camera 구현
+    @Override
+    public void takePhoto() {
+        System.out.println("Taking photo");
+    }
+
+    @Override
+    public void recordVideo() {
+        System.out.println("Recording video");
+    }
+
+    @Override
+    public void applyFilter(String filter) {
+        System.out.println("Applying filter: " + filter);
+    }
+
+    // Internet 구현
+    @Override
+    public void browse(String url) {
+        System.out.println("Browsing " + url);
+    }
+
+    @Override
+    public void downloadFile(String url) {
+        System.out.println("Downloading file from " + url);
+    }
+
+    @Override
+    public void streamVideo(String videoUrl) {
+        System.out.println("Streaming video from " + videoUrl);
+    }
+}
+
+// 전화 기능만 사용하는 클라이언트
+public class PhoneUser {
+    private final Phone phone;
+
+    public PhoneUser(Phone phone) {
+        this.phone = phone;
+    }
+
+    public void makeEmergencyCall() {
+        phone.makeCall("112");
+    }
+}
+
+// 카메라 기능만 사용하는 클라이언트
+public class PhotoGrapher {
+    private final Camera camera;
+
+    public PhotoGrapher(Camera camera) {
+        this.camera = camera;
+    }
+
+    public void takePortrait() {
+        camera.takePhoto();
+        camera.applyFilter("Portrait");
+    }
+}
+```
+
+위 코드는 ISP 원칙을 따르고 있음을 알 수 있다.
+
+1. 인터페이스 분리:
+- 각 기능이 독립적인 인터페이스로 분리됨
+- 클라이언트는 필요한 기능만 의존할 수 있음
+2. 유지보수성:
+- 각 기능을 독립적으로 수정/개선 가능
+- 한 기능의 변경이 다른 기능에 영향을 주지 않음
+3. 테스트 용이성:
+- 각 기능을 독립적으로 테스트 가능
+- 목(mock) 객체 생성이 쉬움
+4. 확장성:
+- 새로운 기능을 추가할 때 기존 코드 수정 없이 새로운 인터페이스 추가 가능
+- 각 기능의 구현을 쉽게 교체 가능
 
 ### V 의존관계 역전 원칙 DIP(Dependency inversion principle)
 ---
 프로그래머는 `추상화에 의존해야지 구체화에 의존하면 안된다.` 의존성 주입은 이 원칙을 따르는 방법 중 하나다.
 - 구현 클래스에 의존하지 않고 인터페이스에 의존하라는 뜻
+- 상위 모듈은 하위 모듈에 의존해서는 안된다. 둘 다 추상화에 의존해야 한다.
+- 추상화는 세부 사항에 의존해서는 안된다. 세부사항이 추상화에 의존해야 한다.
 - 하지만 아래코드에서 MemberService는 인터페이스에 의존하지만, 구현 클래스도 동시에 의존한다.
 ```java
 public class MemberService {
@@ -133,22 +495,108 @@ public class MemberService {
 ```
 - 이는 `DIP의 원칙을 위반`한다.
 
+아래는 이를 잘 준수한 예제이다.
+
+```java
+// 1. 인터페이스 정의
+public interface MemberRepository {
+    void save(Member member);
+    Member findById(Long id);
+}
+
+// 2. 서비스 클래스 - DIP 준수
+public class MemberService {
+    // 인터페이스에만 의존
+    private final MemberRepository memberRepository;
+    
+    // 생성자 주입을 통해 구현체 주입받음
+    public MemberService(MemberRepository memberRepository) {
+        this.memberRepository = memberRepository;
+    }
+    
+    public void signUp(Member member) {
+        memberRepository.save(member);
+    }
+    
+    public Member findMember(Long memberId) {
+        return memberRepository.findById(memberId);
+    }
+}
+
+// 3. 스프링 설정을 통한 구현체 주입
+@Configuration
+public class AppConfig {
+    @Bean
+    public MemberRepository memberRepository() {
+        // 구현체는 설정 클래스에서 결정
+        return new JdbcMemberRepository();
+        // return new MemoryMemberRepository(); // 구현체 변경이 용이함
+    }
+    
+    @Bean
+    public MemberService memberService() {
+        // 생성자를 통해 의존관계 주입
+        return new MemberService(memberRepository());
+    }
+}
+```
+
+위 코드는 다음 사항을 준수하여 작성되었다.
+
+1. DIP 준수:
+- MemberService는 오직 MemberRepository 인터페이스에만 의존
+- 구체적인 구현체(JdbcMemberRepository, MemoryMemberRepository)에 대해 전혀 알지 못함
+2. 유연한 확장:
+- 구현체 변경이 필요할 때 AppConfig만 수정하면 됨
+- MemberService 코드는 전혀 변경할 필요가 없음
+3. 테스트 용이성:
+- 테스트 시 Mock 구현체를 쉽게 주입할 수 있음
+- 각 구현체별로 독립적인 테스트 가능
+4. 관심사의 분리:
+- 객체의 생성과 의존관계 설정은 AppConfig가 담당
+- MemberService는 순수하게 비즈니스 로직에만 집중
+- 이것이 스프링이 지향하는 DIP 원칙을 따르는 좋은 설계 방식입니다.
+
 ### 정리
 ---
-객체 지향의 핵심은 다형성
-- 다형성 만으로는 쉽게 부품을 갈아 끼우듯 개발할 수 없다.
-- 결국 SOLID 원칙을 다 지킬수는 없다.
-  - 다형성 만으로는 OCP, DIP를 지킬 수 없다
-  - 무엇인가 더 필요하기 때문에 `스프링`을 사용해보자.
+객체 지향의 핵심은 다형성이지만, 이것만으로는 유연하고 확장 가능한 설계를 달성하기 어렵다.
+
+- 다형성의 한계
+  - 구현 객체를 변경하려면 클라이언트 코드도 함께 변경해야 함
+  - 인터페이스를 도입해도 구현 객체를 생성하고 연결하는 책임이 클라이언트에 존재
+  - 다형성만으로는 OCP, DIP를 완벽하게 지킬 수 없음
+
+- SOLID 원칙을 지키기 위한 노력
+  - 객체를 생성하고 관리하는 책임을 가지는 별도의 설정 클래스 필요
+  - 이런 복잡한 관리를 위해 스프링 프레임워크가 등장
 
 ## 객체 지향 설계와 스프링
 ---
-- 스프링은 다음 기술로 다형성 + OCP, DIP를 가능하게 지원한다.
+스프링은 객체 지향의 핵심 원칙을 지원하는 다양한 기능을 제공한다.
+
+- 스프링이 지원하는 핵심 기술
   - DI(Dependency Injection): 의존관계, 의존성 주입
-  - DI 컨테이너 제공
-- 클라이언트 코드의 변경 없이 기능 확장
-- 쉽게 부품을 교체핟스이 개발
+    - 객체 간의 의존관계를 외부에서 주입
+    - 클라이언트 코드의 변경 없이 구현체 변경 가능
+  - DI 컨테이너 
+    - 객체의 생성과 관리를 담당
+    - 의존관계 주입을 자동으로 처리
+  - AOP(Aspect Oriented Programming)
+    - 공통 관심사를 분리하여 모듈화
+    - 핵심 비즈니스 로직에 집중 가능
+
+- 스프링의 장점
+  - 클라이언트 코드의 변경 없이 기능 확장 가능
+  - 객체 생성과 의존관계 주입을 자동화
+  - 개발자는 비즈니스 로직에만 집중 가능
+  - 테스트 용이성 증가
 
 ### 스프링이 없던 시절
 ---
-OCP, DIP 원칙을 지키려면 너무 할일이 많았다. 배보다 배꼽이 크기 때문에 프레임워크로 만들어벼렸다. DI 개념을 말로 해도 이해가 쉽지 않으므로 이후 코드를 보도록 하자.
+스프링이 없던 시절에는 OCP, DIP 원칙을 지키기 위해 많은 수작업이 필요했다.
+
+- 객체 생성과 의존관계 설정을 위한 복잡한 코드 작성
+- 설정의 변경이 필요할 때마다 코드 수정 필요
+- 테스트와 유지보수의 어려움
+
+이러한 문제를 해결하기 위해 스프링 프레임워크가 등장했으며, DI 컨테이너를 통해 이러한 복잡성을 효과적으로 관리할 수 있게 되었다. 구체적인 내용은 이후 코드를 통해 자세히 살펴보도록 하자.
