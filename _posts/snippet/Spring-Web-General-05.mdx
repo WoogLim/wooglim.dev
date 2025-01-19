@@ -203,5 +203,395 @@ BUILD SUCCESSFUL in 736ms
 테스트코드를 통해 예제를 살펴보자
 
 ```java
+@Test
+@DisplayName("스프링 컨테이너와 싱글톤")
+void springContainer() {
+    // 스프링 컨테이너 생성
+    AnnotationConfigApplicationContext ac = new AnnotationConfigApplicationContext(AppConfig.class);
 
+    // 1. 첫번째 조회 - 스프링 컨테이너에서 빈을 가져옴
+    MemberService memberService1 = ac.getBean("memberService", MemberService.class);
+
+    // 2. 두번째 조회 - 스프링 컨테이너에서 동일한 빈을 가져옴 
+    MemberService memberService2 = ac.getBean("memberService", MemberService.class);
+
+    // 두 객체의 참조값 출력하여 비교
+    System.out.println("memberService1 = " + memberService1);
+    System.out.println("memberService2 = " + memberService2);
+
+    // 스프링 컨테이너는 싱글톤으로 관리하므로 두 객체가 동일한지 검증
+    // isSameAs()는 == 비교와 같음 (주소값 비교)
+    Assertions.assertThat(memberService1).isSameAs(memberService2);
+}
 ```
+
+결과
+
+```bash
+memberService1 = hello.core.member.MemberServiceImpl@5dd1c9f2
+memberService2 = hello.core.member.MemberServiceImpl@5dd1c9f2
+> Task :test
+BUILD SUCCESSFUL in 972ms
+```
+
+코드에서 순서를 다시 되짚어보자
+
+- 스프링 컨테이너 생성
+    - `AnnotationConfigApplicationContext ac = new AnnotationConfigApplicationContext(AppConfig.class)`
+        - 스프링 컨테이너를 생성하고 스프링 빈을 관리하는 역할을 한다.
+- 스프링 컨테이너에서 빈을 가져옴
+    - `MemberService memberService1 = ac.getBean("memberService", MemberService.class);`
+        - 스프링 컨테이너에서 빈을 가져온다.
+- 스프링 컨테이너에서 동일한 빈을 가져옴
+    - `MemberService memberService2 = ac.getBean("memberService", MemberService.class);`
+        - 스프링 컨테이너에서 동일한 빈을 가져온다.
+- 두 객체의 참조값 출력하여 비교
+    - `System.out.println("memberService1 = " + memberService1);`
+    - `System.out.println("memberService2 = " + memberService2);`
+        - 두 객체의 참조값을 출력하여 비교한다.
+- 스프링 컨테이너는 싱글톤으로 관리하므로 두 객체가 동일한지 검증
+
+싱글톤 컨테이너 적용 후 그림은 다음과 같다.
+
+![Spring-Singleton-Container](/snippets/springGeneral/section5/capture3.png)
+
+> 참고로 스프링의 기본 빈 등록 방식은 싱글톤이다. 다만 싱글톤 패턴 뿐만 아니라 요청할 때 마다 새로운 객체를 생성해 반환하는 기능도 제공하기도한다. 빈 스코프에서 설명한다.
+
+## 싱글톤 방식의 문제점
+싱글톤 패턴이든, 스프링 같은 싱글톤 컨테이너를 사용하든, 객체 인스턴스를 하나만 생성해서 공유하는 싱글톤 방식은 여러 클라이언트가 하나의 같은 객체 인스턴스를 공유하기 때문에 싱글톤 객체는 상태를 유지(stateful)하게 설계하면 안된다.
+- 무상태(stateless)로 설계해야 한다!
+    - 특정 클라이언트에 의존적인 필드가 있으면 안된다.
+    - 특정 클라이언트가 값을 변경할 수 있는 필드가 있으면 안된다!
+    - 가급적 읽기만 가능해야 한다.
+    - 필드 대신에 자바에서 공유되지 않는 지역변수, 파라미터, ThreadLocal 등을 사용해야 한다.
+- 스프링 빈의 필드에 공유 값을 설정하면 정말 큰 장애가 발생할 수 있다!
+
+먼저 엔티티 클래스를 작성하고 이를 테스트하는 코드를 작성해보자
+
+엔티티 클래스
+```java
+public class StatefulService {
+
+    private int price; //상태를 유지하는 필드
+
+    public void order(String name, int price) {
+        System.out.println("name = " + name + ", price = " + price);
+        this.price = price; // 여기가 문제!
+    }
+
+    public int getPrice() {
+        return price;
+    }
+}
+```
+
+테스트 코드
+```java
+class StatefulServiceTest {
+
+    @Test
+    void statefulServiceSingleton() {
+        AnnotationConfigApplicationContext ac = new AnnotationConfigApplicationContext(TestConfig.class);
+        StatefulService statefulService1 = ac.getBean(StatefulService.class);
+        StatefulService statefulService2 = ac.getBean(StatefulService.class);
+
+        // ThreadA: A사용자 10000원 주문
+        statefulService1.order("userA", 10000);
+        // ThreadB: B사용자 20000원 주문
+        statefulService2.order("userB", 20000);
+
+        // ThreadA: 사용자A 주문 금액 조회
+        int price = statefulService1.getPrice();
+        System.out.println("price = " + price);
+    }
+
+    static class TestConfig {
+        @Bean
+        public StatefulService statefulService() {
+            return new StatefulService();
+        }
+    }
+
+}
+```
+
+결과
+
+```bash
+price = 20000
+```
+
+결과가 10000원이 아닌 20000원이 나온 이유는 스프링 빈이 싱글톤으로 관리되기 때문이다. 중간에 사용자 B가 추가 주문이 발생해 20000원이 된 것이다.
+- 같은 객체를 공유하기 때문에 값이 변경되는 것이다.
+- 따라서 스프링 빈은 항상 무상태(stateless)로 설계해야 한다.
+
+정리
+- 일단 최대한 단순히 설명하기 위해 실제 스레드를 사용하지 않는다. 스레드를 사용하면 더 복잡해진다.
+- ThreadA가 주문을 하고 조회를 하는 사이에 ThreadB가 주문을 하면서 값을 변경하는 상황을 만들었다.
+- `StatefulService`의 `price` 필드가 공유되는 필드이기 때문에 값이 변경되는 것이다.
+- 사용자A 주문 금액은 10000원이 아닌 20000원이 나온다.
+- 따라서 스프링 빈은 항상 무상태(stateless)로 설계해야 한다.
+
+무상태로 설계한 예제를 간단히 살펴보자
+
+```java
+public class StatelessService {
+
+    public int order(String name, int price) {
+        System.out.println("name = " + name + ", price = " + price);
+        return price;
+    }
+}
+```
+
+단순한 예제이지만 무상태로 설계한 것을 확인할 수 있다.
+- 무상태로 설계하면 공유되는 필드가 없기 때문에 값이 변경되지 않는다.
+- 따라서 사용자A 주문 금액은 10000원이 나온다.
+
+실무에서 이런 문제가 발생하는 경우..
+- 내 계정으로 다른 사람의 개인정보를 볼 수 있는 것
+- 내 주문 금액을 다른 사람이 볼 수 있는 것
+- 이런 문제를 해결하기 위해 무상태로 설계해야 한다.
+
+마지막으로 무상태란?
+- 특정 클라이언트에 의존적인 필드가 없는 것
+- 특정 클라이언트가 값을 변경할 수 있는 필드가 없는 것
+- 가급적 읽기만 가능해야 한다.
+- 필드 대신에 자바에서 공유되지 않는 지역변수, 파라미터, ThreadLocal 등을 사용해야 한다.
+
+## @Configuration과 싱글톤
+
+돌아가 `AppConfig` 코드를 보자
+
+```java
+@Configuration
+public class AppConfig {
+
+    // @Bean memberService -> new MemoryMemberRepository()
+    // @Bean orderService -> new MemoryMemberRepository()
+
+    @Bean
+    public MemberRepository memberRepository() {
+        return new MemoryMemberRepository();
+    }
+
+    @Bean
+    public MemberService memberService() {
+        return new MemberServiceImpl(memberRepository());
+    }
+
+    @Bean
+    public OrderService orderService() {
+        return new OrderServiceImpl(memberRepository(), discountPolicy());
+    }
+
+    @Bean
+    public DiscountPolicy discountPolicy() {
+//        return new FixDiscountFixPolicy();
+        return new RateDiscountPolicy();
+    }
+}
+```
+
+memberService 빈을 만드는 코드를 보면 memberRepository()를 호출한다.
+- 이 메서드를 호출하면 new MemoryMemberRepository()를 호출한다.
+orderService 빈을 만드는 코드도 동일하게 memberRepository()를 호출한다.
+- 이 메서드를 호출하면 new MemoryMemberRepository()를 호출한다.
+
+> 결과적으로 각각 다른 2개의 MemoryMemberRepository가 생성되면서 싱글톤이 깨지는 것처럼 보인다. 스프링 컨테이너는 이 문제를 어떻게 해결할까?
+> 스프링 컨테이너는 싱글톤을 보장해준다고 한다. 어떻게 보장되는것일까?
+
+테스트 이전 `MemberService`를 의존하는 클래스에서 `getMemberRepository()` 메서드를 추가해보자.
+
+```java
+package hello.core.member;
+public class MemberServiceImpl implements MemberService {
+
+    private final MemberRepository memberRepository;
+
+    // ...
+
+    // 테스트 용도
+    public MemberRepository getMemberRepository() {
+        return memberRepository;
+    }
+}
+
+package hello.core.order;
+public class OrderServiceImpl implements OrderService {
+
+    private final MemberRepository memberRepository;
+
+    // ...
+
+    // 테스트 용도
+    public MemberRepository getMemberRepository() {
+        return memberRepository;
+    }
+}
+```
+
+테스트 코드를 작성해보자.
+
+```java
+@Test
+void configurationTest() {
+    ApplicationContext ac = new AnnotationConfigApplicationContext(AppConfig.class);
+
+    MemberServiceImpl memberService = ac.getBean("memberService", MemberServiceImpl.class);
+    OrderServiceImpl orderService = ac.getBean("orderService", OrderServiceImpl.class);
+    MemberRepository memberRepository = ac.getBean("memberRepository", MemberRepository.class);
+
+    MemberRepository memberRepository1 = memberService.getMemberRepository();
+    MemberRepository memberRepository2 = orderService.getMemberRepository();
+
+    System.out.println("memberService -> memberRepository = " + memberRepository1);
+    System.out.println("orderService -> memberRepository = " + memberRepository2);;
+    System.out.println("memberRepository = " + memberRepository);
+}
+```
+
+결과
+
+```bash
+memberService -> memberRepository = hello.core.member.MemoryMemberRepository@5dd1c9f2
+orderService -> memberRepository = hello.core.member.MemoryMemberRepository@5dd1c9f2
+memberRepository = hello.core.member.MemoryMemberRepository@5dd1c9f2
+```
+
+- 결과를 보면 같은 객체를 참조하는 것을 확인할 수 있다.
+- 따라서 스프링 컨테이너는 싱글톤을 보장해준다.
+
+더 자세히 보기 위해 `AppConfig`에 의도적으로 `System.out.println()`을 추가해보자.
+
+```java
+@Configuration
+public class AppConfig {
+
+    // @Bean memberService -> new MemoryMemberRepository()
+    // @Bean orderService -> new MemoryMemberRepository()
+
+    @Bean
+    public MemberService memberService() {
+        System.out.println("call AppConfig.memberService");
+        return new MemberServiceImpl(memberRepository());
+    }
+
+    @Bean
+    public static MemberRepository memberRepository() {
+        System.out.println("call AppConfig.memberRepository");
+        return new MemoryMemberRepository();
+    }
+
+    @Bean
+    public OrderService orderService() {
+        System.out.println("call AppConfig.orderService");
+        return new OrderServiceImpl(memberRepository(), discountPolicy());
+    }
+}
+```
+
+예상하기론 결과는 다음과 같아야 한다.
+
+```bash
+call AppConfig.memberService
+call AppConfig.memberRepository
+call AppConfig.memberRepository
+call AppConfig.orderService
+call AppConfig.memberRepository
+```
+
+하지만 결과는 다음과 같다.
+
+```bash
+call AppConfig.memberService
+call AppConfig.memberRepository
+call AppConfig.orderService
+```
+
+## @Configuration과 바이트코드 조작의 마법
+
+위와 같은 결과가 나오는 이유는 스프링 컨테이너가 싱글톤을 보장해주기 때문이다. 내부적으로 어떻게 싱글톤을 보장해주는지 살펴보자.
+
+우선 테스트 코드를 작성해보자.
+
+```java
+@Test
+void configurationDeep() {
+    // 스프링 컨테이너 생성, AppConfig.class를 구성 정보로 사용
+    AnnotationConfigApplicationContext ac = new AnnotationConfigApplicationContext(AppConfig.class);
+    
+    // 스프링 컨테이너에서 AppConfig 타입의 빈을 가져옴
+    AppConfig bean = ac.getBean(AppConfig.class);
+
+    // AppConfig 빈의 클래스 정보를 출력
+    // 순수한 클래스라면 class hello.core.AppConfig가 출력되어야 함
+    System.out.printf("bean = " + bean.getClass());
+}
+```
+
+결과
+```bash
+call AppConfig.memberService
+call AppConfig.memberRepository
+call AppConfig.orderService
+bean = class hello.core.AppConfig$$SpringCGLIB$$0> Task :test
+BUILD SUCCESSFUL in 990ms
+```
+
+결과를 보면 `AppConfig` 클래스가 아닌 `AppConfig$$SpringCGLIB$$0` 클래스가 출력되었다. 이는 내가 만들 클래스가 아닌 스프링이 CGLIB라는 바이트코드 조작 라이브러리를 사용해 AppConfig 클래스를 상속받은 임의의 다른 클래스를 만들어서 그 다른 클래스를 스프링 빈으로 등록한 것이다.
+
+그림을 보자
+
+![Spring-Singleton-Container](/snippets/springGeneral/section5/capture4.png)
+
+이름은 `appConfig` 이지만 스프링이 생성한 빈(객체) 이름은 `appConfig$$SpringCGLIB$$0` 이다.
+
+`AppConfig@CGLIB` 예상 코드는 다음과 같다.
+```java
+@Bean
+public MemberRepository memberRepository() {
+    // 이미 스프링 컨테이너에 등록된 빈이 있는지 확인
+    if(memoryMemberRepository == null) {
+        // 없다면 새로운 객체를 생성해서 스프링 컨테이너에 등록
+        memoryMemberRepository = new MemoryMemberRepository();
+    }
+    // 이미 있다면 스프링 컨테이너에서 찾아서 반환
+    return memoryMemberRepository;
+}
+```
+- @Bean이 붙은 메서드마다 이미 스프링 빈이 존재하면 존재하는 빈을 반환, 없다면 생성해 스프링 빈으로 등록하고 반환하는 코드가 동적으로 만들어진다. 이 덕분에 `싱글톤`이 보장된다.
+
+> AppConfig@CGLIB는 AppConfig의 자식 타입이다. 따라서 AppConfig 타입으로 조회할 수 있다.
+
+### @Configuration 을 적용하지 않고 @Bean만 적용했을 때
+
+@Configuration 을 적용하지 않고 @Bean만 적용했을 때는 스프링 컨테이너가 싱글톤을 보장해주지 않는다.
+- 따라서 각각 다른 객체가 생성된다.
+
+```java
+//@Configuration
+public class AppConfig {
+```
+
+이전 테스트 코드를 동작시키면?
+
+```bash
+call AppConfig.memberService
+call AppConfig.memberRepository
+call AppConfig.memberRepository
+call AppConfig.orderService
+call AppConfig.memberRepository
+```
+
+정리하자면
+
+1. @Configuration을 제거하고 @Bean만 사용하면:
+- 스프링 빈으로는 등록이 되지만, 싱글톤이 보장되지 않음
+- memberRepository()가 여러 번 호출되어 각각 새로운 인스턴스가 생성됨
+- 결과적으로 싱글톤 패턴이 깨짐
+
+2. @Configuration을 사용할 때는:
+- CGLIB를 통한 바이트코드 조작으로 싱글톤을 보장
+- memberRepository()가 한 번만 실제로 호출되고, 이후에는 같은 인스턴스를 재사용
+- 스프링 컨테이너가 싱글톤을 보장해줌
