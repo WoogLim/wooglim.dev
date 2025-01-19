@@ -200,4 +200,153 @@ public @interface SpringBootApplication {
 
 > 참고 `useDefaultFilters` 속성을 false로 설정하면 기본 스캔 대상에서 제외할 수 있다.
 
-## 
+## 필터
+
+이번에는 `includeFilters`와 `excludeFilters`를 사용해서 컴포넌트 스캔 대상을 추가하거나 제외해보자.
+
+아래와 같은 코드를 추가한다.
+
+```java
+// MyIncludeComponent 어노테이션
+package hello.core.scan.filter;
+
+import java.lang.annotation.*;
+
+@Target(ElementType.TYPE)
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+public @interface MyIncludeComponent {
+}
+
+// MyExcludeComponent 어노테이션
+package hello.core.scan.filter;
+
+import java.lang.annotation.*;
+
+@Target(ElementType.TYPE)
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+public @interface MyExcludeComponent {
+}
+
+// BeanA
+package hello.core.scan.filter;
+
+@MyIncludeComponent
+public class BeanA {
+}
+
+// BeanB
+package hello.core.scan.filter;
+
+@MyExcludeComponent
+public class BeanB {
+}
+```
+
+테스트 코드를 통해 커스텀으로 작성한 애노테이션이 잘 동작하는지 확인해보자.
+
+```java
+public class ComponentFilterAppConfigTest {
+
+    @Test
+    void filterScan() {
+        // 스프링 컨테이너 생성, ComponentFilterAppConfig.class를 구성 정보로 사용
+        AnnotationConfigApplicationContext ac = new AnnotationConfigApplicationContext(ComponentFilterAppConfig.class);
+        
+        // BeanA는 @MyIncludeComponent가 붙어있어 스프링 빈으로 등록됨
+        BeanA beanA = ac.getBean("beanA", BeanA.class);
+        assertThat(beanA).isNotNull();
+
+        // BeanB는 @MyExcludeComponent가 붙어있어 스프링 빈으로 등록되지 않음
+        // 따라서 NoSuchBeanDefinitionException 예외가 발생해야 함
+        Assertions.assertThrows(
+                NoSuchBeanDefinitionException.class,
+                () -> ac.getBean("beanB", BeanB.class)
+        );
+    }
+
+    // 컴포넌트 스캔 설정을 위한 Config 클래스
+    @Configuration
+    @ComponentScan(
+        // MyIncludeComponent 애노테이션이 붙은 클래스는 컴포넌트 스캔 대상에 포함
+        includeFilters = @ComponentScan.Filter(type = FilterType.ANNOTATION, classes = MyIncludeComponent.class),
+        // MyExcludeComponent 애노테이션이 붙은 클래스는 컴포넌트 스캔 대상에서 제외
+        excludeFilters = @ComponentScan.Filter(type = FilterType.ANNOTATION, classes = MyExcludeComponent.class)
+    )
+    static class ComponentFilterAppConfig {
+
+    }
+}
+```
+
+만일 클래스를 직접 선택해 필터에서 제외하도 싶다면 `excludeFilters` 속성에 다음과 같은 코드를 추가한다.
+
+```java
+@ComponentScan(
+    // ...
+    excludeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = BeanA.class)
+)
+```
+
+## 중복 등록과 충돌
+
+컴포넌트 스캔에서 같은 빈 이름을 중복해서 등록하면 어떻게 될까?
+다음 두 가지 경우가 있다.
+
+1. 자동 빈 등록 vs 자동 빈 등록
+2. 수동 빈 등록 vs 자동 빈 등록
+
+### 자동 빈 등록 vs 자동 빈 등록
+- 컴포넌트 스캔에 의해 자동으로 스프링 빈이 등록되는데, 이름이 같은 경우 예외가 발생한다.
+
+### 수동 빈 등록 vs 자동 빈 등록
+- 수동 빈 등록이 우선권을 가진다. Override 된다.
+
+이미 스프링에 의해 `MemoryMemberRepository` 빈이 등록되어 있는데, 이를 수동으로 등록한 `MemoryMemberRepository` 빈이 중복되면 수동 빈 등록이 우선권을 가져서 수동 빈이 등록된다.
+
+```java
+@Configuration
+@ComponentScan(
+    excludeFilters = @ComponentScan.Filter(type = FilterType.ANNOTATION, classes = Configuration.class)
+)
+public class AutoAppConfig {
+
+    @Bean(name = "memoryMemberRepository")
+    MemberRepository memoryMemberRepository() {
+        return new MemoryMemberRepository();
+    }
+}
+```
+
+로그를 보면 다음과 같다.
+
+```bash
+Overriding bean definition for bean 'memoryMemberRepository' with a different definition: replacing
+```
+
+물론 개발자 의도적으로 이런 결과를 기대했다면 수동이 우선권을 가지는게 맞지만 현실은 개발자가 의도적으로 설정해 이런 결과가 만들어지기 보다 여러 설정이 꾜여 이런 결과가 만들어지는 경우가 대부분이다.
+
+이런 버그의 경우 그야말로 `잡기 어려운 버그`이다.
+
+이 경우 스프링은 다음과 같은 에러 로그를 제공해준다.
+
+```bash
+2025-01-19T15:47:22.492+09:00 ERROR 12484 --- [core] [           main] o.s.b.d.LoggingFailureAnalysisReporter   : 
+
+***************************
+APPLICATION FAILED TO START
+***************************
+
+Description:
+
+The bean 'memoryMemberRepository', defined in class path resource [hello/core/AutoAppConfig.class], could not be registered. A bean with that name has already been defined in file [/Users/wooglim/dev/spring/spring-general/core/build/classes/java/main/hello/core/member/MemoryMemberRepository.class] and overriding is disabled.
+
+Action:
+
+Consider renaming one of the beans or enabling overriding by setting spring.main.allow-bean-definition-overriding=true
+```
+
+내용 그대로 `spring.main.allow-bean-definition-overriding=true` 를 설정해주면 된다. 
+
+이 옵션을 활성화하면 수동 빈 등록이 우선권을 가지게 된다. 다만 이 옵션을 활성화하면 예상치 못한 문제가 발생할 수 있으므로 주의해야 하며 스프링 또한 이 옵션을 디폴트로 사용하지 않는다.

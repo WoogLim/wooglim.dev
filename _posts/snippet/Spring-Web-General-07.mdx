@@ -1,0 +1,521 @@
+---
+slug: "Spring-Web-General-07"
+title: "[스프링 핵심 원리] 기본편 - 7"
+description: "스프링 핵심 원리 - 의존관계 자동 주입"
+language: "Java"
+category: "Spring Basic"
+update: "2025-01-18"
+hide: false
+serisenumber: 7
+---
+
+## 시작
+
+- [김영한 강사님의 스프링 핵심 원리 - 기본편 강의를 듣고 작성한 글입니다.](https://www.inflearn.com/course/%EC%8A%A4%ED%94%84%EB%A7%81-%ED%95%B5%EC%8B%AC-%EC%9B%90%EB%A6%AC-%EA%B8%B0%EB%B3%B8%ED%8E%B8/dashboard)
+
+## 다양한 의존관계 주입 방법
+
+의존관계 주입은 크게 4자기 방법이 있다.
+
+- 생성자 주입
+- 수정자 주입(setter)
+- 필드 주입
+- 일반 메서드 주입
+
+### 생성자 주입
+
+생성자를 통해서 의존관계를 주입받는 방법이다.
+
+- 생성자 호출 시점에 딱 1번만 호출된다.
+  - 객체 생성 시점에 호출되므로 이후에는 호출되지 않는다.
+- 불변, 필수 의존관계에 사용된다.
+  - 불변이란 생성자를 통해서 의존관계를 주입받은 후에 변경되지 않는다는 것을 의미한다.
+    - final 키워드를 사용하여 불변성을 보장할 수 있다.
+    - final을 사용하지 않고서 setter를 생성하면 객체 생성 후에 변경이 가능하다. 이 방법은 쓰지 않아야 한다.
+  - 필수 의존관계란 생성자를 통해서 의존관계를 주입받아야만 객체 생성이 가능하다는 것을 의미한다.
+    - null이 들어올 수 없다.
+- 생성자가 딱 1개만 있으면 @Autowired를 생략해도 자동 주입된다.
+  - 스프링 빈에만 해당된다.
+  - 스프링 4.3 버전부터 지원한다.
+- 생성자 주입을 권장하는 이유
+  - 불변성을 보장한다.
+  - 테스트 코드 작성이 용이하다.
+  - final 키워드를 사용할 수 있어 컴파일 시점에 누락된 의존관계를 확인할 수 있다.
+
+```java
+@Component
+public class OrderServiceImpl implements OrderService {
+
+    private final MemberRepository memberRepository;
+    private final DiscountPolicy discountPolicy;
+
+    @Autowired
+    public OrderServiceImpl(MemberRepository memberRepository, DiscountPolicy discountPolicy) {
+        this.memberRepository = memberRepository;
+        this.discountPolicy = discountPolicy;
+    }
+}
+```
+
+또한 위와 같이 생성자가 딱 1개만 있으면 @Autowired를 생략해도 자동 주입된다.
+
+```java
+@Component
+public class OrderServiceImpl implements OrderService {
+
+    private final MemberRepository memberRepository;
+    private final DiscountPolicy discountPolicy;
+
+    public OrderServiceImpl(MemberRepository memberRepository, DiscountPolicy discountPolicy) {
+        this.memberRepository = memberRepository;
+        this.discountPolicy = discountPolicy;
+    }
+}
+```
+
+### 수정자 주입
+
+필드를 수정할때 관례상 set이라는 이름을 사용한다.
+
+```java
+@Component
+public class OrderServiceImpl implements OrderService {
+
+    private final MemberRepository memberRepository;
+    private final DiscountPolicy discountPolicy;
+
+    @Autowired
+    public void setMemberRepository(MemberRepository memberRepository) {
+        this.memberRepository = memberRepository;
+    }
+
+    // 런타임 시점에 의존관계를 주입하기 위해 @Autowired를 사용한다.
+    @Autowired
+    public void setDiscountPolicy(DiscountPolicy discountPolicy) {
+        this.discountPolicy = discountPolicy;
+    }
+}
+```
+만일 생성자 주입, 수정자 주입이 한 클래스에 있으면 생성자 주입이 먼저 실행되고 그 다음에 수정자 주입이 실행된다. 생성자 주입은 객체 생성 시점에 필수적으로 호출되어야 하는 자바 문법이고, 수정자 주입은 객체 생성 이후에 스프링이 @Autowired를 보고 의존관계를 주입하기 때문이다. 즉 런타임 시점이기 때문이다.
+
+setter의 경우 선택적으로 주입이 가능한데, @Autowired(required = false)로 설정하면 의존관계가 없어도 객체 생성이 가능하다.
+
+> @Autowired 기본 동작은 주입 대상이 없다면 오류가 발생. 주입 대상이 없어도 동작하게 하려면 required = false로 설정하면 된다.
+
+> 자바빈 프로퍼티, 자바에서는 과거부터 필드의 값을 직접변경하지 않고 setter를 통해서 변경하는 것이 관례이다. 이것이 자바빈 프로퍼티 규약이다.
+
+### 필드 주입
+
+이름 그대로 필드로 주입하는 방법이다.
+
+```java
+@Component
+public class OrderServiceImpl implements OrderService {
+
+    @Autowired
+    private MemberRepository memberRepository;
+
+    @Autowired
+    private DiscountPolicy discountPolicy;
+}
+```
+
+테스트 코드를 작성해보자
+
+```java
+@Test
+void basicScan() {
+    ApplicationContext ac = new AnnotationConfigApplicationContext(AutoAppConfig.class);
+
+    MemberService memberService = ac.getBean(MemberService.class);
+    Assertions.assertThat(memberService).isInstanceOf(MemberService.class);
+
+    OrderServiceImpl bean = ac.getBean(OrderServiceImpl.class);
+    MemberRepository memberRepository = bean.getMemberRepository();
+    System.out.println("memberRepository = " + memberRepository);
+}
+```
+
+정상적으로 주입이 되었음을 확인할 수 있다.
+
+다만 `안티코드`이다. 스프링에서도 Warning 을 띄우며 `Field injection is not recommended `라고 경고한다.
+
+테스트 코드를 추가해보자
+```java
+@Test
+void fieldInjectionTest() {
+    OrderServiceImpl orderService = new OrderServiceImpl();
+    orderService.createOrder(1L, "ItemA", 10000);
+}
+```
+
+이 테스트 코드는 오류가 발생한다. NullPointerException이 발생한다. 왜냐하면 필드 주입은 런타임 시점에 주입되기 때문에 컴파일 시점에 오류를 확인할 수 없다. 따라서 컴파일 시점에 오류를 확인할 수 없다.
+
+동작시키려면 아래와 같이 수정해야한다.
+
+```java
+@Test
+void fieldInjectionTest() {
+    OrderServiceImpl orderService = new OrderServiceImpl();
+
+    orderService.setMemberRepository(new MemoryMemberRepository());
+    orderService.setDiscountPolicy(new FixDiscountPolicy());
+    
+    orderService.createOrder(1L, "ItemA", 10000);
+}
+```
+
+결론적으로 사용하지 않는 것이 좋다. 쓴다면 테스트 코드 내에서만 사용하는 것이 좋다.
+
+### 일반 메서드 주입
+
+일반 메서드를 통해 주입하는 방법이다.
+
+```java
+@Component
+public class OrderServiceImpl implements OrderService {
+
+    private MemberRepository memberRepository;
+    private DiscountPolicy discountPolicy;
+
+//    @Autowired
+    public OrderServiceImpl(MemberRepository memberRepository, DiscountPolicy discountPolicy) {
+        this.memberRepository = memberRepository;
+        this.discountPolicy = discountPolicy;
+    }
+
+    @Autowired
+    public void init(MemberRepository memberRepository, DiscountPolicy discountPolicy) {
+        this.memberRepository = memberRepository;
+        this.discountPolicy = discountPolicy;
+    }
+}
+```
+
+특징
+- 한번에 여러 필드를 주입받을 수 있다.
+- 일반적으로는 잘 사용하지 않는다.
+
+> 당연한 이야기이지만 의존관계 자동 주입은 스프링 컨테이너가 관리하는 스피링 빈이어야 작동한다. 스프링 빈이 아닌 `Member`와 같은 클래스에서 @Autowired를 사용하면 오류가 발생한다.
+
+## 옵션 처리
+
+주입할 스프링 빈이 없어도 동작해야 할 때가 있다.
+그런데 `@Autowired`는 `required = true`로 기본 동작하기 때문에 오류가 발생한다.
+
+자동 주입 대상을 옵션으로 처리하는 방법은 다음과 같다.
+- @Autowired(required=false) : 자동 주입할 대상이 없으면 수정자 메서드 자체가 호출 안됨
+- org.springframework.lang.Nullable : 자동 주입할 대상이 없으면 null이 입력된다.
+- Optional : 자동 주입할 대상이 없으면 Optional.empty가 입력된다.
+
+테스트 코드를 추가해보자
+```java
+@Test
+void AutowiredOption() {
+    // 테스트용 ApplicationContext 생성
+    ApplicationContext ac = new AnnotationConfigApplicationContext(TestBean.class);
+}
+
+static class TestBean {
+
+    // 자동 주입할 대상이 없으면 메서드 자체가 호출되지 않음
+    @Autowired(required = false)
+    public void setNoBean1(Member noBean1) {
+        System.out.println("noBean1 = " + noBean1);
+    }
+
+    // 자동 주입할 대상이 없으면 null이 입력됨
+    @Autowired
+    public void setNoBean2(@Nullable Member noBean1) {
+        System.out.println("noBean2 = " + noBean2);
+    }
+
+    // 자동 주입할 대상이 없으면 Optional.empty가 입력됨
+    @Autowired(required = false)
+    public void setNoBean3(Optional<Member> noBean3) {
+        System.out.println("noBean3 = " + noBean3);
+    }
+
+}
+```
+
+## 생성자 주입을 선택하는 이유
+
+과거에는 수정자 주입과 필드 주입을 많이 사용했지만 스프링을 포함한 대부분 DI 프레임워크는 생성자 주입을 권장한다. `불변`의 속성을 보장하기 때문이다.
+
+`불변`
+- 대부분의 의존관계 주입은 한번 일어나면 애플리케이션 종료시점까지 의존관계를 변경할 일이 없다. 오히려 대부분의 의존관계는 애플리케이션 종료 전까지 변하면 안된다.(불변해야 한다.)
+- 수정자 주입을 사용하면, setXxx 메서드를 public으로 열어두어야 한다.
+- 누군가 실수로 변경할 수도 있고, 변경하면 안되는 메서드를 열어두는 것은 좋은 설계 방법이 아니다.
+- 생성자 주입은 객체를 생성할 때 딱 1번만 호출되므로 이후에 호출되는 일이 없다. 따라서 불변하게 설계할 수 있다.
+
+`누락`
+- 프레임워크 없이 순수한 자바 코드를 단위 테스트를 하는 경우 다음과 같이 수정자 의존관계인 경우 NullPointerException이 발생한다.
+
+`OrderServiceImpl`를 수정자 의존관계로 변경해보자
+```java
+@Component
+public class OrderServiceImpl implements OrderService {
+
+    private MemberRepository memberRepository;
+    private DiscountPolicy discountPolicy;
+
+    @Autowired
+    public void setMemberRepository(MemberRepository memberRepository) {
+        this.memberRepository = memberRepository;
+    }
+
+    @Autowired
+    public void setDiscountPolicy(DiscountPolicy discountPolicy) {
+        this.discountPolicy = discountPolicy;
+    }
+}
+```
+
+테스트 코드 및 결과를 살펴보자
+```java
+@Test
+void createOrder() {
+    OrderServiceImpl orderService = new OrderServiceImpl();
+    orderService.createOrder(1L, "itemA", 1000);
+}
+```
+
+```bash
+java.lang.NullPointerException: 
+```
+가짜 `MemoryMemberRepository`, `FixDiscountPolicy`라도 넣어줘야하고, 컴파일 시점에 어떤 구현 클래스가 주입될지 알 수 없다. 가짜 객체를 넣는다면 런타임 시점에도 똑같으리란 보장이 없다.
+
+- 이러한 이유로 생성자 주입을 사용하면 final 키워드를 통해 불변성을 보장하고, 컴파일 시점에 누락된 의존관계를 확인할 수 있어 안전한 코드를 작성할 수 있다.
+- 또한 컴파일 오류가 발생하므로 누락된 의존관계를 확인할 수 있다.
+
+> 수정자 주입을 포함한 나머지 주입 방식은 모두 생성자 이후 호출되므로, 필드에 `final` 키워드를 사용할 수 없다. 오직 생성자 주입에서만 `final` 키워드를 사용할 수 있다.
+
+정리
+- 생성자 주입 방식을 선택하는 이유는 여러 가지가 있지만, 프레임워크에 의존하지 않고, 순수한 자바 언어의 특징을 잘 살리는 방법이기도 하다.
+- 기본으로 생성자 주입을 사용하고, 필수 값이 아닌 경우에는 수정자 주입 방식을 옵션으로 부여하면 된다. 생성자 주입과 수정자 주입을 동시에 사용할 수 있다.
+- 항상 생성자 주입을 선택해라! 그리고 가끔 옵션이 필요하면 수정자 주입을 선택해라. 필드 주입은 사용하지 않는 게 좋다.
+
+## 롬복과 최신 트렌드
+
+의존관계 주입을 자동으로 해줄때, 생성자 주입이 좋긴하지만 코드가 많다.
+
+막상 개발을 해보면 대부분이 다 불변이고해서 final 키워드를 사용하게 된다.
+그런데 생성자도 만들어야 하고, 주입 받은 값을 대입하는 코드도 만들어야 하는 번거로움이 있다.
+
+롬복 라이브러리를 활용하면 필드 주입처럼 편리하면서도 생성자 주입의 장점을 모두 살릴 수 있다.
+
+기존 코드를 살펴보자
+```java
+@Component
+public class OrderServiceImpl implements OrderService {
+  // final 키워드를 사용하여 불변성을 보장한다.
+  private final MemberRepository memberRepository;
+  private final DiscountPolicy discountPolicy;
+
+
+  // 생성자 주입을 통해 의존관계를 주입받는다.
+  @Autowired
+  public OrderServiceImpl(MemberRepository memberRepository, DiscountPolicy discountPolicy) {
+    this.memberRepository = memberRepository;
+    this.discountPolicy = discountPolicy;
+  }
+}
+```
+
+세팅은 `start.spring.io`에서 Dependencies에 `Lombok`을 추가하거나 `build.gradle`에 추가해주면 된다.
+
+```groovy
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter'
+
+	//lombok 라이브러리 추가 시작
+	compileOnly 'org.projectlombok:lombok'
+	annotationProcessor 'org.projectlombok:lombok'
+
+	testCompileOnly 'org.projectlombok:lombok'
+	testAnnotationProcessor 'org.projectlombok:lombok'
+	//lombok 라이브러리 추가 끝
+
+  // ...
+}
+```
+
+플러그인도 추가해줘야 한다. `Lombok Plugin`을 추가해줘야 한다.
+
+![Spring-Lombok-Plugin](/snippets/springGeneral/section7/capture1.png)
+
+`Annotation Processor` 세팅에서도 `Enable annotation processing`을 체크해줘야 한다.
+
+![Spring-Lombok-Annotation-Processor](/snippets/springGeneral/section7/capture2.png)
+
+이제 롬복을 사용해보자.
+
+```java
+package hello.core;
+
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
+public class HelloLombok {
+
+    private String name;
+    private int age;
+
+    public static void main(String[] args) {
+        HelloLombok helloLombok = new HelloLombok();
+        helloLombok.setName("gls");
+
+        String name = helloLombok.getName();
+        System.out.println("name = " + name);
+    }
+}
+```
+
+이전과 같이 getter, setter 메서드를 만들어줘야 했던 코드가 없어졌다. 이외에도 `@ToString`, `@Data` 등 다양한 어노테이션을 지원 한다.
+
+또한 `@@RequiredArgsConstructor`을 이용해 생성자를 자동으로 만들어줄 수 있다. final이 붙은 필드들을 모아서 생성자를 자동으로 만들어 주기에 최종 코드는 필드 주입 코드와 비슷해진다.
+
+기존
+```java
+@Component
+public class OrderServiceImpl implements OrderService {
+
+    private final MemberRepository memberRepository;
+    private final DiscountPolicy discountPolicy;
+
+    @Autowired
+    public OrderServiceImpl(MemberRepository memberRepository, DiscountPolicy discountPolicy) {
+        this.memberRepository = memberRepository;
+        this.discountPolicy = discountPolicy;
+    }
+
+    // ...
+}
+```
+
+롬복 사용
+```java
+@Component
+@RequiredArgsConstructor
+public class OrderServiceImpl implements OrderService {
+
+    private final MemberRepository memberRepository;
+    private final DiscountPolicy discountPolicy;
+
+    // ...
+}
+```
+
+생성자가 자동으로 만들어지고 final도 있기에 생성자 주입 코드와 비슷해진다. 동작 또한 동일한데, 롬복이 자바의 애노테이션 프로세서 기능을 이용해 컴파일 시점에 생성자 코드를 자동으로 생성해준다. 실제 `class`를 열어보면 다음 코드가 추가되어 있는 것을 볼 수 있다.(DeCompile 시점에)
+
+```java
+public OrderServiceImpl(MemberRepository memberRepository, DiscountPolicy discountPolicy) {
+    this.memberRepository = memberRepository;
+    this.discountPolicy = discountPolicy;
+}
+```
+
+정리
+- 최근에는 생성자를 딱 1개만 두고 `@Autowired`를 생략하는 방법을 많이 사용한다. 여기에 Lombok 라이브러리의 `@RequiredArgsConstructor`를 사용하면 기능은 온전히 제공하면서 코드는 간결해진다.
+
+## Autowired를 하는데 빈이 2개 이상이면
+
+조회할 빈이 2개 이상인 경우 어떤 문제가 발생할까?
+
+우선 `@Autowired`는 타입으로 조회한다. 
+
+```java
+// getBean(DiscountPolicy.class) 와 유사
+@Autowired
+private DiscountPolicy discountPolicy;
+```
+
+`DiscountPolicy` 하위 타입인 `FixDiscountPolicy`와 `RateDiscountPolicy` 둘 다 `@Component`를 이용해 스프링 빈으로 선언해보자
+
+아래와 같은 에러가 발생할 것이다.
+
+```bash
+Unsatisfied dependency expressed through constructor parameter 1: No qualifying bean of type 'hello.core.discount.DiscountPolicy' available: expected single matching bean but found 2: fixDiscountPolicy,rateDiscountPolicy
+```
+
+`NoUniqueBeanDefinitionException` 오류가 발생한다. 1개 빈만 매칭되길 원했지만 2개가 매칭되었기에 오류가 발생한다.
+
+하위 타입으로 지정할 수 있지만 하위 타입으로 지정하는 것은 DIP를 위반하는 것이다. 이름만 다르고 완전히 똑같은 타입의 스프링 빈이 2개 있을 때 해결이 안된다.
+
+스프링 빈을 수동 등록해 문제를 해결할 수 있지만 의존 관계 자동 주입에서 해결하는 방법이 있다.
+
+## @Autowired 필드 명, @Qualifier, @Primary
+
+해결 방법들은 다음과 같다.
+- @Autowired 필드 명 매칭
+- @Qualifier -> @Qualifier 끼리 매칭 -> 빈 이름 매칭
+- @Primary 사용
+
+### @Autowired 필드 명 매칭
+
+`@Autowired`는 타입 매칭을 시도하고 이때 여러 빈이 있으면 필드 이름, 파라미터 이름으로 빈 이름을 추가 매칭한다.
+
+```java
+@Component
+public class OrderServiceImpl implements OrderService {
+
+    // 필수 의존관계를 위한 final 키워드 사용
+    private final MemberRepository memberRepository;
+    private final DiscountPolicy discountPolicy;
+
+    // 필드명 주입
+    // @Autowired private DiscountPolicy rateDiscountPolicy;
+
+    // 생성자 주입 방식
+    // 파라미터 명을 rateDiscountPolicy로 지정하여 해당 빈이 주입되도록 함
+    @Autowired
+    public OrderServiceImpl(MemberRepository memberRepository, DiscountPolicy rateDiscountPolicy) {
+        this.memberRepository = memberRepository;
+        this.discountPolicy = rateDiscountPolicy;
+    }
+
+    // ...
+}
+```
+
+위와 같이 타입 매칭 결과가 2개 이상이라면 필드 명 혹은 파라미터 명을 사용해 빈 이름을 추가 매칭한다.
+
+### @Qualifier
+
+`@Qualifier`는 추가 구분자를 붙여주는 방법이다. 주입시 추가적인 방법을 제공하는 것이지 빈 이름을 변경하는 것은 아니다.
+
+```java
+package hello.core.discount;
+
+@Component
+@Qualifier("fixDiscountPolicy")
+public class FixDiscountPolicy implements DiscountPolicy {}
+
+package hello.core.discount;
+
+@Component
+@Qualifier("mainDiscountPolicy")
+public class RateDiscountPolicy implements DiscountPolicy {}
+```
+
+위와 같이 `@Qualifier`를 사용해 빈 이름을 지정해준다. 그리고 주입하는 코드도 변경해보자.
+
+```java
+@Component
+public class OrderServiceImpl implements OrderService {
+
+    private final MemberRepository memberRepository;
+    private final DiscountPolicy discountPolicy;
+
+    @Autowired
+    public OrderServiceImpl(MemberRepository memberRepository, @Qualifier("mainDiscountPolicy") DiscountPolicy discountPolicy) {
+        this.memberRepository = memberRepository;
+        this.discountPolicy = discountPolicy;
+    }
+}
+```
+
+`@Qualifier`를 이용 `mainDiscountPolicy` 빈을 매칭해 주입한다. 근데 만약 못찾으면 어떻게 될까. 이 경우 `mainDiscountPolicy`라는 이름의 스프링 빈을 추가로 찾는다. 하지만 `@Qualifier`는 `@Qualifier`를 찾는 용도로만 사용하는 것이 명확하다.
