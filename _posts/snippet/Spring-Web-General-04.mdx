@@ -5,7 +5,7 @@ description: "스프링 핵심 원리 - 스프링 컨테이너와 스프링 빈"
 language: "Java"
 category: "Spring Basic"
 update: "2023-07-27"
-hide: true
+hide: false
 serisenumber: 4
 ---
 
@@ -22,6 +22,8 @@ ApplicationContext applicationContext = new AnnotationConfigApplicationContext(A
 - `ApplicationContext`는 인터페이스이다.
 - 스프링 컨테이너는 XML을 기반으로 만들 수 있고 에노테이션 기반의 자바 설정 클래스로 만들 수 있다.
 - 직전에 `AppConfig`를 사용했던 방식이 에노테이션 기반의 자바 설정 클래스로 스프링 컨테이너를 만든 것이다.
+- 이전의 경우 `AppcConfig`를 통해 필요한 객체를 꺼내 사용했지만, 이제는 스프링 컨테이너를 통해 필요한 스프링 빈(객체)를 찾는다.
+- 자바코드가 아닌 프레임워크를 이용해 스프링 컨테이너에 객체를 스프링 빈으로 등록, 컨테이너에서 스프링 빈을 찾아 사용하도록 변경.
 
 - 더 정확히는 스프링 컨테이너를 부를 때 `BeanFactory`, `ApplicationContext`로 구분해 얘기한다. 다만 `BeanFactory`를 직접 사용하는 경우는 거의 없으므로 일반적으로 `ApplicationContext`를 스프링 컨테이너라 한다.
 
@@ -160,7 +162,7 @@ public class ApplicationContextSameBeanFindTest {
     }
 
     @Configuration
-    static class SameBeanConfig { // 클래스 안에 static class를 쓰면 해당 클래스 스코프내에 존재.
+    static class SameBeanConfig { // 클래스 안에 static class를 쓰면 이 클래스(ApplicationContextSameBeanFindTest) 스코프내에서만 사용
 
         @Bean
         public MemberRepository memberRepository1() {
@@ -218,6 +220,7 @@ public class ApplicationContextSameBeanFindTest {
         }
 
         System.out.println("beansOfType = " + beansOfType);
+        // 두개의 빈이 조회되었음을 확인.
         assertThat(beansOfType.size()).isEqualTo(2);
     }
 
@@ -239,6 +242,8 @@ public class ApplicationContextSameBeanFindTest {
 
 ### 스프링 빈 조회 - 상속관계
 
+우선 아래 그림을 보자 각 번호마다 상속관계는 다음과 같고, 번호마다 조회되는 빈은 다음과 같을 것이다.
+
 ![Spring-Web-General-capture4](/snippets/springGeneral/section4/capture4.png)
 
 ```java
@@ -252,6 +257,7 @@ public class ApplicationContenxtExtendsFindTest {
     @Test
     @DisplayName("부모 타입으로 조회시 자식이 둘 이상 있으면, 중복 오류가 발생한다")
     void findBeanByParentTypeDuplicate() {
+        // 부모 타입으로 조회시 자식이 둘 이상 있으면, 중복 오류가 발생한다.
         assertThrows(NoUniqueBeanDefinitionException.class,
                 () -> ac.getBean(DiscountPolicy.class));
     }
@@ -259,6 +265,7 @@ public class ApplicationContenxtExtendsFindTest {
     @Test
     @DisplayName("부모 타입으로 조회시 자식이 둘 이상 있으면, 빈 이름을 지정하면 된다.")
     void findBeanByParentTypeBeanName() {
+        // 빈 이름을 지정해주면 된다.
         DiscountPolicy rateDiscountPolicy = ac.getBean("rateDiscountPolicy", DiscountPolicy.class);
         assertThat(rateDiscountPolicy).isInstanceOf(RateDiscountPolicy.class);
     }
@@ -266,7 +273,6 @@ public class ApplicationContenxtExtendsFindTest {
     @Test
     @DisplayName("특정 하위 타입으로 조회")
     void findBeanBySubType(){
-        // 이 주제에서 좋은 방법은 아님.
         RateDiscountPolicy bean = ac.getBean(RateDiscountPolicy.class);
         assertThat(bean).isInstanceOf(RateDiscountPolicy.class);
     }
@@ -274,6 +280,7 @@ public class ApplicationContenxtExtendsFindTest {
     @Test
     @DisplayName("부모 타입으로 모두 조회하기")
     void findAllBeanByParentType() {
+        // 부모 타입으로 모두 조회하기
         Map<String, DiscountPolicy> beansOfType = ac.getBeansOfType(DiscountPolicy.class);
 
         assertThat(beansOfType.size()).isEqualTo(2);
@@ -320,7 +327,7 @@ ApplicationContext는 `BeanFactory`를 상속받는다.
 - 스프링 컨테이너의 최상위 인터페이스
 - 스프링 빈을 관리하고 조회하는 역할 담당
 - `getBean()` 지원하기
-- 지금까지 사용한 대부분의 기능이 제공
+- 지금까지 사용한 대부분의 기능을 제공
 
 `ApplicationContext`
 - `BeanFactory`를 모두 상속받아 제공
@@ -365,21 +372,18 @@ public interface ApplicationContext extends EnvironmentCapable, ListableBeanFact
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
-    <bean id="memberService" class="hello.core.member.MemberServiceImpl">
+
+    <bean id="memberService" class="hello.core.member.MemberServiceImpl" >
         <constructor-arg name="memberRepository" ref="memberRepository" />
     </bean>
 
-    <bean id="memberRepository"
-          class="hello.core.member.MemoryMemberRepository" />
-
-    <bean id="orderService"
-          class="hello.core.order.OrderServiceImpl">
+    <bean id="memberRepository" class="hello.core.member.MemoryMemberRepository" />
+    <bean id="discountPolicy" class="hello.core.discount.RateDiscountPolicy" />
+    
+    <bean id="orderService" class="hello.core.order.OrderServiceImpl">
         <constructor-arg name="memberRepository" ref="memberRepository" />
         <constructor-arg name="discountPolicy" ref="discountPolicy" />
     </bean>
-
-    <bean id="discountPolicy"
-          class="hello.core.discount.RateDiscountPolicy" />
 </beans>
 ```
 형식만 다를 뿐 이전에 작성한 `appConfig.class`와 똑같은 내용이다.
@@ -407,20 +411,26 @@ Process finished with exit code 0
 ```
 
 ### 스프링 빈 설정 메타 정보 - BeanDefinition
-`BeanDefinition` 이라는 추상화를 통해 스프링은 이런 다양한 설정 형식을 지원한다.
-- 쉽게 이야기해 `역할과 구현을 개념적으로 나눈 것`
-    - XML을 읽어서 BeanDefinition을 만들면 된다.
-    - 자바 코드를 읽어서 BeanDefinition을 만들면 된다.
-    - 스프링 컨테이너는 자바 코드인지, XML인지 몰라도 된다. 오직 BeanDefinition만 알면 된다.
-- `BeanDefinition`을 빈 설정 메타정보라 한다.
-    - `@Bean`, `<bean>` 당 각각 하나의 메타 정보가 생성된다.
-- 스프링 컨테이너는 이 메타정보를 기반으로 스프링 빈을 생성한다.
+스프링은 `BeanDefinition`이라는 추상화를 통해 다양한 설정 형식을 지원합니다. 이는 스프링이 설정 정보를 읽어들이는 방식을 유연하게 만들어주는 핵심 요소입니다.
+
+`BeanDefinition`은 스프링의 설정 정보를 추상화한 것으로, 다음과 같은 특징을 가집니다:
+
+- 자바 코드나 XML 등 다양한 형식의 설정 정보를 `BeanDefinition`으로 변환하여 사용합니다
+- 스프링 컨테이너는 설정 정보의 형식과 관계없이 오직 `BeanDefinition`만을 이해하면 됩니다
+- 각각의 `@Bean`이나 `<bean>` 설정은 하나의 `BeanDefinition`으로 변환됩니다
+- 스프링은 이 메타정보를 기반으로 실제 스프링 빈을 생성하고 관리합니다
+
+이러한 추상화 덕분에 스프링은 자바 코드, XML 등 다양한 설정 형식을 유연하게 지원할 수 있습니다.
 
 ![Spring-Web-General-capture8](/snippets/springGeneral/section4/capture8.png)
 
 코드 레벨로 좀 더 깊이 있게 들어가보면..
 
 ![Spring-Web-General-capture9](/snippets/springGeneral/section4/capture9.png)
+
+- `AnnotationConfigApplicationContext`는 `AnnotatedBeanDefinitionReader`를 사용해서 `AppConfig.class`를 읽고 `BeanDefinition`을 생성한다.
+- `GenericXmlApplicationContext`는 `XmlBeanDefinitionReader`를 사용해서 `appConfig.xml`을 읽고 `BeanDefinition`을 생성한다.
+- 새로운 형식의 설정 정보가 추가되면, XxxBeanDefinitionReader를 만들어서 `BeanDefinition`을 생성하면 된다.
 
 ```java
 public class GenericXmlApplicationContext extends GenericApplicationContext {
@@ -455,14 +465,95 @@ public class BeanDefinitionText {
     }
 }
 ```
-결과
-```bash
-beanDefinitionName + = appConfigbeanDefinition = Generic bean: class [hello.core.AppConfig$$SpringCGLIB$$0]; scope=singleton; abstract=false; lazyInit=null; autowireMode=0; dependencyCheck=0; autowireCandidate=true; primary=false; factoryBeanName=null; factoryMethodName=null; initMethodNames=null; destroyMethodNames=null
-beanDefinitionName + = memberServicebeanDefinition = Root bean: class [null]; scope=; abstract=false; lazyInit=null; autowireMode=3; dependencyCheck=0; autowireCandidate=true; primary=false; factoryBeanName=appConfig; factoryMethodName=memberService; initMethodNames=null; destroyMethodNames=[(inferred)]; defined in hello.core.AppConfig
-beanDefinitionName + = memberRepositorybeanDefinition = Root bean: class [null]; scope=; abstract=false; lazyInit=null; autowireMode=3; dependencyCheck=0; autowireCandidate=true; primary=false; factoryBeanName=appConfig; factoryMethodName=memberRepository; initMethodNames=null; destroyMethodNames=[(inferred)]; defined in hello.core.AppConfig
-beanDefinitionName + = orderServicebeanDefinition = Root bean: class [null]; scope=; abstract=false; lazyInit=null; autowireMode=3; dependencyCheck=0; autowireCandidate=true; primary=false; factoryBeanName=appConfig; factoryMethodName=orderService; initMethodNames=null; destroyMethodNames=[(inferred)]; defined in hello.core.AppConfig
-beanDefinitionName + = discountPolicybeanDefinition = Root bean: class [null]; scope=; abstract=false; lazyInit=null; autowireMode=3; dependencyCheck=0; autowireCandidate=true; primary=false; factoryBeanName=appConfig; factoryMethodName=discountPolicy; initMethodNames=null; destroyMethodNames=[(inferred)]; defined in hello.core.AppConfig
 
-Process finished with exit code 0
+결과
+
+```bash
+beanDefinitionName = appConfig beanDefinition = Generic bean: class=hello.core.AppConfig$$SpringCGLIB$$0; scope=singleton; abstract=false; lazyInit=null; autowireMode=0; dependencyCheck=0; autowireCandidate=true; primary=false; fallback=false; factoryBeanName=null; factoryMethodName=null; initMethodNames=null; destroyMethodNames=null
+beanDefinitionName = memberRepository beanDefinition = Root bean: class=hello.core.AppConfig; scope=; abstract=false; lazyInit=null; autowireMode=3; dependencyCheck=0; autowireCandidate=true; primary=false; fallback=false; factoryBeanName=null; factoryMethodName=memberRepository; initMethodNames=null; destroyMethodNames=[(inferred)]; defined in hello.core.AppConfig
+beanDefinitionName = memberService beanDefinition = Root bean: class=null; scope=; abstract=false; lazyInit=null; autowireMode=3; dependencyCheck=0; autowireCandidate=true; primary=false; fallback=false; factoryBeanName=appConfig; factoryMethodName=memberService; initMethodNames=null; destroyMethodNames=[(inferred)]; defined in hello.core.AppConfig
+beanDefinitionName = orderService beanDefinition = Root bean: class=null; scope=; abstract=false; lazyInit=null; autowireMode=3; dependencyCheck=0; autowireCandidate=true; primary=false; fallback=false; factoryBeanName=appConfig; factoryMethodName=orderService; initMethodNames=null; destroyMethodNames=[(inferred)]; defined in hello.core.AppConfig
+beanDefinitionName = discountPolicy beanDefinition = Root bean: class=null; scope=; abstract=false; lazyInit=null; autowireMode=3; dependencyCheck=0; autowireCandidate=true; primary=false; fallback=false; factoryBeanName=appConfig; factoryMethodName=discountPolicy; initMethodNames=null; destroyMethodNames=[(inferred)]; defined in hello.core.AppConfig
 ```
-물론 메타 정보를 직접 설정하는 경우는 적지만 너무 깊게 이해하기 보단 스프링이 다양한 형태의 설정 정볼르 BeanDefinition으로 추상화해서 사용하는 것 정도만 이해하면 좋다.
+
+1. appConfig 빈 정보
+beanDefinitionName + = appConfig
+- BeanClassName: hello.core.AppConfig$$SpringCGLIB$$0 // 실제 생성된 CGLIB 클래스 
+- scope: singleton // 싱글톤으로 생성됨
+- abstract: false // 추상 클래스가 아님
+- lazyInit: null // 지연 초기화 사용하지 않음
+- autowireMode: 0 // 자동 주입 사용하지 않음
+- dependencyCheck: 0 // 의존관계 체크하지 않음
+- autowireCandidate: true // 자동 주입 대상임
+- primary: false // primary 빈이 아님
+- factoryBeanName: null // 팩토리 빈을 사용하지 않음
+- factoryMethodName: null // 팩토리 메서드를 사용하지 않음
+- initMethodNames: null // 초기화 메서드 없음
+- destroyMethodNames: null // 소멸 메서드 없음
+
+2. memberService 빈 정보 
+beanDefinitionName + = memberService
+- BeanClassName: null // 팩토리 메서드를 통해 생성되므로 클래스 정보가 없음
+- scope: 기본값(singleton) 
+- abstract: false
+- lazyInit: null
+- autowireMode: 3 // 생성자 주입 사용
+- factoryBeanName: appConfig // appConfig를 통해 생성됨
+- factoryMethodName: memberService // memberService() 메서드로 생성
+- destroyMethodNames: [(inferred)] // 추론된 소멸 메서드 존재
+
+3. memberRepository 빈 정보
+beanDefinitionName + = memberRepository
+- BeanClassName: null
+- scope: 기본값(singleton)
+- abstract: false 
+- lazyInit: null
+- autowireMode: 3
+- factoryBeanName: appConfig
+- factoryMethodName: memberRepository
+- destroyMethodNames: [(inferred)]
+
+4. orderService 빈 정보
+beanDefinitionName + = orderService  
+- BeanClassName: null
+- scope: 기본값(singleton)
+- abstract: false
+- lazyInit: null
+- autowireMode: 3
+- factoryBeanName: appConfig
+- factoryMethodName: orderService
+- destroyMethodNames: [(inferred)]
+
+5. discountPolicy 빈 정보
+beanDefinitionName + = discountPolicy
+- BeanClassName: null
+- scope: 기본값(singleton)
+- abstract: false
+- lazyInit: null
+- autowireMode: 3
+- factoryBeanName: appConfig
+- factoryMethodName: discountPolicy
+- destroyMethodNames: [(inferred)]
+
+물론 메타 정보(BeanDefinition)를 직접 설정하는 경우는 적지만 너무 깊게 이해하기 보단 스프링이 다양한 형태의 설정 정볼르 BeanDefinition으로 추상화해서 사용하는 것 정도만 이해하면 좋다.
+
+이번엔 `GenericXmlApplicationContext`를 사용해서 설정 정보를 읽어보자.
+
+```java
+GenericXmlApplicationContext ac = new GenericXmlApplicationContext("appConfig.xml");
+```
+
+결과
+
+```bash
+beanDefinitionName = memberService beanDefinition = Generic bean: class=hello.core.member.MemberServiceImpl; scope=; abstract=false; lazyInit=false; autowireMode=0; dependencyCheck=0; autowireCandidate=true; primary=false; fallback=false; factoryBeanName=null; factoryMethodName=null; initMethodNames=null; destroyMethodNames=null; defined in class path resource [appConfig.xml]
+beanDefinitionName = memberRepository beanDefinition = Generic bean: class=hello.core.member.MemoryMemberRepository; scope=; abstract=false; lazyInit=false; autowireMode=0; dependencyCheck=0; autowireCandidate=true; primary=false; fallback=false; factoryBeanName=null; factoryMethodName=null; initMethodNames=null; destroyMethodNames=null; defined in class path resource [appConfig.xml]
+beanDefinitionName = discountPolicy beanDefinition = Generic bean: class=hello.core.discount.RateDiscountPolicy; scope=; abstract=false; lazyInit=false; autowireMode=0; dependencyCheck=0; autowireCandidate=true; primary=false; fallback=false; factoryBeanName=null; factoryMethodName=null; initMethodNames=null; destroyMethodNames=null; defined in class path resource [appConfig.xml]
+beanDefinitionName = orderService beanDefinition = Generic bean: class=hello.core.order.OrderServiceImpl; scope=; abstract=false; lazyInit=false; autowireMode=0; dependencyCheck=0; autowireCandidate=true; primary=false; fallback=false; factoryBeanName=null; factoryMethodName=null; initMethodNames=null; destroyMethodNames=null; defined in class path resource [appConfig.xml]
+```
+
+정리
+- 자바 코드로 설정 정보를 읽으면 `BeanDefinition`이 생성되고, 이때 클래스 정보가 있음.
+- XML로 설정 정보를 읽으면 `BeanDefinition`이 생성되고, 이때 클래스 정보가 없음.
+- 따라서 자바 코드로 설정 정보를 읽으면 클래스 정보가 있고, XML로 설정 정보를 읽으면 클래스 정보가 없음.
+- 이러한 차이는 스프링이 다양한 형태의 설정 정보를 읽을 수 있도록 도와주는 추상화 덕분에 가능한 것임.

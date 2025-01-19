@@ -1,0 +1,207 @@
+---
+slug: "Spring-Web-General-05"
+title: "[스프링 핵심 원리] 기본편 - 5"
+description: "스프링 핵심 원리 - 싱글톤 컨테이너"
+language: "Java"
+category: "Spring Basic"
+update: "2025-01-18"
+hide: false
+serisenumber: 5
+---
+
+## 시작
+
+- [김영한 강사님의 스프링 핵심 원리 - 기본편 강의를 듣고 작성한 글입니다.](https://www.inflearn.com/course/%EC%8A%A4%ED%94%84%EB%A7%81-%ED%95%B5%EC%8B%AC-%EC%9B%90%EB%A6%AC-%EA%B8%B0%EB%B3%B8%ED%8E%B8/dashboard)
+
+## 웹 애플리케이션과 싱글톤
+
+- 스프링은 태생이 기업용 온라인 서비스 기술을 지원하기 위해 탄생
+- 대부분 스프링 애플리케이션을 웹 애플리케이션으로 개발
+- 웹 애플리케이션은 보통 여러 사용자가 동시에 요청을 한다.
+- 스프링은 이런 기능을 지원하기 위해 특별한 방식으로 싱글톤 패턴을 사용한다.
+
+![Spring-DI-Container](/snippets/springGeneral/section5/capture1.png)
+
+기존 `appConfig.class` 코드이다.
+
+```java
+@Configuration
+public class AppConfig {
+
+    @Bean
+    public static MemberRepository memberRepository() {
+        return new MemoryMemberRepository();
+    }
+
+    @Bean
+    public MemberService memberService() {
+        return new MemberServiceImpl(memberRepository());
+    }
+
+    @Bean
+    public OrderService orderService() {
+        return new OrderServiceImpl(memberRepository(), discountPolicy());
+    }
+
+    @Bean
+    public DiscountPolicy discountPolicy() {
+//        return new FixDiscountFixPolicy();
+        return new RateDiscountPolicy();
+    }
+}
+```
+
+- 위 코드를 보면 고객이 3번 요청하는 경우 3번 객체를 생성하는 것을 볼 수 있다.
+- 이런 식으로 계속 객체를 생성하게 되면 메모리 낭비가 된다.
+- 매번 다른 객체이므로 신뢰성이 떨어진다.
+- 이런 문제를 해결하기 위해 스프링은 싱글톤 패턴을 사용한다.
+
+테스트 코드를 작성해보면
+
+```java
+public class SingletonTest {
+
+    @Test
+    @DisplayName("스프링 없는 순수한 DI 컨테이너")
+    void pureContainer() {
+        AppConfig appConfig = new AppConfig();
+
+        // 1. 조회 : 호출할 때 마다 객체 생성
+        MemberService memberService1 = appConfig.memberService();
+
+        // 2. 조회 : 호출할 때 마다 객체 생성
+        MemberService memberService2 = appConfig.memberService();
+
+        // 참조값이 다른 것을 확인
+        System.out.println("memberService1 = " + memberService1);
+        System.out.println("memberService2 = " + memberService2);
+
+        // memberService1 != memberService2
+        Assertions.assertThat(memberService1).isNotSameAs(memberService2);
+    }
+}
+```
+
+결과
+
+```bash
+memberService1 = hello.core.member.MemberServiceImpl@5dd1c9f2
+memberService2 = hello.core.member.MemberServiceImpl@79c7532f
+```
+
+- 각각 다른 객체를 생성하는 것을 확인할 수 있다.
+
+총 4개를 생성한 것이나 다름 없다. 아래 코드로 인해
+
+```java
+@Bean
+public static MemberRepository memberRepository() {
+    return new MemoryMemberRepository();
+}
+
+@Bean
+public MemberService memberService() {
+    return new MemberServiceImpl(memberRepository());
+}
+```
+
+- 이런 문제를 해결하기 위해 스프링은 싱글톤 패턴을 사용한다.
+
+순수 DI 컨테이너에서는 각각 다른 객체를 생성하는 것을 확인할 수 있었다.
+
+## 싱글톤 패턴
+- 클래스와 인스턴스가 딱 1개만 생성되는 것을 보장하는 디자인 패턴
+- 같은 객체 인스턴스를 2개 이상 생성하지 못하도록 막아야 한다.
+    - private 생성자를 사용해서 외부에서 임의로 new 키워드를 사용하지 못하도록 막아야 한다.
+    - 싱글톤 패턴을 적용하면 고객의 요청이 올 때 마다 객체를 생성하는 것이 아니라, 이미 만들어진 객체를 공유해서 효율적으로 사용할 수 있다.
+
+테스트코드로 예제를 살펴보자
+
+```java
+package hello.core.singleton;
+
+public class SingletonService {
+
+    // JVM에서 SingletonService 클래스가 로딩될 때 static 영역에 instance를 생성해서 올린다
+    private static final SingletonService instance = new SingletonService();
+
+    // JVM에서 생성된 instance를 조회할 수 있는 유일한 방법
+    // 외부에서 호출 해도 항상 같은 인스턴스를 반환한다
+    public static SingletonService getInstance() {
+        return instance;
+    }
+
+    // private 생성자를 사용해서 외부에서 임의로 new 키워드를 사용하지 못하도록 막아야 한다
+    // JVM에서 다른 곳에서 new 키워드로 객체 인스턴스가 생성되는 것을 막는다
+    private SingletonService() {
+    }
+
+    public void logic() {
+        System.out.println("싱글톤 객체 로직 호출");
+    }
+
+}
+```
+
+싱글톤 패턴이 적용된 객체를 가져와 비교하는 테스트 코드를 작성해보자
+
+```java
+@Test
+@DisplayName("싱글톤 패턴을 적용한 객체 사용")
+void singletonServiceTest() {
+    // 싱글톤 패턴이 적용된 객체를 가져온다
+    SingletonService singletonService1 = SingletonService.getInstance();
+    SingletonService singletonService2 = SingletonService.getInstance();
+    
+    // 같은 객체가 반환되는지 참조값을 출력해서 확인
+    System.out.println("singletonService1 = " + singletonService1);
+    System.out.println("singletonService2 = " + singletonService2);
+
+    // 두 객체가 같은 인스턴스인지 검증
+    // isSameAs()는 == 비교와 같다 (주소값 비교)
+    Assertions.assertThat(singletonService1).isSameAs(singletonService2);
+}
+```
+
+결과
+
+```bash
+singletonService1 = hello.core.singleton.SingletonService@79c7532f
+singletonService2 = hello.core.singleton.SingletonService@79c7532f
+> Task :test
+BUILD SUCCESSFUL in 736ms
+```
+
+여기까지가 싱글톤 패턴에서 가장 단순한 예제이다.
+
+싱글톤 패턴의 단점들을 살펴보면
+- 싱글톤 패턴을 구현하는 코드 자체가 많이 들어간다.
+- 의존관계상 클라이언트가 구체클래스에 의존 DIP를 위반한다.
+- 클라이언트가 구체 클래스에 의존한다. 때문에 OCP를 위반한다.
+- 테스트가 어렵다.
+- 내부 속성을 변경/초기화하기 어렵다.
+- private 생성자로 자식 클래스를 만들기 어렵다.
+- 유연성이 떨어진다.
+- 안티패턴으로 불리기도 한다.
+
+이런 단점들을 해결하기 위해 스프링을 위 단점들을 보완하면서 싱글톤 패턴을 적용한다.
+
+## 스프링 싱글톤 컨테이너
+- 스프링 컨테이너는 싱글톤 패턴의 문제점을 해결하면서 객체 인스턴스를 싱글톤 패턴으로 관리한다.
+
+![Spring-Singleton-Container](/snippets/springGeneral/section5/capture2.png)
+
+`싱글톤 컨테이너`
+- 스프링 컨테이너는 싱글턴 패턴을 적용하지 않아도, 객체 인스턴스를 싱글톤으로 관리
+    - 컨테이너 생성 과정을 보면 컨테이너는 객체를 하나만 생성해 관리한다.
+- 스프링 컨테이너는 싱글톤 컨테이너 역할을 한다. 
+    - 싱글톤 객체를 생성/관리하는 기능을 싱글톤 레지스트리라 한다.
+- 스프링 컨테이너의 이런 기능으로 싱글톤 패턴의 문제점을 해결하며 객체를 싱글톤으로 유지할 수 있다.
+    - 싱글톤 패턴을 위한 지저분한 코드가 필요 없다.
+    - DIP, OCP, 테스트, private 생성자로 부터 자유롭게 싱글톤을 사용할 수 있다.
+
+테스트코드를 통해 예제를 살펴보자
+
+```java
+
+```

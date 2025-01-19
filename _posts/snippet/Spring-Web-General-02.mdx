@@ -5,7 +5,7 @@ description: "스프링 핵심 원리 - 직접 코드를 작성해 왜 스프링
 language: "Java"
 category: "Spring Basic"
 update: "2023-07-27"
-hide: true
+hide: false
 serisenumber: 2
 ---
 
@@ -135,6 +135,34 @@ public class MemoryMemberRepository implements MemberRepository{
     }
 }
 ```
+
+> 💡HashMap의 동시성 문제
+1. Thread-Safety 부재
+- HashMap은 thread-safe하지 않습니다
+- 여러 스레드가 동시에 데이터를 수정하면 데이터 손실이나 불일치가 발생할 수 있습니다
+2. 발생 가능한 문제들
+- 데이터 유실
+- 무한 루프
+- 데이터 불일치
+- 예기치 않은 NullPointerException
+3. ConcurrentHashMap의 장점
+- Thread-Safe 보장
+    - 내부적으로 세그먼트 단위의 락을 사용
+    - 여러 스레드가 동시에 맵을 수정해도 안전
+- 성능 최적화
+    - 전체 맵에 락을 걸지 않고 일부분만 락을 걸어 처리
+    - HashMap + synchronized 보다 훨씬 더 나은 성능 제공
+예시 코드로 보면:
+
+```java
+// Thread-safe하지 않음
+private static Map<Long, Member> store = new HashMap<>();
+
+// Thread-safe함
+private static Map<Long, Member> store = new ConcurrentHashMap<>();
+```
+
+실제 서비스에서 여러 사용자의 요청을 동시에 처리해야 하는 상황이라면 ConcurrentHashMap을 사용하는 것이 안전합니다.
 
 - MemberService Interface
 ```java
