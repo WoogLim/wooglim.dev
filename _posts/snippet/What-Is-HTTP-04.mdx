@@ -18,13 +18,13 @@ serisenumber: 4
 ### 캐시가 없을 때
 1. 캐시가 없을 때(첫 요청)
 
-![no-cache-first-transfer](/snippets/cshttp/chapter10/capture01.png)
+![no-cache-first-transfer](/snippets/cshttp/chapter10/capture1.png)
 
 웹 브라우저에서 `star.jpg` 요청 1.1MB라고 가정할 때(헤더는 0.1M, 바디는 1M 이라고 가정)
 
 2. 캐시가 없을 때(두 번째 요청)
 
-![no-cache-second-transfer](/snippets/cshttp/chapter10/capture02.png)
+![no-cache-second-transfer](/snippets/cshttp/chapter10/capture2.png)
 
 동일하게 1.1MB 요청이 오면 서버에서 응답을 보냄
 
@@ -38,9 +38,9 @@ serisenumber: 4
 
 1. 캐시가 있을 때(첫 요청)
 
-![cache-hit-first-transfer](/snippets/cshttp/chapter10/capture03.png)
+![cache-hit-first-transfer](/snippets/cshttp/chapter10/capture3.png)
 
-![cache-hit-first-transfer-2](/snippets/cshttp/chapter10/capture04.png)
+![cache-hit-first-transfer-2](/snippets/cshttp/chapter10/capture4.png)
 
 헤더내 `Cache-Control: max-age=60`를 설정한 경우 60초 동안 캐시에 저장
 
@@ -48,7 +48,7 @@ serisenumber: 4
 
 60초 내에 동일한 요청이 오면 캐시에서 응답을 보낸다.
 
-![cache-hit-second-transfer](/snippets/cshttp/chapter10/capture05.png)
+![cache-hit-second-transfer](/snippets/cshttp/chapter10/capture5.png)
 
 위와 같이 `캐시가 적용되었다면`
 - 캐시 덕분에 캐시 가능 시간동안 네트워크를 사용하지 않아도 된다.
@@ -78,14 +78,21 @@ serisenumber: 4
 
 캐시 유효 시간이 초과해도 서버의 데이터가 갱신되지 않았다면 데이터를 재상용할 수 있다.
 
-![cache-validation-header](/snippets/cshttp/chapter10/capture07.png)
+![cache-validation-header](/snippets/cshttp/chapter10/capture7.png)
+
 1. 헤더내 Last-Modified(데이터가 마지막으로 수정된 시간) 을 서버측에서 클라이언트에게 전달
 2. 클라이언트는 캐시 저장시 마지막 수정 시간을 같이 저장
-![cache-validation-header-2](/snippets/cshttp/chapter10/capture08.png)
+
+![cache-validation-header-2](/snippets/cshttp/chapter10/capture8.png)
+
 3. 캐시 시간 만료 후 서버에게 리소스 요청시 `if-modified-since` 헤더를 통해 서버로부터 전달된 마지막 수정 시간을 전달
-![cache-validation-header-3](/snippets/cshttp/chapter10/capture09.png)
+
+![cache-validation-header-3](/snippets/cshttp/chapter10/capture9.png)
+
 4. 서버는 가진 리소스와 비교해 수정 시간이 같다면 캐시 갱신 시간/수정 시간과 304 Not Modified 응답 코드를 보낸다. 이때 HTTP Body(리소스의 바이트 코드)는 전송하지 않는다.
+
 ![cache-validation-header-4](/snippets/cshttp/chapter10/capture10.png)
+
 5. 클라이언트는 이전 리소스를 재상용함과 동시에 캐시/수정 시간을 갱신한다.
 
 ![cache-validation-header-5](/snippets/cshttp/chapter10/capture11.png)
@@ -133,11 +140,17 @@ serisenumber: 4
 - 단순히 클라이언트에서 ETag 만 보내서 같으면 유지, 다르면 다시 받기
 
 사용 순서는 다음과 같다.
+
 ![cache-validation-header-6](/snippets/cshttp/chapter10/capture12.png)
+
 - 서버에서 ETag를 리소스와 함께 내려받고 저장. 캐시가 종료된 시점으로 가정
+
 ![cache-validation-header-7](/snippets/cshttp/chapter10/capture13.png)
+
 ![cache-validation-header-8](/snippets/cshttp/chapter10/capture14.png)
+
 - 위와 같이 이름이 변경되지 않았다면 서버는 304 Not Modified 응답 코드를 보낸다. Body는 전송하지 않는다. 캐시 그대로 있는 리소스를 활용한다.
+
 ![cache-validation-header-9](/snippets/cshttp/chapter10/capture15.png)
 
 - 단순히 ETag만 보내 같으면 유지, 다르면 다시 받기
