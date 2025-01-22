@@ -519,3 +519,50 @@ public class OrderServiceImpl implements OrderService {
 ```
 
 `@Qualifier`를 이용 `mainDiscountPolicy` 빈을 매칭해 주입한다. 근데 만약 못찾으면 어떻게 될까. 이 경우 `mainDiscountPolicy`라는 이름의 스프링 빈을 추가로 찾는다. 하지만 `@Qualifier`는 `@Qualifier`를 찾는 용도로만 사용하는 것이 명확하다.
+
+다음과 같이 직접 빈 등록시에도 `@Qualifier`를 사용할 수 있다.
+
+```java
+@Bean
+@Qualifier("mainDiscountPolicy")
+public DiscountPolicy discountPolicy() {
+  // return new ...
+}
+```
+
+### @Primary
+
+`@Primary`는 우선순위를 정하는 방법이다. 만약 빈이 2개 이상이라면 `@Primary`가 우선순위를 가지게 된다.
+
+```java
+package hello.core.discount;
+
+@Component
+@Primary
+public class RateDiscountPolicy implements DiscountPolicy {
+  // ...
+}
+
+package hello.core.order;
+
+@Component
+public class OrderServiceImpl implements OrderService {
+
+    private final MemberRepository memberRepository;
+    private final DiscountPolicy discountPolicy;
+
+    @Autowired
+    public OrderServiceImpl(MemberRepository memberRepository, DiscountPolicy discountPolicy) {
+        this.memberRepository = memberRepository;
+        this.discountPolicy = discountPolicy;
+    }
+}
+```
+
+*@Primary, @Qualifier 활용*
+코드에서 자주 사용하는 메인 데이터베이스의 커넥션을 획득하는 스프링 빈이 있고, 코드에서 특별한 기능으로 가끔 사용하는 서브 데이터베이스의 커넥션을 획득하는 스프링 빈이 있다고 생각해보자. 메인 데이터베이스의 커넥션을 획득하는 스프링 빈은 @Primary를 적용해서 조회하는 곳에서 @Qualifier 지정 없이 편리하게 조회하고, 서브 데이터베이스 커넥션 빈을 획득할 때는 @Qualifier를 지정해서 명시적으로 획득하는 방식으로 사용하면 코드를 깔끔하게 유지할 수 있다. 물론 이때 메인 데이터베이스의 스프링 빈을 등록할 때 @Qualifier를 지정해주는 것은 상관없다.
+
+*우선순위*
+@Primary는 기본값처럼 동작하는 것이고, @Qualifier는 매우 상세하게 동작한다. 이런 경우 어떤 것이 우선권을 가져갈까? 스프링은 자동보다는 수동이, 넓은 범위의 선택권보다는 좁은 범위의 선택권이 우선순위가 높다. 따라서 여기서도 @Qualifier가 우선권이 높다.
+
+## 애노테이션 직접 만들기

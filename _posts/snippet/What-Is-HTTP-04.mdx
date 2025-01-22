@@ -1,0 +1,267 @@
+---
+slug: "What-Is-HTTP-04"
+title: "[HTTP 통신] 정리노트 - 4"
+description: "HTTP 헤더 - 캐시와 조건부 요청"
+language: "HTTP"
+category: "Computer science"
+update: "2025-01-21"
+hide: true
+serisenumber: 4
+---
+
+## 시작
+
+- [김영한 강사님의 모든 개발자를 위한 HTTP 웹 기본 지식 강의를 듣고 TIL 방식으로 정리한 글입니다.](https://www.inflearn.com/course/lecture?courseSlug=http-%EC%9B%B9-%EB%84%A4%ED%8A%B8%EC%9B%8C%ED%81%AC&unitId=61388&tab=curriculum)
+
+## 캐시 기본 동작
+
+### 캐시가 없을 때
+1. 캐시가 없을 때(첫 요청)
+
+![no-cache-first-transfer](/snippets/cshttp/chapter10/capture01.png)
+
+웹 브라우저에서 `star.jpg` 요청 1.1MB라고 가정할 때(헤더는 0.1M, 바디는 1M 이라고 가정)
+
+2. 캐시가 없을 때(두 번째 요청)
+
+![no-cache-second-transfer](/snippets/cshttp/chapter10/capture02.png)
+
+동일하게 1.1MB 요청이 오면 서버에서 응답을 보냄
+
+위와 같이 `캐시가 없을 때` 발생한 문제
+- 데이터가 변경되지 않아도 매번 네트워크 다시 다운로드 해야함
+- 인터넷 네트워크는 매우 느리고 비싸다.
+- 브라우저 로딩 속도가 느려짐
+- 느린 사용자 경험
+
+### 캐시가 있을 때
+
+1. 캐시가 있을 때(첫 요청)
+
+![cache-hit-first-transfer](/snippets/cshttp/chapter10/capture03.png)
+
+![cache-hit-first-transfer-2](/snippets/cshttp/chapter10/capture04.png)
+
+헤더내 `Cache-Control: max-age=60`를 설정한 경우 60초 동안 캐시에 저장
+
+2. 캐시가 있을 때(두 번째 요청)
+
+60초 내에 동일한 요청이 오면 캐시에서 응답을 보낸다.
+
+![cache-hit-second-transfer](/snippets/cshttp/chapter10/capture05.png)
+
+위와 같이 `캐시가 적용되었다면`
+- 캐시 덕분에 캐시 가능 시간동안 네트워크를 사용하지 않아도 된다.
+- 비싼 네트워크 사용량 줄어듬
+- 브라우저 로딩 속도 빨라짐
+- 빠른 사용자 경험
+
+### 캐시 시간 초과
+
+캐시 유효 시간이 초과하면 서버를 통해 데이터를 다시 조회하고 갱신한다. 그리고 이때 다시 네트워크 다운로드가 발생한다.
+
+![cache-expired](/snippets/cshttp/chapter10/capture06.png)
+
+만일 캐시 유효 시간이 지났지만 다시 요청하는 시점까지도 클라이언트의 리소스와 서버의 리소스가 변경되지 않았다면 캐시를 재사용 할 수 있는 방법이 있는지에 대해 알아보자.
+
+## 검증 헤더와 조건부 요청1
+
+- 캐시 유효 시간이 초과해 서버에 다시 요청하면 두 가지 상황이 나타난다.
+  1. 서버에서 기존 데이터를 변경
+  2. 서버에서 기존 데이터를 변경하지 않음
+
+2번과 같이 캐시 만료후에도 서버에서 데이터를 변경하지 않은 경우
+- 클라이언트의 리소스를 재사용할 수 있다.
+- 단, `클라이언트와 서버가 소유한 리소스가 같다는 사실을 확인할 수 있는 방법`이 필요하다.
+
+### 검증 헤더 추가
+
+캐시 유효 시간이 초과해도 서버의 데이터가 갱신되지 않았다면 데이터를 재상용할 수 있다.
+
+![cache-validation-header](/snippets/cshttp/chapter10/capture07.png)
+1. 헤더내 Last-Modified(데이터가 마지막으로 수정된 시간) 을 서버측에서 클라이언트에게 전달
+2. 클라이언트는 캐시 저장시 마지막 수정 시간을 같이 저장
+![cache-validation-header-2](/snippets/cshttp/chapter10/capture08.png)
+3. 캐시 시간 만료 후 서버에게 리소스 요청시 `if-modified-since` 헤더를 통해 서버로부터 전달된 마지막 수정 시간을 전달
+![cache-validation-header-3](/snippets/cshttp/chapter10/capture09.png)
+4. 서버는 가진 리소스와 비교해 수정 시간이 같다면 캐시 갱신 시간/수정 시간과 304 Not Modified 응답 코드를 보낸다. 이때 HTTP Body(리소스의 바이트 코드)는 전송하지 않는다.
+![cache-validation-header-4](/snippets/cshttp/chapter10/capture10.png)
+5. 클라이언트는 이전 리소스를 재상용함과 동시에 캐시/수정 시간을 갱신한다.
+
+![cache-validation-header-5](/snippets/cshttp/chapter10/capture11.png)
+
+## 검증 헤더와 조건부 요청2
+
+검증 헤더
+- 캐시 데이터와 서버 데이터가 검증하는 데이터
+- Last-Modified, ETag
+
+조건부 요청 헤더
+- 검증 헤더로 조건에 따른 분기
+- if-modified-since: Last-Modified 사용
+- if-none-match: ETag 사용
+- 조건이 만족하면 200 OK
+- 조건이 만족하지 않으면 304 Not Modified
+
+`if-Modified-Since` (이후 데이터가 수정되었다면)
+- 데이터 미변경
+  - 캐시 : 2025년 1월 1일 10:00:00 vs 서버 : 2025년 1월 1일 10:00:00
+  - 서버 : 304 Not Modified 헤더 데이터만 전송(BODY 미포함)
+  - 전송 용량 0.1M(헤더 0.1M, 바디 0M)
+- 데이터 변경
+  - 캐시 : 2025년 1월 1일 10:00:00 vs 서버 : 2025년 1월 1일 11:00:00
+  - 서버 : 200 OK 헤더 + 바디 전송(BODY 포함)
+  - 전송 용량 1.1M(헤더 0.1M, 바디 1M)
+
+### Last-Modified와 If-Modified-Since 단점
+
+- 1초 미만 단위로 캐시 조정 불가능.
+- 날짜 기반의 로직 사용
+- 데이터를 수정해서 날짜는 다르지만, 같은 데이터를 수정해서 데이터 결과는 똑같은 경우가 있어 검증 애매함
+- 서버에서 별도로 캐시 로직을 관리하고 싶은 경우
+  - 스페이스나 주석 같이 크게 영향이 없는 경우 변경에서 캐시를 유지하고 싶은 경우
+
+### ETag와 If-None-Match
+
+서버에서 캐시 메커니즘을 컨트롤할 수 있는 방법
+
+- 엔티티 태그라는 뜻 ETag(Entity Tag)
+- 캐시용 데이터에 임의의 고유한 버전 이름을 부여
+  - ex) ETag: "v1.0", ETag: "해시코드"
+- 데이터가 변경되면 이름을 변경
+  - ex) ETag: "v1.1", ETag: "변경된 해시코드"
+- 단순히 클라이언트에서 ETag 만 보내서 같으면 유지, 다르면 다시 받기
+
+사용 순서는 다음과 같다.
+![cache-validation-header-6](/snippets/cshttp/chapter10/capture12.png)
+- 서버에서 ETag를 리소스와 함께 내려받고 저장. 캐시가 종료된 시점으로 가정
+![cache-validation-header-7](/snippets/cshttp/chapter10/capture13.png)
+![cache-validation-header-8](/snippets/cshttp/chapter10/capture14.png)
+- 위와 같이 이름이 변경되지 않았다면 서버는 304 Not Modified 응답 코드를 보낸다. Body는 전송하지 않는다. 캐시 그대로 있는 리소스를 활용한다.
+![cache-validation-header-9](/snippets/cshttp/chapter10/capture15.png)
+
+- 단순히 ETag만 보내 같으면 유지, 다르면 다시 받기
+- 캐시 제어 로직을 서버에서 관리
+- 클라이언트는 단순히 값을 서버에 제공
+- 사용예)
+  - 애플리케이션 배포 주기에 맞추어 ETag 모두 갱신
+
+## 캐시와 조건부 요청 헤더
+캐시 제어 헤더로는 아래와 같은 것들이 있다.
+- Cache-Control: 캐시 제어
+  - Pragma, Expires 를 모두 사용 가능
+- Pragma: 캐시 제어(하위 호환)
+- Expires: 캐시 유효 기간(하위 호환)
+
+### Cache-Control
+캐시 지시어로 사용
+
+- Cache-Control: max-age
+  - 캐시 유효 시간, 초 단위
+- Cache-Control: no-cache
+  - 데이터는 캐시해도 되지만, 필요할 때 원본 서버에 검증하고 사용(if-modified-since, if-none-match 사용, 바뀌었다면 원본 서버(캐시 서버X)에 요청)
+- Cache-Control: no-store
+  - 데이터에 민감한 정보가 있으므로 저장하면 안됨(메모리에서 사용 중이면 빠르게 사용 후 제거)
+
+### Pragma
+- 캐시 제어(하위 호환)
+- Pragma: no-cache
+- HTTP 1.0 하위 호환
+- 하위 호환이 필요하지 않는 이상 사용 X
+
+### Expires
+- 캐시 만료일을 직접 지정 초단위 지정 불가
+- 거의 사용 X
+
+#### 검증 헤더와 조건부 요청 헤더
+- 검증 헤더(Validator)
+  - 캐시 데이터와 서버 데이터가 같은지 검증하는 데이터
+  - ETag, Last-Modified
+- 조건부 요청 헤더(조건에 따른 분기)
+  - If-Match, If-None-Match: ETag 사용
+  - If-Modified-Since, If-Unmodified-Since: Last-Modified 사용
+
+## 프록시 캐시
+
+![proxy-cache](/snippets/cshttp/chapter10/capture16.png)
+
+많은 클라이언트가 원서버로 데이터를 요청하면 원서버는 많은 부하를 받게 된다. 이런 부하를 줄이기 위해 프록시 캐시를 사용한다.
+
+1. 웹 브라우저가 한국에 있는 캐시 서버를 타고 요청
+2. 캐시 서버는 원서버에 요청
+3. 원서버는 응답
+4. 캐시 서버는 응답을 웹 브라우저에 전달 & 캐시 저장
+5. 이후 클라이언트는 캐시 서버에서 받은 응답을 재사용
+
+보통 캐시 서버는 여러 국가에 두면서 가까운 위치에 있는 클라이언트의 요청을 전달한다.
+
+### Cache-Control
+캐시 지시어(directives)
+
+![cache-control](/snippets/cshttp/chapter10/capture17.png)
+
+- Cache-Control: public
+  - 응답이 public 캐시에 저장되어도 됨
+- Cache-Control: private
+  - 응답이 해당 사용자만 사용하는 경우, private 캐시에 저장
+- Cache-Control: s-maxage
+  - 프록시 캐시에만 적용되는 max-age
+- Age: 60 (HTTP 헤더)
+  - 오리진 서버에서 응답 후 프록시 캐시 내 머문 시간(초)
+
+## 캐시 무효화
+캐시가 되선 안될 정보들이 있다. 이런 정보들을 캐시 무효화 응답으로 표시한다.
+
+### Cache-Control
+확실한 캐시 무효화 응답
+
+- Cache-Control: no-cache, no-store, must-revalidate
+- Pragma: no-cache
+  - HTTP 1.0 하위 호환
+
+사용 예)
+- 사용자의 통장 잔고 조회
+
+지시어는 다음과 같다.
+- Cache-Control: no-cache
+  - 데이터는 캐시해도 되지만, 필요할 때 원본 서버에 검증하고 사용(if-modified-since, if-none-match 사용, 바뀌었다면 원본 서버(캐시 서버X)에 요청)
+- Cache-Control: no-store
+  - 데이터에 민감한 정보가 있으므로 저장하면 안됨(메모리에서 사용 중이면 빠르게 사용 후 제거)
+- Cache-Control: must-revalidate
+  - 캐시 만료 후 최초 조회시 원본 서버에 검증해야 함
+  - 원 서버 접근 실패시 반드시 오류 발생해야 함. 504(Gateway Timeout) 오류 발생
+  - must-revalidate는 캐시 유효 시간이라면 캐시를 사용
+- Pragma: no-cache
+  - HTTP 1.0 하위 호환
+
+### no-cache vs must-revalidate
+
+원본 서버에 검증을 받는 부분이 겹친다. 구분해서 사용하는 이유는 다음과 같다.
+
+#### no-cache 기본 동작
+
+![no-cache-basic-behavior](/snippets/cshttp/chapter10/capture18.png)
+
+1. 클라이언트는 no-cache, ETag, 리소스를 브라우저 캐시에 저장
+2. 캐시가 만료되고 웹 브라우저는 캐시 서버에 요청
+3. 캐시 서버는 ETag를 전달 받고 원본 서버에 검증 요청
+4. 원본 서버는 검증 후 응답
+5. 캐시 서버는 원본 서버에서 받은 응답을 웹 브라우저에 전달
+6. 웹 브라우저는 캐시 서버에서 받은 응답을 재사용
+
+
+위는 기본 동작이다. 
+
+그런데 만일 프록시 캐시와 원본 서버 사이 네트워크 단절이 발생한 경우는 어떻게 될까.
+
+검증 혹은 데이터를 전달 받을 수 없다. 이 경우 프록시 캐시 서버가 이전에 받은 리소스가 오래된 것일지라도 클라이언트에게 200 OK 를 전달할 수 있다.
+
+![no-cache-network-disconnection](/snippets/cshttp/chapter10/capture19.png)
+
+### must-revalidate
+
+![must-revalidate](/snippets/cshttp/chapter10/capture20.png)
+
+`no-cache`의 경우 원본 서버와의 네트워크가 단절된 경우 과거 데이터를 응답할 수 있는데, 만일 통장 잔고와 같은 데이터라면 이는 200 OK 가 발생해선 안된다.
+
+이때 `must-revalidate`의 경우에는 원본 서버와의 네트워크가 단절된 경우 504 Gateway Timeout 오류를 발생시킨다. 즉 데이터를 보지 못하도록 한다.
