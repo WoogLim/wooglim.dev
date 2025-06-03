@@ -1,0 +1,491 @@
+---
+slug: "Effective-Typescript-01"
+title: "[Effective Typescript] - 1"
+description: "Effective Typescript"
+language: "typescript"
+category: "typescript"
+update: "2025-05-31"
+hide: true
+serisenumber: 1
+---
+
+# 자료
+---
+- [Dan Vanderkam의 이펙티브 타입스크립트(O'Reilly) 책을 읽고 정리한 글입니다.](https://www.oreilly.com/library/view/effective-typescript/9781492053736/)
+
+## item1. 타입스크립트와 자바스크립트의 관계 이해하기
+---
+
+1. 자바스크립트의 타입 체크
+- 동적 타입 체크
+- 런타임에만 타입 체크가 이루어짐
+- 타입 에러는 실제 코드가 실행될 때만 발견됨
+
+2. 타입스크립트의 장점
+- 정적 타입 체크
+- 정적 타입 체크를 통해 런타임 이전에 타입 에러를 발견
+- 컴파일 시점에 타입 관련 문제를 잡아냄
+
+아래와 같은 정적 체크 타입(타입 추론)은 런타임 이전에 타입 에러를 발견할 수 있습니다.
+
+```ts
+let city = 'new york city';
+console.log(city.toUppercase());
+              // ~~~~ 'toUppercase' 속성이 'string' 형식에 없습니다.
+              //      'toUpperCase'을(를) 사용하시겠습니까?
+```
+
+## item2. 타입스크립트 설정 이해하기
+---
+
+타입스크립트 환경 설정 파일(tsconfig.json)은 타입스크립트 컴파일러의 동작을 제어하는 파일입니다.
+
+`tsc --init` 명령어를 통해 타입스크립트 환경 설정 파일을 생성할 수 있습니다.
+
+```json
+{
+  "compilerOptions": {
+    "noImplicitAny": true, // 암시적 any 타입 금지
+    "strictNullChecks": true, // null 체크 강화
+  }
+}
+```
+
+### noImplicitAny
+
+다음 함수의 경우 타입스크립트는 각 매개변수의 타입 및 return 값을 `any`로 추론합니다.
+
+```ts
+function add(a, b) {
+  return a + b;
+}
+```
+
+any 타입을 사용하면 타입 체크를 피할 수 있지만, 타입 안전성을 포기하게 됩니다. 매우 유의해서 사용해야 합니다.
+
+이 때 `noImplicitAny` 옵션을 사용하면 암시적 any 타입을 사용하는 것을 방지할 수 있습니다.
+
+타입스크립트는 타입 정보를 가질 때 효과적이기 때문에 되도록 이 옵션을 사용하는 것이 좋습니다.
+
+### strictNullChecks
+
+`strictNullChecks` 옵션을 해제하면 타입스크립트는 모든 변수를 null 또는 undefined로 초기화할 수 있습니다.
+
+```ts
+let x: number = null;
+```
+
+설정한 경우는 아래와 같이 오류가 발생합니다.
+
+```ts
+let x: number = null;
+// ~~~~ 'null' 형식은 'number' 형식에 할당할 수 없습니다.
+```
+
+체크를 해제하여 null 로 초기화 한 이후 경우에 따라 null을 허용하지 않으려면 null 체크 코드나 단언문을 추가해야 합니다.
+
+```ts
+const el = document.getElementById('foo');
+
+// 1. null 체크
+if (el) {
+  el.textContent = 'Hello';
+}
+
+// 2. 단언문
+el!.textContent = 'Hello';
+```
+
+타입스크립트를 사용하는 프로젝트를 수행한다면 `noImplicitAny`와 `strictNullChecks`은 기본적으로 설정하는 것이 좋습니다.
+
+## item3. 코드 생성과 타입이 관계없음을 이해하기
+---
+타입스크립트 컴파일러는 다음 두 역할을 합니다.
+
+1. 최신 ts/js를 브라우저에서 동작할 수 있도록 구버전의 자바스크립트로 트랜스파일
+2. 코드의 타입 오류를 검사
+
+위 두 역할을 보면 할 수 있는 일과 없는 일을 구분할 수 있습니다.
+
+- 할 수 있는 일: 타입 체크
+- 없는 일: 코드 생성
+
+### 1. 타입 오류가 있는 코드도 컴파일이 가능
+컴파일은 타입 체크와 독립적으로 동작하기 때문에 동작 오류가 있어도 컴파일이 가능하다.
+
+```bash
+# cat test.ts
+let a = 1;
+a = 'hello';  // 타입 오류
+```
+
+```bash
+# tsc test.ts
+```
+
+```bash
+# cat test.js
+let a = 1;
+a = 'hello';
+```
+
+C, Java 의 경우 타입 체크와 컴파일이 동시에 일어나는 반면 타입스크립트는 타입 체크와 코드 생성이 분리되어 있습니다.
+
+오류가 있을 때, 컴파일하지 않으려면 `tsconfig.json` 파일에 `noEmitOnError` 옵션을 설정하면 됩니다.
+
+### 2. 런타임에는 타입 체크가 불가능하다.
+
+```ts
+interface Square {
+  width: number;
+}
+interface Rectangle extends Square {
+  height: number;
+}
+type Shape = Square | Rectangle;
+
+function calculateArea(shape: Shape) {
+  // instanceof는 런타임에 동작하는 연산자, Rectangle은 타입스크립트 인터페이스, 컴파일 시점에만 존재.
+  if (shape instanceof Rectangle) {
+                    // ~~~~ 'Rectangle'은(는) 형식만 참조하지만,
+                    //      여기서는 값으로 사용되고 있습니다.
+    return shape.width * shape.height;
+                    // ~~~~ 'Shape' 형식에 'height' 속성이 없습니다.
+  } else {
+    return shape.width * shape.width;
+  }
+}
+```
+
+instanceof 체크는 런타임에 일어나지만, Rectangle 은 타입이므로 런타임 시점에 아무런 역할을 할 수 없음.
+
+자바스크립트로 컴파일되는 과정에 모든 인터페이스, 타입, 타입 구문을 제거됨
+
+코드에서 shape 타입을 명확하게 하려면, 런타임에 타입 정보를 유지하는 방법이 필요
+
+```ts
+function calculateArea(shape: Shape) {
+  if ('height' in shape) {
+    // 타입이 Rectangle 이라고 추론
+    return shape.width * shape.height;
+  }
+  return shape.width * shape.width;
+}
+```
+
+또 다른 타입 정보 유지 방법은 런타임에 접근 가능한 타입 정보를 명시적으로 저장하는 `태그`기법이 존재
+
+```ts
+interface Square {
+  kind: 'square';
+  size: number;
+}
+interface Rectangle {
+  kind: 'rectangle';
+  width: number;
+  height: number;
+}
+// union 타입
+type Shape = Square | Rectangle;
+
+function calculateArea(shape: Shape) {
+  if (shape.kind === 'rectangle') {
+    // 타입이 Rectangle 이라고 추론
+    return shape.width * shape.height;
+  }
+  return shape.size * shape.size;
+}
+```
+
+타입과 값 둘다 사용하는 기법도 존재하는데, 타입을 클래스로 만들면 됩니다.
+
+```ts
+class Square {
+  constructor(public width: number) {}
+}
+class Rectangle {
+  constructor(public width: number, public height: number) {
+    super(width);
+  }
+}
+type Shape = Square | Rectangle;
+
+function calculateArea(shape: Shape) {
+  if (shape instanceof Rectangle) {
+    return shape.width * shape.height;
+  }
+  return shape.width * shape.width;
+}
+``` 
+
+인터페이스는 타입으로만 사용 가능하지만, 클래스로 만들면 타입과 값 둘다 사용 가능합니다.
+
+### 3. 타입 연산은 런타임에 영향을 주지 않는다.
+
+string 또는 number 타입인 값을 항상 number로 정제하는 경우로 가정해 타입체크를 통과하지만 잘못된 방법을 사용해보도록 한다.
+
+```ts
+function asNumber(val: number | string): number {
+  return val as number;
+}
+```
+
+변환된 자바스크립트는 다음과 같다.
+
+```js
+function asNumber(val) {
+  return val;
+}
+```
+
+즉, 타입 연산은 런타임에 영향을 주지 않는다. 값을 정제하기 위해서는 런타임의 타입을 체크해야 하고 자바스크립트 연산을 통해 변환을 수행해야 한다.
+
+```ts
+function asNumber(val: number | string): number {
+  return typeof val === 'string' ? Number(val) : val;
+}
+```
+
+### 4. 런타임 타입은 선언된 타입과 다를 수 있다.
+
+```ts
+function setLightSwitch(value: boolean) {
+  switch (value) {
+    case true:
+      turnLightOn();
+      break;
+    case false:
+      turnLightOff();
+      break;
+    default:
+      console.log('실핼될까요?');
+  }
+}
+```
+
+에러 발생시 컴파일 불가 설정을 해제하고 컴파일되면 타입 정보는 제거되어 런타임 과정에서 `console.log` 는 수행된다.
+
+```ts
+setLightSwitch("ON");
+// '실행될까요?'
+```
+
+순수 타입스크립트에서도 마지막 코드를 실행할 방법이 존재한다. 네트워크 호출로 받아온 값으로 함수를 실행하는 경우이다.
+
+```ts
+interface LightApiResponse {
+  lightSwitchValue: boolean;
+}
+async function setLight() {
+  const response = await fetch('/light');
+  const result: LightApiResponse = await response.json();
+  setLightSwitch(result.lightSwitchValue);
+}
+```
+
+API를 잘못 파악해 lightSwitchValue가 실제로는 문자열이라면 런타임에는 setLightSwitch 함수까지 전달될 것이다.
+
+또는 API가 string을 반환하도록 변경될 수 있다. 타입스크립트는 이와 같이 런타임 타입과 선언된 타입이 맞지 않을 수 있다. 선언된 타입은 언제든지 달라질 수 있다.
+
+### 5. 타입스크립트는 타입으로는 함수를 오버로드할 수 없다.
+
+C++ 에서는 매개변수만 다른 여러 버전의 함수를 허용하는 오버로딩 기능이 존재한다. 그러나 타입스크립트에서는 타입과 런타임 동작이 무관하기 때문에 오버로딩 기능을 제공하지 않는다.
+
+```ts
+// 구현체를 두 개 작성하면 오류 발생
+function add(a: number, b: number) { return a + b; };
+      // ~~~ 중복된 함수 구협입니다.
+function add(a: string, b: string) { return a + b; };
+      // ~~~ 중복된 함수 구협입니다.
+```
+
+타입스크립트가 함수 오버로딩 기능을 지원하지만 온전히 타입 수준에서만 동작한다. 한 함수에 대해 여러 선언문을 작성할 수 있지만, 구현체는 오직 하나 뿐이다.
+
+```ts
+function add(a: number, b: number): number;
+function add(a: string, b: string): string;
+
+// 실제 구현체는 하나 뿐이다. (컴파일된 후)
+function add(a, b) {
+  return a + b;
+}
+
+const three = add(1, 2); // 타입이 number
+const twelve = add('1', '2'); // 타입이 string
+```
+
+add 에 대한 처음 두 개 선언문은 타입 정보를 제공할 뿐, 실제 구현체는 하나 뿐이다.
+
+### 6. 타입스크립트 타입은 런타임 성능에 영향을 주지 않는다.
+
+type과 타입 연산자는 자바스크립트 변환 시점에 모두 제거되기 때문에 런타임 성능에 영향을 주지 않는다.
+
+타입스크립트 팀은 컴파일 성능을 중요히 생각한다. 증분 빌드시 오버헤드가 커지만 빌드 도구에서 트랜스파일을 설정해 타입 체크를 건너뛰게 설계했다.
+
+## item4. 구조적 타이핑에 익숙해지기
+---
+
+자바스크립트는 본질적으로 덕 타이핑 기반이다. 객체가 어떤 타입에 부합하는 변수, 메서드를 가진 경우 객체를 해당 타입으로 간주한다.
+
+이러한 구조적 타이핑에 의해 문제가 발생하기도 한다. 바로 일부 매개변수만 존재하더라도 해당 객체 타입으로 간주될 수 있다는 점이다.
+
+```ts
+interface Vector2D {
+  x: number;
+  y: number;
+}
+
+interface Vector3D {
+  x: number;
+  y: number;
+  z: number;
+}
+
+function calculateLength(v: Vector2D) {
+  return Math.sqrt(v.x * v.x + v.y * v.y);
+}
+
+interface NamedVector {
+  name: string;
+  x: number;
+  y: number;
+}
+
+// 벡터의 길이를 1로 만드는 정규화 함수
+function normalize(v: Vector3D) {
+  const length = calculateLength(v);
+  return {
+    x: v.x / length,
+    y: v.y / length,
+    z: v.z / length,
+  };
+}
+```
+
+결과는 다음과 같다.
+
+```text
+> normalize({ x: 3, y: 4, z: 5 });
+{ x: 0.6, y: 0.8, z: 1 }
+```
+
+벡터의 길이를 1로 만드는 정규화 함수를 사용했지만 길이가 1은 되지 않았다. z가 정규화에서 무시된 것인데, 타입 체커가 문제를 잡아내지 못한 것이다.
+
+호출에 사용되는 매개변수 속성들이 매개변수 타입에 선언된 속성만을 가질 것이라 생각하기 쉽다. 이런 타입은 `봉인된(sealed)` 혹은 `정확한(precise)` 타입이라고 부른다.
+
+이런 결과로 당황스러운 결과가 발생하기도 한다.
+
+```ts
+function calculateLengthL1(v: Vector3D) {
+  let length = 0;
+
+  for (const axis of Object.keys(v)) {
+    const coord = v[axis];
+          // ~~~~~~ 'string'은 'Vector3D'의 인덱스로 사용할 수 없기에
+          //        엘리먼트는 암시적으로 'any' 타입입니다.
+    length += Math.abs(coord);
+  }
+  return length;
+}
+
+const vec3D = { x: 3, y: 4, z: 1, address: '123 Broadway' };
+calculateLengthL1(vec3D);
+```
+
+v는 어떤 속성이든 가질 수 있기 때문에 axis 타입은 string이 될 수도 있다. 그러므로 number라고 확정할 수 없다. 이 경우, 루프보다는 모든 속성을 각각 더하는 구현이 더 낫다.
+
+구조적 타이핑은 클래스 관련 할당문에도 당황스러운 결과를 보여준다.
+
+```ts
+class C {
+  foo: string;
+  constructor(foo: string) {
+    this.foo = foo;
+  }
+}
+
+const c = new C('instance of C');
+const d: C = { foo: 'object with a foo property' }; // 정상
+```
+
+d는 string 타입의 foo 속성을 가진다. 하나의 매개변수로 호출되는 생성자를 가지는데, 구조적으로 필요 속성 및 생성자가 존재하므로 문제가 없다.
+
+생성자 내부에 단순 할당이 아닌 연산 로직이 존재한다면 d의 경우는 에러가 발생한다. 이런 부분이 C타입의 매개변수를 선언해 C 또는 서브 클래스임을 보장하는 C++, JAVA와 다른 특징이다.
+
+이러한 점으로 유닛테스트 코드를 작성할 때, 구조적 타이핑이 유리하다.
+
+테스트시 mocking 한 PostgresDB를 생성해야하지만 아래와 같이 구조적 타이핑을 활용해 더 구체적인 인터페이스를 정의하는 것이 더 좋은 방법이다.
+
+```ts
+interface Author {
+  first: string;
+  last: string;
+}
+
+interface DB {
+  runQuery: (sql: string) => any[];
+}
+
+function getAuthors(database: DB): Author[] {
+  const authorRows = database.runQuery('SELECT FIRST, LAST FROM AUTHORS');
+  return authorRows.map((row) => ({
+    first: row[0],
+    last: row[1],
+  }));
+}
+```
+
+구조적 타이핑으로 PostgresDB가 DB 인터페이스를 구현하는지 명확히 선언한 필요가 없다.
+
+테스트 작성시 더 간단히 객체를 만드는 매개변수로 사용할 수 있다.
+
+```ts
+test('getAuthors', () => {
+  const authors = getAuthors({
+    runQuery: (sql: string) => {
+      return [['Toni', 'Morrison'], ['Maya', 'Angelou']];
+    }
+  });
+  expect(authors).toEqual([
+    { first: 'Toni', last: 'Morrison' },
+    { first: 'Maya', last: 'Angelou' },
+  ]);
+});
+```
+
+타입스크립트는 테스트 DB가 해당 인터페이스를 충족하는지 확인한다. 테스트 코드는 실제 환경 DB 정보가 불필요하며 모킹 라이브러리도 필요 없다. 추상화를 하여 로직과 특정 구현으로 분리할 수 있다.
+
+## item5. any타입 지양하기
+---
+
+any 타입은 타입 체커, 타입스크립트 언어 서비스를 무력화 시키며 문제를 감추고 개발 경험을 지속적으로 나쁘게 한다. 최대한 사용을 피해야 한다.
+
+우선 **any 타입에는 타입 안정성이 없다.**
+
+`as any`로 단언을 해버리면 number타입의 값을 가지고 싶지만 string 타입을 할당할 수 있게 된다.
+
+두번째로, **함수 시그니처**를 무시해 버린다.
+
+함수 작성시 시그니처를 명시해야하는데, any 타입을 사용하면 시그니처를 무시해 버린다.
+
+```ts
+function calculateAge(birthDate: Date): number {
+  // ...
+}
+
+let birthDate: any = '1990-01-19';
+calculateAge(birthDate);
+```
+
+any 타입은 calculateAge 함수의 시그니처를 무시해 버린다.
+
+세번재로, **언어 서비스**가 적용되지 않는다.
+
+```ts
+let person: any = { first: 'George', last: 'Washington' };
+```
+
+이외에도 아래와 같은 문제가 있어 사용은 가급적 피해야한다.
+- 코드 리펙터링시 버그를 감춤
+- 타입 설계를 감춤
+- 타입스크립트 신뢰도를 떨어뜨림
